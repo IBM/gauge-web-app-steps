@@ -1,0 +1,29 @@
+from os import path
+from setuptools import setup
+
+
+here = path.abspath(path.dirname(__file__))
+with open(path.join(here, 'README.md'), encoding='utf-8') as f:
+    long_description = f.read()
+
+setup(
+    name='gauge-web-app-steps',
+    version='0.53',
+    description='Provides basic steps for a Gauge project, that runs tests with Selenium and Appium',
+    long_description=long_description,
+    url='https://github.com/IBM/gauge-web-app-steps',
+    author='Tobias Lehmann',
+    author_email='derdualist1@gmail.com',
+    license='MIT',
+    packages=['gauge_web_app_steps', 'gauge_web_app_steps.config', 'gauge_web_app_steps.driver'],
+    install_requires=[
+        'Appium-Python-Client>=2.9.0',
+        'getgauge',
+        'numexpr>=2.8.1',
+        'scikit-image==0.21.0',
+        'selenium>=4.8.3',
+        'webcolors==1.11.1',
+        'webdriver-manager>=3.8.6',
+    ],
+    zip_safe=False
+)
