@@ -71,7 +71,7 @@ The following Gauge steps are implemented in this module:
   - [Assert url starts with \<url>](#assert-url-starts-with-url)
   - [Assert url ends with \<url>](#assert-url-ends-with-url)
   - [Assert url contains \<url>](#assert-url-contains-url)
-  - [Assert \<by> = \<by_value> is displayed](#assert-by--by_value-is-displayed)
+  - [Assert \<by> = \<by_value> exists](#assert-by--by_value-exists)
   - [Assert \<by> = \<by_value> is invisible](#assert-by--by_value-is-invisible)
   - [Assert \<by> = \<by_value> is enabled](#assert-by--by_value-is-enabled)
   - [Assert \<by> = \<by_value> is disabled](#assert-by--by_value-is-disabled)
@@ -1254,25 +1254,25 @@ Support
 |:-----:|:--------------:|:----------:|
 |   ✔   |       ✔        |     ✔      |
 
-## Assert \<by> = \<by_value> is displayed
+## Assert \<by> = \<by_value> exists
 
-> \* Assert "id" = "elem-id" is displayed
+> \* Assert "id" = "elem-id" exists
 
-> \* Assert "xpath" = "//div/a" is displayed
+> \* Assert "xpath" = "//div/a" exists
 
-> \* Assert "link text" = "Click here" is displayed
+> \* Assert "link text" = "Click here" exists
 
-> \* Assert "partial link text" = "Click" is displayed
+> \* Assert "partial link text" = "Click" exists
 
-> \* Assert "name" = "field-name" is displayed
+> \* Assert "name" = "field-name" exists
 
-> \* Assert "tag name" = "ul" is displayed
+> \* Assert "tag name" = "ul" exists
 
-> \* Assert "class name" = "resultlist-class" is displayed
+> \* Assert "class name" = "resultlist-class" exists
 
-> \* Assert "css selector" = "ul.resultlist-class" is displayed
+> \* Assert "css selector" = "ul.resultlist-class" exists
 
-Assert that the specified element is displayed on screen.
+Assert that the specified element exists on screen.
 
 Support
 
