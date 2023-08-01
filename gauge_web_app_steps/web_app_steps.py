@@ -1027,13 +1027,6 @@ def _wait_until(condition: Callable[[Remote], Any]) -> Any:
         return False
 
 
-def _execute_async_with_arg(script_param: str, arg_param: str) -> Any:
-    script = _substitute(script_param)
-    arg = _substitute(arg_param)
-    args = re.split(r'[,\s]+', arg)
-    return driver().execute_async_script(script, *args)
-
-
 def _find_element(by_param: str, by_value_param: str) -> WebElement:
     by = _substitute(by_param)
     by_value = _substitute(by_value_param)
