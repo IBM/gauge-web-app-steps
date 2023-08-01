@@ -45,7 +45,8 @@ class SauceTunnel:
         sauce_dns = saucelabs_config.get_sauce_dns() # dns server from VPN connection
         sauce_no_ssl_bump_domains = saucelabs_config.get_sauce_no_ssl_bump_domains()
         sauce_log_file = saucelabs_config.get_sauce_log_file()
-        sc_call = f"{sauce_path} -u {sauce_user} -k {sauce_key} --region {sauce_region} --tunnel-name {sauce_tunnel} --status-address {sauce_status} --logfile {sauce_log_file}"
+        sc_call = (f"{sauce_path} -u {sauce_user} -k {sauce_key} --region {sauce_region} "
+            f"--tunnel-name {sauce_tunnel} --status-address {sauce_status} --logfile {sauce_log_file}")
         if sauce_dns:
             sc_call += f" --dns {sauce_dns}"
         if sauce_no_ssl_bump_domains:
@@ -66,7 +67,7 @@ class SauceTunnel:
             sauce_connect.terminate()
             for _ in range(10):
                 time.sleep(1)
-                if sauce_connect.poll() != None:
+                if sauce_connect.poll() is not None:
                     return
             print("Killing Sauce Connect tunnel")
             sauce_connect.kill()

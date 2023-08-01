@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: MIT
 #
 
-from .browsers import Browser
-from .operating_system import OperatingSystem, SaucelabsOperatingSystem
-from .platform import Platform
-from .driver_factory import DriverFactory
+from .browsers import Browser as Browser
+from .operating_system import OperatingSystem as OperatingSystem, SaucelabsOperatingSystem as SaucelabsOperatingSystem
+from .platform import Platform as Platform
+from .driver_factory import DriverFactory as DriverFactory

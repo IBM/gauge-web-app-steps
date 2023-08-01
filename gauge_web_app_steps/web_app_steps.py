@@ -181,7 +181,7 @@ def open_page(page_param: str) -> None:
     for _ in range(max_attempts):
         # Browsers sometimes open the page in the middle, when visited before
         time.sleep(0.3)
-        if not "#" in page:
+        if "#" not in page:
             try:
                 driver().execute_script("window.scrollTo(0, 0);")
                 break
@@ -204,7 +204,7 @@ def open_page_for_user_and_password(page_param: str, user_param: str, password_p
     driver().get(url)
     # Chrome sometimes opens the page in the middle, when visited before
     time.sleep(0.3)
-    if not "#" in page:
+    if "#" not in page:
         driver().execute_script("window.scrollTo(0, 0);")
 
 
@@ -632,7 +632,14 @@ def execute_async_script_on_element(script_param: str, by: str, by_value: str, e
 
 
 @step("Execute async <script> with <by> = <by_value> as <elem> and save result in <placeholder> with callback <callback>")
-def execute_async_script_on_element_save_result(script_param: str, by: str, by_value: str, elem_param: str, placeholder_name_param: str, callback_param: str) -> None:
+def execute_async_script_on_element_save_result(
+    script_param: str,
+    by: str,
+    by_value: str,
+    elem_param: str,
+    placeholder_name_param: str,
+    callback_param: str
+) -> None:
     script = _substitute(script_param)
     elem = _substitute(elem_param)
     placeholder_name = _substitute(placeholder_name_param)

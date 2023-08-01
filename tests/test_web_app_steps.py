@@ -9,8 +9,13 @@ import os
 from getgauge.python import data_store
 from unittest.mock import Mock, call
 
-from gauge_web_app_steps.web_app_steps import *
-from gauge_web_app_steps.web_app_steps import _substitute
+from gauge_web_app_steps.web_app_steps import (
+    app_context_key,
+    execute_async_script, execute_async_script_on_element, execute_async_script_on_element_save_result, execute_async_script_save_result,
+    execute_script, execute_script_on_element, execute_script_on_element_save_result, execute_script_save_result,
+    save_placeholder, switch_to_frame,
+    _substitute
+)
 
 
 class TestWebAppSteps(unittest.TestCase):

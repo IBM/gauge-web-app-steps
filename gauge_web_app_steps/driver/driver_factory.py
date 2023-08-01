@@ -23,8 +23,6 @@ from selenium.webdriver.ie.webdriver import WebDriver as Ie
 from selenium.webdriver.safari.options import Options as SafariOptions
 from selenium.webdriver.safari.service import Service as SafariService
 from selenium.webdriver.safari.webdriver import WebDriver as Safari
-from selenium.webdriver.safari.service import Service as SafariService
-from selenium.webdriver.safari.webdriver import WebDriver as Safari
 from webdriver_manager.chrome import ChromeDriverManager as ChromeManager
 from webdriver_manager.firefox import GeckoDriverManager as GeckoManager
 from webdriver_manager.microsoft import EdgeChromiumDriverManager as EdgeManager

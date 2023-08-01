@@ -1,3 +1,4 @@
 [tool.ruff]
-line-length = 128
+line-length = 160
+ignore-init-module-imports = true
 ignore = ["E701"]
