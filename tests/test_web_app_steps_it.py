@@ -15,7 +15,7 @@ from unittest.mock import MagicMock, patch
 
 from gauge_web_app_steps.web_app_steps import (
     assert_attribute_contains, assert_attribute_does_not_contain, assert_attribute_equals, assert_attribute_exists,
-    assert_dialog_text, assert_element_exists, assert_element_is_invisible,
+    assert_dialog_text, assert_element_exists, assert_element_does_not_exist,
     assert_element_is_selected, assert_element_is_not_selected, assert_selected_option,
     assert_text_contains, assert_text_does_not_contain, assert_text_does_not_equal, assert_text_equals,
     assert_title, assert_whole_page_resembles,
@@ -84,7 +84,7 @@ class TestWebAppStepsIT(unittest.TestCase):
         move_into_view("css selector", "div.figure:nth-child(3)")
         assert_element_exists("css selector", "div.figure:nth-child(3) > div.figcaption")
         move_out_of_view()
-        assert_element_is_invisible("css selector", "div.figure:nth-child(3) > div.figcaption")
+        assert_element_does_not_exist("css selector", "div.figure:nth-child(3) > div.figcaption")
 
     def test_hover_over(self):
         self._open_page(sub_page="/hovers")
@@ -140,7 +140,7 @@ class TestWebAppStepsIT(unittest.TestCase):
 
     def test_assert_dynamic_element_displayed(self):
         self._open_page(sub_page="/dynamic_loading/1")
-        assert_element_is_invisible("id", "finish")
+        assert_element_does_not_exist("id", "finish")
         click_element("xpath", "//button")
         assert_element_exists("id", "finish")
 
