@@ -13,7 +13,19 @@ from getgauge.python import data_store
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from gauge_web_app_steps.web_app_steps import *
+from gauge_web_app_steps.web_app_steps import (
+    assert_attribute_contains, assert_attribute_does_not_contain, assert_attribute_equals, assert_attribute_exists,
+    assert_dialog_text, assert_element_is_displayed, assert_element_is_invisible,
+    assert_element_is_selected, assert_element_is_not_selected, assert_selected_option,
+    assert_text_contains, assert_text_does_not_contain, assert_text_does_not_equal, assert_text_equals,
+    assert_title, assert_whole_page_resembles,
+    check_element, click_element, close, double_click_element, driver,
+    hover_over, init, move_into_view, move_out_of_view, mouse_down, mouse_up, open_page,
+    save_placeholder_from_element, save_placeholder_from_element_attribute,
+    select_option, send_keys, switch_to_frame, switch_to_window,
+    take_screenshots_of_whole_page, type_string, uncheck_element, wait_for
+
+)
 from gauge_web_app_steps.driver import Browser
 
 

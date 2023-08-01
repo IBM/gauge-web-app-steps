@@ -24,7 +24,7 @@ Find the documentation on all Gauge steps of this project in the overview:
 This is a library for the Gauge framework, so Gauge+Python must be installed first.
 
 * Install Python >= 3.10 on your platform and make it available in the \$PATH
-* Install [Gauge](https://docs.gauge.org/getting_started/installing-gauge.html?language=python&ide=vscode) and [create a test projekt with Python](https://docs.gauge.org/getting_started/create-test-project.html?os=macos&language=python&ide=vscode)
+* Install [Gauge](https://docs.gauge.org/getting_started/installing-gauge.html?language=python&ide=vscode) and [create a test project with Python](https://docs.gauge.org/getting_started/create-test-project.html?os=macos&language=python&ide=vscode)
 
 It is useful to understand the basic workings of Gauge first. The [documentation](https://docs.gauge.org/?os=macos&language=python&ide=vscode) is excellent.
 
@@ -34,7 +34,7 @@ It is useful to understand the basic workings of Gauge first. The [documentation
   echo $( python -m site --user-site )/gauge_web_app_steps
   ```
 * Add that path to the property `STEP_IMPL_DIR` inside the test project file `env/default/python.properties`. Paths to multiple modules are comma separated.\
-Example on a Mac:
+  Example on a Mac:
   ```
   STEP_IMPL_DIR = /Users/<user>/Library/Python/3.10/lib/python/site-packages/gauge_web_app_steps, step_impl
   ```

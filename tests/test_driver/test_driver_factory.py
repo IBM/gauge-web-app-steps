@@ -44,7 +44,8 @@ class TestSaucelabsDriverFactory(unittest.TestCase):
             # act
             result = SaucelabsDriverFactory("test")._get_sauce_options()
             # assert
-            self.assertEqual(should_have_appium_version, "appiumVersion" in result, f"result has appium version: {result}, OS: {operating_system}, is mobile: {operating_system.is_mobile()}")
+            self.assertEqual(should_have_appium_version, "appiumVersion" in result,
+                f"result has appium version: {result}, OS: {operating_system}, is mobile: {operating_system.is_mobile()}")
 
     @parameterized.expand([("tunnel-name", True), (None, False)])
     def test__get_sauce_options__tunnel_name(self, tunnel_name: str, should_have_tunnel_name: bool):

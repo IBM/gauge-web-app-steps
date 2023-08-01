@@ -5,12 +5,14 @@ from setuptools import setup
 here = path.abspath(path.dirname(__file__))
 with open(path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
+    long_description = long_description.replace('./docs/', 'https://github.com/IBM/gauge-web-app-steps/tree/master/docs/')
 
 setup(
     name='gauge-web-app-steps',
     version='0.53',
     description='Provides basic steps for a Gauge project, that runs tests with Selenium and Appium',
     long_description=long_description,
+    long_description_content_type='text/markdown',
     url='https://github.com/IBM/gauge-web-app-steps',
     author='Tobias Lehmann',
     author_email='derdualist1@gmail.com',
