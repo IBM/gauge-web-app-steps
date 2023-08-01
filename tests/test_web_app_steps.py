@@ -10,7 +10,7 @@ from getgauge.python import data_store
 from unittest.mock import Mock, call
 
 from gauge_web_app_steps.web_app_steps import (
-    app_context_key,
+    app_context_key, assert_element_exists, assert_element_does_not_exist,
     execute_async_script, execute_async_script_on_element, execute_async_script_on_element_save_result, execute_async_script_save_result,
     execute_script, execute_script_on_element, execute_script_on_element_save_result, execute_script_save_result,
     save_placeholder, switch_to_frame,
@@ -25,6 +25,14 @@ class TestWebAppSteps(unittest.TestCase):
         self.app_context = Mock()
         self.app_context.driver = Mock()
         data_store.spec[app_context_key] = self.app_context
+
+    def test_assert_element_exists(self):
+        self.assertRaises(AssertionError, lambda: assert_element_exists("id", "foo"))
+        self.app_context.driver.find_element.assert_called()
+
+    def test_assert_element_does_not_exist(self):
+        self.assertRaises(AssertionError, lambda: assert_element_does_not_exist("id", "foo"))
+        self.app_context.driver.find_element.assert_called()
 
     def test_save_placeholder(self):
         save_placeholder("placeholder-key", "placeholder_value")
