@@ -10,10 +10,11 @@ import re
 import time
 import urllib
 
+from warnings import warn
 from itertools import filterfalse
 from string import Template
 from typing import Any, Callable, Iterable, List
-from getgauge.python import data_store, step, before_spec, after_spec, screenshot, before_suite, after_suite, ExecutionContext
+from getgauge.python import data_store, step, before_spec, after_spec, screenshot, before_suite, after_suite, before_step, ExecutionContext
 from numpy import array2string
 from selenium.common.exceptions import TimeoutException, JavascriptException, WebDriverException
 from selenium.webdriver import Remote
@@ -34,13 +35,11 @@ from .report import Report
 from .sauce_tunnel import SauceTunnel
 from .selector import SelectKey, Selector
 
-
 # Repeat an action a number of times before failing
 max_attempts = 12
 error_message_key = "_err_msg"
 app_context_key = "_app_ctx"
 basic_auth_key = "_basic_auth"
-
 
 @before_suite
 def before_suite_hook() -> None:
@@ -57,6 +56,17 @@ def init(exe_ctx: ExecutionContext) -> None:
         data_store.spec[app_context_key] = app_ctx
     except Exception as e:
         print(str(e))
+
+@before_step
+def before_step_hook(exe_ctx:  ExecutionContext):
+    step = exe_ctx.step.text
+    _warn_using_deprecated_step(step, ["is displayed", "Assert <by> = <by_value> exists"])
+    _warn_using_deprecated_step(step, ["is invisible", "Assert <by> = <by_value> does not exist"])
+
+
+def _warn_using_deprecated_step(text: str, mapping: list[str]):
+    if text.endswith(mapping[0]):
+        warn(f"The step '{text}' is deprecated, please use '{mapping[1]}'", DeprecationWarning, stacklevel=3)
 
 
 @after_spec
@@ -737,6 +747,7 @@ def assert_url_contains(expected_url_param: str) -> None:
         _err_msg(f"url {current_url} does not contain {expected_url}")
 
 
+#see also before_step_hook
 @step(["Assert <by> = <by_value> exists", "Assert <by> = <by_value> is displayed"])
 def assert_element_exists(by: str, by_value: str) -> None:
     marker = _marker(_substitute(by), _substitute(by_value))
@@ -745,6 +756,7 @@ def assert_element_exists(by: str, by_value: str) -> None:
         _err_msg(f"element {by} = {by_value} does not exists")
 
 
+#see also before_step_hook
 @step(["Assert <by> = <by_value> does not exist", "Assert <by> = <by_value> is invisible"])
 def assert_element_does_not_exist(by_param: str, by_value_param: str) -> None:
     by = _substitute(by_param)

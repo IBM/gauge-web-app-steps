@@ -5,12 +5,14 @@
 
 import unittest
 import os
+import warnings
 
 from getgauge.python import data_store
 from unittest.mock import Mock, call
 
 from gauge_web_app_steps.web_app_steps import (
     app_context_key, assert_element_does_not_exist, assert_element_exists, assert_element_is_enabled,
+    before_step_hook,
     execute_async_script, execute_async_script_on_element, execute_async_script_on_element_save_result, execute_async_script_save_result,
     execute_script, execute_script_on_element, execute_script_on_element_save_result, execute_script_save_result,
     save_placeholder, switch_to_frame,
@@ -26,6 +28,12 @@ class TestWebAppSteps(unittest.TestCase):
         self.app_context.driver = Mock()
         data_store.spec[app_context_key] = self.app_context
         self.element = Mock()
+
+    def test_before_step_hook(self):
+        with warnings.catch_warnings(record=True) as w:
+            ctx = Mock(step = Mock(text="Assert \"id\" = \"foo\" is displayed"))
+            before_step_hook(ctx)
+            self.assertEqual(1, len(w))
 
     def test_assert_element_exists(self):
         self.element.is_displayed.return_value = True
