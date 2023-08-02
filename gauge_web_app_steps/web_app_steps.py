@@ -737,7 +737,7 @@ def assert_url_contains(expected_url_param: str) -> None:
         _err_msg(f"url {current_url} does not contain {expected_url}")
 
 
-@step("Assert <by> = <by_value> exists")
+@step(["Assert <by> = <by_value> exists", "Assert <by> = <by_value> is displayed"])
 def assert_element_exists(by: str, by_value: str) -> None:
     marker = _marker(_substitute(by), _substitute(by_value))
     visible = _wait_until(EC.visibility_of_element_located(marker))
