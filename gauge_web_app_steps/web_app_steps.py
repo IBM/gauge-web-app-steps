@@ -745,7 +745,7 @@ def assert_element_exists(by: str, by_value: str) -> None:
         _err_msg(f"element {by} = {by_value} is not displayed")
 
 
-@step("Assert <by> = <by_value> does not exist")
+@step(["Assert <by> = <by_value> does not exist", "Assert <by> = <by_value> is invisible"])
 def assert_element_does_not_exist(by_param: str, by_value_param: str) -> None:
     by = _substitute(by_param)
     by_value = _substitute(by_value_param)
