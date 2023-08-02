@@ -742,7 +742,7 @@ def assert_element_exists(by: str, by_value: str) -> None:
     marker = _marker(_substitute(by), _substitute(by_value))
     visible = _wait_until(EC.visibility_of_element_located(marker))
     assert visible,\
-        _err_msg(f"element {by} = {by_value} is not displayed")
+        _err_msg(f"element {by} = {by_value} does not exists")
 
 
 @step(["Assert <by> = <by_value> does not exist", "Assert <by> = <by_value> is invisible"])
@@ -752,7 +752,7 @@ def assert_element_does_not_exist(by_param: str, by_value_param: str) -> None:
     marker = _marker(by, by_value)
     invisible = _wait_until(EC.invisibility_of_element(marker))
     assert invisible, \
-        _err_msg(f"element {by} = {by_value} is still visible")
+        _err_msg(f"element {by} = {by_value} exists")
 
 
 @step("Assert <by> = <by_value> is enabled")

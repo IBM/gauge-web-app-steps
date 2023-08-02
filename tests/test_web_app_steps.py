@@ -10,7 +10,7 @@ from getgauge.python import data_store
 from unittest.mock import Mock, call
 
 from gauge_web_app_steps.web_app_steps import (
-    app_context_key, assert_element_exists, assert_element_does_not_exist,
+    app_context_key, assert_element_does_not_exist, assert_element_exists,
     execute_async_script, execute_async_script_on_element, execute_async_script_on_element_save_result, execute_async_script_save_result,
     execute_script, execute_script_on_element, execute_script_on_element_save_result, execute_script_save_result,
     save_placeholder, switch_to_frame,
@@ -25,12 +25,27 @@ class TestWebAppSteps(unittest.TestCase):
         self.app_context = Mock()
         self.app_context.driver = Mock()
         data_store.spec[app_context_key] = self.app_context
+        self.element = Mock()
 
     def test_assert_element_exists(self):
+        self.element.is_displayed.return_value = True
+        self.app_context.driver.find_element.return_value = self.element
+        assert_element_exists("id", "foo")
+        self.app_context.driver.find_element.assert_called()
+        self.element.is_displayed.assert_called()
+
+    def test_assert_element_exists_fail(self):
         self.assertRaises(AssertionError, lambda: assert_element_exists("id", "foo"))
         self.app_context.driver.find_element.assert_called()
 
     def test_assert_element_does_not_exist(self):
+        self.element.is_displayed.return_value = False
+        self.app_context.driver.find_element.return_value = self.element
+        assert_element_does_not_exist("id", "foo")
+        self.app_context.driver.find_element.assert_called()
+        self.element.is_displayed.assert_called()
+
+    def test_assert_element_does_not_exist_fail(self):
         self.assertRaises(AssertionError, lambda: assert_element_does_not_exist("id", "foo"))
         self.app_context.driver.find_element.assert_called()
 
@@ -79,7 +94,7 @@ class TestWebAppSteps(unittest.TestCase):
         self.assertEqual("This is lala/url and baba", result)
 
     def test_switch_to_frame_by_index(self):
-        self.app_context.driver.find_elements = Mock(return_value=[])
+        self.app_context.driver.find_elements.return_value=[]
         self.assertRaises(AssertionError, lambda: switch_to_frame("1"))
         self.app_context.driver.assert_has_calls([call.find_elements('tag name', 'frame'), call.find_elements('tag name', 'iframe')])
 
@@ -88,14 +103,14 @@ class TestWebAppSteps(unittest.TestCase):
         self.app_context.driver.assert_has_calls([call.execute_script("script")])
 
     def test_execute_script_save_result(self):
-        self.app_context.driver.execute_script = Mock(return_value="result")
+        self.app_context.driver.execute_script.return_value="result"
         execute_script_save_result("script", "placeholder")
         self.app_context.driver.assert_has_calls([call.execute_script("script")])
         self.assertEqual("result", data_store.scenario.get("placeholder"))
 
     def test_execute_script_on_element(self):
         elem = "web element"
-        self.app_context.driver.find_element = Mock(return_value=elem)
+        self.app_context.driver.find_element.return_value=elem
         execute_script_on_element("script(elem)", "tag name", "p", "elem")
         self.app_context.driver.assert_has_calls([
             call.find_element("tag name", "p"),
@@ -104,8 +119,8 @@ class TestWebAppSteps(unittest.TestCase):
 
     def test_execute_script_on_element_save_result(self):
         elem = "web element"
-        self.app_context.driver.find_element = Mock(return_value=elem)
-        self.app_context.driver.execute_script = Mock(return_value="result")
+        self.app_context.driver.find_element.return_value=elem
+        self.app_context.driver.execute_script.return_value="result"
         execute_script_on_element_save_result("script(elem)", "tag name", "p", "elem", "placeholder")
         self.app_context.driver.assert_has_calls([
             call.find_element("tag name", "p"),
@@ -118,14 +133,14 @@ class TestWebAppSteps(unittest.TestCase):
         self.app_context.driver.assert_has_calls([call.execute_async_script("script")])
 
     def test_execute_async_script_save_result(self):
-        self.app_context.driver.execute_async_script = Mock(return_value="result")
+        self.app_context.driver.execute_async_script.return_value="result"
         execute_async_script_save_result("callback(result)", "placeholder", "callback")
         self.app_context.driver.assert_has_calls([call.execute_async_script("var callback=arguments[arguments.length-1]; callback(result)")])
         self.assertEqual("result", data_store.scenario.get("placeholder"))
 
     def test_execute_async_script_on_element(self):
         elem = "web element"
-        self.app_context.driver.find_element = Mock(return_value=elem)
+        self.app_context.driver.find_element.return_value=elem
         execute_async_script_on_element("script(elem)", "tag name", "p", "elem")
         self.app_context.driver.assert_has_calls([
             call.find_element("tag name", "p"),
@@ -134,8 +149,8 @@ class TestWebAppSteps(unittest.TestCase):
 
     def test_execute_async_script_on_element_save_result(self):
         elem = "web element"
-        self.app_context.driver.find_element = Mock(return_value=elem)
-        self.app_context.driver.execute_async_script = Mock(return_value="result")
+        self.app_context.driver.find_element.return_value=elem
+        self.app_context.driver.execute_async_script.return_value="result"
         execute_async_script_on_element_save_result("callback(elem.innerText)", "tag name", "p", "elem", "placeholder", "callback")
         self.app_context.driver.assert_has_calls([
             call.find_element("tag name", "p"),
