@@ -10,7 +10,7 @@ from getgauge.python import data_store
 from unittest.mock import Mock, call
 
 from gauge_web_app_steps.web_app_steps import (
-    app_context_key, assert_element_does_not_exist, assert_element_exists,
+    app_context_key, assert_element_does_not_exist, assert_element_exists, assert_element_is_enabled,
     execute_async_script, execute_async_script_on_element, execute_async_script_on_element_save_result, execute_async_script_save_result,
     execute_script, execute_script_on_element, execute_script_on_element_save_result, execute_script_save_result,
     save_placeholder, switch_to_frame,
@@ -34,7 +34,7 @@ class TestWebAppSteps(unittest.TestCase):
         self.app_context.driver.find_element.assert_called()
         self.element.is_displayed.assert_called()
 
-    def test_assert_element_exists_fail(self):
+    def test_assert_element_exists_error(self):
         self.assertRaises(AssertionError, lambda: assert_element_exists("id", "foo"))
         self.app_context.driver.find_element.assert_called()
 
@@ -45,9 +45,21 @@ class TestWebAppSteps(unittest.TestCase):
         self.app_context.driver.find_element.assert_called()
         self.element.is_displayed.assert_called()
 
-    def test_assert_element_does_not_exist_fail(self):
+    def test_assert_element_does_not_exist_error(self):
         self.assertRaises(AssertionError, lambda: assert_element_does_not_exist("id", "foo"))
         self.app_context.driver.find_element.assert_called()
+
+    def test_assert_element_is_enabled(self):
+        self.element.is_enabled.return_value = True
+        self.app_context.driver.find_element.return_value = self.element
+        assert_element_is_enabled("id", "foo")
+        self.app_context.driver.find_element.assert_called()
+        self.element.is_enabled.assert_called()
+
+    def test_assert_element_is_enabled_error(self):
+        self.element.is_enabled.return_value = False
+        self.app_context.driver.find_element.return_value = self.element
+        self.assertRaises(AssertionError, lambda: assert_element_is_enabled("id", "foo"))
 
     def test_save_placeholder(self):
         save_placeholder("placeholder-key", "placeholder_value")
