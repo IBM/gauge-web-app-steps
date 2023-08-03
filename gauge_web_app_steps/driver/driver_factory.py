@@ -5,28 +5,17 @@
 
 from __future__ import annotations
 from abc import ABC, abstractmethod
+from selenium import webdriver
 from appium.webdriver.webdriver import WebDriver as MobileRemote
 from selenium.webdriver.remote.webdriver import WebDriver as Remote
 from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.chrome.service import Service as ChromeService
-from selenium.webdriver.chrome.webdriver import WebDriver as Chrome
 from selenium.webdriver.common.options import ArgOptions
 from selenium.webdriver.edge.options import Options as EdgeOptions
-from selenium.webdriver.edge.service import Service as EdgeService
-from selenium.webdriver.edge.webdriver import WebDriver as Edge
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
-from selenium.webdriver.firefox.service import Service as FirefoxService
-from selenium.webdriver.firefox.webdriver import WebDriver as Firefox
 from selenium.webdriver.ie.options import Options as IeOptions
-from selenium.webdriver.ie.service import Service as IeService
-from selenium.webdriver.ie.webdriver import WebDriver as Ie
 from selenium.webdriver.safari.options import Options as SafariOptions
-from selenium.webdriver.safari.service import Service as SafariService
-from selenium.webdriver.safari.webdriver import WebDriver as Safari
 from webdriver_manager.chrome import ChromeDriverManager as ChromeManager
-from webdriver_manager.firefox import GeckoDriverManager as GeckoManager
-from webdriver_manager.microsoft import EdgeChromiumDriverManager as EdgeManager
-from webdriver_manager.microsoft import IEDriverManager as IeManager
 from webdriver_manager.opera import OperaDriverManager as OperaManager
 
 from ..config import common_config as config
@@ -86,26 +75,29 @@ class LocalDriverFactory(DriverFactory):
         operating_system = config.get_operating_system()
         assert browser.is_supported(operating_system), f"Browser {browser} not supported by {operating_system}."
         browser_options = self._create_options()
-        service = {
-            Browser.CHROME: lambda: ChromeService(executable_path=ChromeManager().install()),
-            Browser.EDGE: lambda: EdgeService(executable_path=EdgeManager().install()),
-            Browser.FIREFOX: lambda: FirefoxService(executable_path=GeckoManager().install()),
-            Browser.INTERNET_EXPLORER: lambda: IeService(executable_path=IeManager().install()),
-            Browser.OPERA: lambda: ChromeService(executable_path=OperaManager().install()),
-            Browser.SAFARI: lambda: SafariService() # Driver executable for Mac/Safari comes pre-installed
-        }[browser]()
+        service = self._find_service(browser)
         driver: Remote = None
         driver = {
-            Browser.CHROME: lambda: Chrome(service=service, options=browser_options),
-            Browser.EDGE: lambda: Edge(service=service, options=browser_options),
-            Browser.FIREFOX: lambda: Firefox(service=service, options=browser_options),
-            Browser.INTERNET_EXPLORER: lambda: Ie(service=service, options=browser_options),
-            Browser.OPERA: lambda: Chrome(service=service, options=browser_options),
-            Browser.SAFARI: lambda: Safari(service=service, options=browser_options)
+            Browser.CHROME: lambda: webdriver.Chrome(service=service, options=browser_options),
+            Browser.EDGE: lambda: webdriver.Edge(options=browser_options),
+            Browser.FIREFOX: lambda: webdriver.Firefox(options=browser_options),
+            Browser.INTERNET_EXPLORER: lambda: webdriver.Ie(options=browser_options),
+            Browser.OPERA: lambda: webdriver.Chrome(service=service, options=browser_options),
+            Browser.SAFARI: lambda: webdriver.Safari(options=browser_options)
         }[browser]()
         driver.implicitly_wait(config.get_implicit_timeout())
         driver.set_page_load_timeout(config.get_page_load_timeout())
         return driver
+    
+    def _find_service(self, browser: Browser):
+        services = {
+            Browser.CHROME: lambda: ChromeService(executable_path=ChromeManager().install()),
+            Browser.OPERA: lambda: ChromeService(executable_path=OperaManager().install()),
+        }
+        if browser in services:
+            service =  services[browser]()
+            return service
+        return None
 
     def _create_mobile_driver(self) -> MobileRemote:
         operating_system = config.get_operating_system()

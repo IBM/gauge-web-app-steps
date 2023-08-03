@@ -21,7 +21,7 @@ from gauge_web_app_steps.driver.driver_factory import LocalDriverFactory, Remote
 @unittest.skipIf(os.environ.get("TEST_SKIP_IT", "0") == "1", "TEST_SKIP_IT env variable is set")
 class TestLocalDriverFactoryIT(unittest.TestCase):
 
-    @parameterized.expand([(Browser.CHROME, Chrome), (Browser.FIREFOX, Firefox)])
+    @parameterized.expand([(Browser.CHROME, Chrome), (Browser.FIREFOX, Firefox), (Browser.OPERA, Chrome)])
     def test_create_desktop_systems(self, browser: Browser, expected_driver):
         # arrange
         with patch.dict(os.environ, {
