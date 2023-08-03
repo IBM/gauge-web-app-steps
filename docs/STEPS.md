@@ -71,8 +71,8 @@ The following Gauge steps are implemented in this module:
   - [Assert url starts with \<url>](#assert-url-starts-with-url)
   - [Assert url ends with \<url>](#assert-url-ends-with-url)
   - [Assert url contains \<url>](#assert-url-contains-url)
-  - [Assert \<by> = \<by_value> is displayed](#assert-by--by_value-is-displayed)
-  - [Assert \<by> = \<by_value> is invisible](#assert-by--by_value-is-invisible)
+  - [Assert \<by> = \<by_value> exists](#assert-by--by_value-exists)
+  - [Assert \<by> = \<by_value> does not exist](#assert-by--by_value-does-not-exist)
   - [Assert \<by> = \<by_value> is enabled](#assert-by--by_value-is-enabled)
   - [Assert \<by> = \<by_value> is disabled](#assert-by--by_value-is-disabled)
   - [Assert \<by> = \<by_value> is selected](#assert-by--by_value-is-selected)
@@ -1254,25 +1254,25 @@ Support
 |:-----:|:--------------:|:----------:|
 |   ✔   |       ✔        |     ✔      |
 
-## Assert \<by> = \<by_value> is displayed
+## Assert \<by> = \<by_value> exists
 
-> \* Assert "id" = "elem-id" is displayed
+> \* Assert "id" = "elem-id" exists
 
-> \* Assert "xpath" = "//div/a" is displayed
+> \* Assert "xpath" = "//div/a" exists
 
-> \* Assert "link text" = "Click here" is displayed
+> \* Assert "link text" = "Click here" exists
 
-> \* Assert "partial link text" = "Click" is displayed
+> \* Assert "partial link text" = "Click" exists
 
-> \* Assert "name" = "field-name" is displayed
+> \* Assert "name" = "field-name" exists
 
-> \* Assert "tag name" = "ul" is displayed
+> \* Assert "tag name" = "ul" exists
 
-> \* Assert "class name" = "resultlist-class" is displayed
+> \* Assert "class name" = "resultlist-class" exists
 
-> \* Assert "css selector" = "ul.resultlist-class" is displayed
+> \* Assert "css selector" = "ul.resultlist-class" exists
 
-Assert that the specified element is displayed on screen.
+Assert that the specified element exists on screen.
 
 Support
 
@@ -1280,23 +1280,23 @@ Support
 |:-----:|:--------------:|:----------:|
 |   ✔   |       ?        |     ?      |
 
-## Assert \<by> = \<by_value> is invisible
+## Assert \<by> = \<by_value> does not exist
 
-> \* Assert "id" = "elem-id" is invisible
+> \* Assert "id" = "elem-id" does not exist
 
-> \* Assert "xpath" = "//div/a" is visible
+> \* Assert "xpath" = "//div/a" does not exist
 
-> \* Assert "link text" = "Click here" is invisible
+> \* Assert "link text" = "Click here" does not exist
 
-> \* Assert "partial link text" = "Click" is invisible
+> \* Assert "partial link text" = "Click" does not exist
 
-> \* Assert "name" = "field-name" is invisible
+> \* Assert "name" = "field-name" does not exist
 
-> \* Assert "tag name" = "ul" is invisible
+> \* Assert "tag name" = "ul" does not exist
 
-> \* Assert "class name" = "resultlist-class" is invisible
+> \* Assert "class name" = "resultlist-class" does not exist
 
-> \* Assert "css selector" = "ul.resultlist-class" is invisible
+> \* Assert "css selector" = "ul.resultlist-class" does not exist
 
 Assert that the specified element does not exist or is not displayed on screen.
 

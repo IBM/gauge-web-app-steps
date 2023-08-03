@@ -14,13 +14,14 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 from gauge_web_app_steps.web_app_steps import (
+    after_spec_hook,
     assert_attribute_contains, assert_attribute_does_not_contain, assert_attribute_equals, assert_attribute_exists,
-    assert_dialog_text, assert_element_is_displayed, assert_element_is_invisible,
+    assert_dialog_text, assert_element_exists, assert_element_does_not_exist,
     assert_element_is_selected, assert_element_is_not_selected, assert_selected_option,
     assert_text_contains, assert_text_does_not_contain, assert_text_does_not_equal, assert_text_equals,
     assert_title, assert_whole_page_resembles,
-    check_element, click_element, close, double_click_element, driver,
-    hover_over, init, move_into_view, move_out_of_view, mouse_down, mouse_up, open_page,
+    before_spec_hook, check_element, click_element, double_click_element, driver,
+    hover_over, move_into_view, move_out_of_view, mouse_down, mouse_up, open_page,
     save_placeholder_from_element, save_placeholder_from_element_attribute,
     select_option, send_keys, switch_to_frame, switch_to_window,
     take_screenshots_of_whole_page, type_string, uncheck_element, wait_for
@@ -48,7 +49,7 @@ class TestWebAppStepsIT(unittest.TestCase):
 
     def tearDown(self):
         self.env_patcher.stop()
-        close()
+        after_spec_hook()
         if os.path.exists(self.screenshots_dir):
             shutil.rmtree(self.screenshots_dir)
 
@@ -56,7 +57,7 @@ class TestWebAppStepsIT(unittest.TestCase):
         return glob.glob(self.screenshots_dir + f"{os.path.sep}*")
 
     def _open_page(self, page=MAIN_PAGE, sub_page=""):
-        init(MagicMock())
+        before_spec_hook(MagicMock())
         open_page(page + sub_page)
         wait_for("1")
     
@@ -82,14 +83,14 @@ class TestWebAppStepsIT(unittest.TestCase):
     def test_move(self):
         self._open_page(sub_page="/hovers")
         move_into_view("css selector", "div.figure:nth-child(3)")
-        assert_element_is_displayed("css selector", "div.figure:nth-child(3) > div.figcaption")
+        assert_element_exists("css selector", "div.figure:nth-child(3) > div.figcaption")
         move_out_of_view()
-        assert_element_is_invisible("css selector", "div.figure:nth-child(3) > div.figcaption")
+        assert_element_does_not_exist("css selector", "div.figure:nth-child(3) > div.figcaption")
 
     def test_hover_over(self):
         self._open_page(sub_page="/hovers")
         hover_over("css selector", "div.figure:nth-child(3)")
-        assert_element_is_displayed("css selector", "div.figure:nth-child(3) > div.figcaption")
+        assert_element_exists("css selector", "div.figure:nth-child(3) > div.figcaption")
 
     def test_select_list_element(self):
         self._open_page(page="https://mdn.github.io/html-examples/custom-select/")
@@ -100,7 +101,7 @@ class TestWebAppStepsIT(unittest.TestCase):
         self._open_page(sub_page="/add_remove_elements/")
         mouse_down("xpath", "(//button)[1]")
         mouse_up("xpath", "(//button)[1]")
-        assert_element_is_displayed("xpath", "(//button)[2]")
+        assert_element_exists("xpath", "(//button)[2]")
 
     def test_save_placeholder_from_element(self):
         self._open_page(sub_page="/inputs")
@@ -140,9 +141,9 @@ class TestWebAppStepsIT(unittest.TestCase):
 
     def test_assert_dynamic_element_displayed(self):
         self._open_page(sub_page="/dynamic_loading/1")
-        assert_element_is_invisible("id", "finish")
+        assert_element_does_not_exist("id", "finish")
         click_element("xpath", "//button")
-        assert_element_is_displayed("id", "finish")
+        assert_element_exists("id", "finish")
 
     def test_take_screenshots_of_whole_page_scrolling(self):
         os.environ["screenshot_whole_page_no_scroll"] = "False"
