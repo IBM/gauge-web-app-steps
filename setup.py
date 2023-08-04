@@ -23,9 +23,9 @@ setup(
         'getgauge',
         'numexpr>=2.8.1',
         'scikit-image==0.21.0',
-        'selenium>=4.8.3',
+        'selenium>=4.11.2',
         'webcolors==1.11.1',
-        'webdriver-manager>=3.8.6',
+        'webdriver-manager>=4.0.0',
     ],
     zip_safe=False
 )
