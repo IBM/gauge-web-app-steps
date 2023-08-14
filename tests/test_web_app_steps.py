@@ -8,7 +8,7 @@ import os
 import time
 
 from getgauge.python import data_store
-from unittest.mock import Mock, call, patch
+from unittest.mock import Mock, MagicMock, call, patch
 
 from gauge_web_app_steps.web_app_steps import (
     app_context_key,
@@ -26,7 +26,7 @@ class TestWebAppSteps(unittest.TestCase):
     def setUp(self):
         self.startTime = time.time()
         data_store.scenario.clear()
-        self.app_context = Mock()
+        self.app_context = MagicMock()
         self.app_context.driver = Mock()
         self.app_context.report = Mock()
         data_store.spec[app_context_key] = self.app_context

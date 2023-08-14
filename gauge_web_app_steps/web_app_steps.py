@@ -1050,8 +1050,11 @@ def _marker(by_string: str, by_value: str) -> tuple[str, str]:
 
 
 def _wait_until(condition: Callable[[Remote], Any]) -> Any:
-    # we reuse the implicit timeout for the wait
-    timeout = config.get_implicit_timeout()
+    ctx = data_store.spec[app_context_key]
+    timeout = ctx.explicit_timeout
+    if timeout is None:
+        # we reuse the implicit timeout for the wait
+        timeout = ctx.implicit_timeout
     try:
         return WebDriverWait(driver(), timeout).until(condition)
     except TimeoutException:
