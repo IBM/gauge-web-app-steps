@@ -689,6 +689,19 @@ def save_placeholder_from_element_attribute(placeholder_name_param: str, attribu
     data_store.scenario[placeholder_name] = attribute_value
 
 
+@step("Set timeout <seconds>")
+def set_timeout(seconds_param: str):
+    seconds = _substitute(seconds_param)
+    if seconds.isdigit():
+        pass
+    pass
+
+
+@step("Reset timeout")
+def reset_timeout():
+    pass
+
+
 # Steps Asserts ------------------------------------------------
 
 

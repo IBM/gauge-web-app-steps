@@ -64,6 +64,8 @@ The following Gauge steps are implemented in this module:
   - [Save placeholder \<placeholder> = \<value>](#save-placeholder-placeholder--value)
   - [Save placeholder \<placeholder> from \<by> = \<by_value>](#save-placeholder-placeholder-from-by--by_value)
   - [Save placeholder \<placeholder> from attribute \<attribute> of \<by> = \<by_value>](#save-placeholder-placeholder-from-attribute-attribute-of-by--by_value)
+  - [Set timeout \<seconds>](#set-timeout-seconds)
+  - [Reset timeout](#reset-timeout)
   - [Assert window handles is \<windows_num>](#assert-window-handles-is-windows_num)
   - [Assert title equals \<url>](#assert-title-equals-url)
   - [Assert dialog text equals \<url>](#assert-dialog-text-equals-url)
@@ -1151,6 +1153,30 @@ Support
 > \* Save placeholder "costs" from attribute "value" of "css selector" = "input.costSlider"
 
 Saves the placeholder with the defined key into the scenario data store. The value of the placeholder is the text of the specified element's attribute. This way, it can be used as a placeholder in later steps.
+
+Support
+
+|Desktop|Android (Chrome)|iOS (Safari)|
+|:-----:|:--------------:|:----------:|
+|   ✔   |        ✔       |      ✔     |
+
+## Set timeout \<seconds>
+
+> \* Set timeout "1"
+
+Sets an explicit timeout for steps which wait for a condition. This allows the user to overwrite the implicit timeout taken from the configuration.
+
+Support
+
+|Desktop|Android (Chrome)|iOS (Safari)|
+|:-----:|:--------------:|:----------:|
+|   ✔   |        ✔       |      ✔     |
+
+## Reset timeout
+
+> \* Reset timeout
+
+Resets the explicit timeout, so that the implicit timeout from the configuration is used.
 
 Support
 
