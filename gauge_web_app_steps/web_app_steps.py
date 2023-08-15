@@ -692,10 +692,9 @@ def save_placeholder_from_element_attribute(placeholder_name_param: str, attribu
 @step("Set timeout <seconds>")
 def set_timeout(seconds_param: str):
     seconds = _substitute(seconds_param)
-    if seconds.isdigit():
-        data_store.spec[app_context_key].explicit_timeout = seconds
-    else:
-        raise ValueError("Argument should be a digit.")
+    assert seconds.isdigit(),\
+        _err_msg(f"argument '{seconds_param}' should be a number")
+    data_store.spec[app_context_key].explicit_timeout = seconds
 
 
 @step("Reset timeout")

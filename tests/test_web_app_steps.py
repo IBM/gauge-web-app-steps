@@ -100,7 +100,7 @@ class TestWebAppSteps(unittest.TestCase):
         self.assertEqual("2", self.app_context.explicit_timeout)
 
     def test_set_timeout_error(self):
-        self.assertRaises(ValueError, lambda: set_timeout("id"))
+        self.assertRaises(AssertionError, lambda: set_timeout("id"))
 
     def test_substitute_replace(self):
         tableflip = "(ノಠ益ಠ)ノ彡┻━┻"
