@@ -1164,7 +1164,7 @@ Support
 
 > \* Set timeout "1"
 
-Sets an explicit timeout for steps which use a specific condition to evaluate as true. This allows the user to overwrite the implicit timeout taken from the configuration.
+Sets an explicit timeout for steps which use a specific condition to evaluate as true. This allows the user to overwrite the implicit timeout from the configuration.
 
 Support
 
