@@ -14,6 +14,7 @@ The following properties are supported:
 
 | Property | Type | Default | Description |
 |--|--|--|--|
+| `driver_cache_days` | int | 365 | number of days, before the driver manager will question the cache and make a renewal call. |
 | `debug_log` | boolean | `false`| Logs more information. |
 | `diff_formats` | `gradient` \| `full` \| `color:xyz` | `full` | For screenshot comparisons. `xyz`: any CSS3 color name. |
 | `screenshot_whole_page_no_scroll` | boolean | `false` | Firefox offers to take a screenshot of the whole page, even if the page is wider and higher than the current viewport. This is not standard behaviour. |

@@ -11,6 +11,10 @@ from warnings import warn
 from ..driver import Browser, OperatingSystem, Platform
 
 
+def get_driver_cache_days(default = 365) -> int:
+    return int(os.environ.get("driver_cache_days", default))
+
+
 def is_debug_log() -> bool:
     return os.environ.get("debug_log", "False").lower() in ("true", "1")
 
