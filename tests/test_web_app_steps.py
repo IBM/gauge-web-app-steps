@@ -96,8 +96,8 @@ class TestWebAppSteps(unittest.TestCase):
         self.assertIsNone(self.app_context.explicit_timeout)
 
     def test_set_timeout(self):
-        set_timeout("2")
-        self.assertEqual("2", self.app_context.explicit_timeout)
+        set_timeout("2.5")
+        self.assertEqual("2.5", self.app_context.explicit_timeout)
 
     def test_set_timeout_error(self):
         self.assertRaises(AssertionError, lambda: set_timeout("id"))
