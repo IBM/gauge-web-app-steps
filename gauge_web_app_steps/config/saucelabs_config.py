@@ -46,6 +46,11 @@ def is_sauce_tunnel_active() -> bool:
     return os.environ.get("SAUCE_TUNNEL_ACTIVE", "false").lower() in ('true', '1')
 
 
+def is_sauce_tunnel_pooling() -> bool:
+    """ This property is needed for parallel executions, so that multiple tunnels do not interfere with each other """
+    return os.environ.get("SAUCE_TUNNEL_POOLING", "false").lower() in ('true', '1')
+
+
 def get_host_os() -> Optional[OperatingSystem]:
     # TODO: determine during runtime
     host_os = os.environ.get("SAUCE_HOST")
@@ -54,11 +59,6 @@ def get_host_os() -> Optional[OperatingSystem]:
 
 def get_sauce_path() -> str:
     return os.environ.get("SAUCE_PATH", "sc")
-
-
-def is_sauce_tunnel_pooling() -> bool:
-    """ This property is needed for parallel executions, so that multiple tunnels do not interfere with each other """
-    return os.environ.get("SAUCE_TUNNEL_POOLING", "false").lower() in ('true', '1')
 
 
 def get_sauce_user_name() -> Optional[str]:

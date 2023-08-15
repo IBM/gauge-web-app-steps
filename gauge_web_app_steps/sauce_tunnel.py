@@ -52,7 +52,7 @@ class SauceTunnel:
         if sauce_no_ssl_bump_domains:
             sc_call += f" --no-ssl-bump-domains {sauce_no_ssl_bump_domains}"
         if saucelabs_config.is_sauce_tunnel_pooling():
-            sc_call += f" --tunnel-pool"
+            sc_call += " --tunnel-pool"
         if saucelabs_config.get_host_os() is not OperatingSystem.WINDOWS:
             sc_call = sc_call.split(" ")
         print("Starting Sauce Connect Tunnel")
