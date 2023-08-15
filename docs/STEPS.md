@@ -1164,7 +1164,16 @@ Support
 
 > \* Set timeout "1"
 
-Sets an explicit timeout for steps which use a specific condition to evaluate as true. This allows the user to overwrite the implicit timeout from the configuration.
+This step overwrites the property `driver_implicit_timeout` for a number of steps, that support it. For now, those steps are:
+* [Assert \<by> = \<by_value> exists](#assert-by--by_value-exists)
+* [Assert \<by> = \<by_value> does not exist](#assert-by--by_value-does-not-exist)
+* [Save placeholder \<placeholder> from attribute \<attribute> of \<by> = \<by_value>]
+* [Assert \<by> = \<by_value> attribute \<attribute> exists](#assert-by--by_value-attribute-attribute-exists)
+* [Assert \<by> = \<by_value> attribute \<attribute> contains \<value>](#assert-by--by_value-attribute-attribute-contains-value)
+* [Assert \<by> = \<by_value> attribute \<attribute> equals \<value>](#assert-by--by_value-attribute-attribute-equals-value)
+* [Assert \<by> = \<by_value> attribute \<attribute> does not contain \<value>](#assert-by--by_value-attribute-attribute-does-not-contain-value)
+
+More steps will be refactored soon to support this configurable timeout.
 
 Support
 
