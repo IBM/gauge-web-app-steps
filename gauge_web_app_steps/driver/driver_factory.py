@@ -24,6 +24,7 @@ from selenium.webdriver.safari.options import Options as SafariOptions
 from selenium.webdriver.safari.service import Service as SafariService
 from selenium.webdriver.safari.webdriver import WebDriver as Safari
 from webdriver_manager.chrome import ChromeDriverManager as ChromeManager
+from webdriver_manager.core.driver_cache import DriverCacheManager as DriverCache
 from webdriver_manager.firefox import GeckoDriverManager as GeckoManager
 from webdriver_manager.microsoft import EdgeChromiumDriverManager as EdgeManager
 from webdriver_manager.microsoft import IEDriverManager as IeManager
@@ -86,12 +87,13 @@ class LocalDriverFactory(DriverFactory):
         operating_system = config.get_operating_system()
         assert browser.is_supported(operating_system), f"Browser {browser} not supported by {operating_system}."
         browser_options = self._create_options()
+        cache = DriverCache(valid_range=config.get_driver_cache_days())
         service = {
-            Browser.CHROME: lambda: ChromeService(executable_path=ChromeManager().install()),
-            Browser.EDGE: lambda: EdgeService(executable_path=EdgeManager().install()),
-            Browser.FIREFOX: lambda: FirefoxService(executable_path=GeckoManager().install()),
-            Browser.INTERNET_EXPLORER: lambda: IeService(executable_path=IeManager().install()),
-            Browser.OPERA: lambda: ChromeService(executable_path=OperaManager().install()),
+            Browser.CHROME: lambda: ChromeService(executable_path=ChromeManager(cache_manager=cache).install()),
+            Browser.EDGE: lambda: EdgeService(executable_path=EdgeManager(cache_manager=cache).install()),
+            Browser.FIREFOX: lambda: FirefoxService(executable_path=GeckoManager(cache_manager=cache).install()),
+            Browser.INTERNET_EXPLORER: lambda: IeService(executable_path=IeManager(cache_manager=cache).install()),
+            Browser.OPERA: lambda: ChromeService(executable_path=OperaManager(cache_manager=cache).install()),
             Browser.SAFARI: lambda: SafariService() # Driver executable for Mac/Safari comes pre-installed
         }[browser]()
         driver: Remote = None
