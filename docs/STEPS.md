@@ -1185,7 +1185,7 @@ Support
 
 > \* Reset timeout
 
-Resets the explicit timeout, so that the implicit one from the configuration is used in steps which wait for a specific condition.
+Resets the explicit timeout set by [Set timeout \<seconds>](#set-timeout-seconds).
 
 Support
 
