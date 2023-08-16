@@ -6,13 +6,9 @@ on:
   workflow_dispatch:
   release:
     types: [published]
-permissions:
-  contents: read
 jobs:
   upload:
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python
@@ -27,4 +23,7 @@ jobs:
       - name: Build package
         run: python setup.py sdist bdist_wheel
       - name: Publish package
-        run: python -m twine upload --user "__token__" --password "${{ secrets.GITHUB_TOKEN }}" dist/*
+        run: python -m twine upload dist/*
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.GITHUB_TOKEN }}

@@ -50,7 +50,7 @@ cd path/to/gauge-web-app-steps
 pip install --user .
 ```
 
-Or the latest package can (soon) be downloaded and installed from [PyPi](https://pypi.org):
+Or the latest package can be downloaded and installed from [PyPi](https://pypi.org/project/gauge-web-app-steps/):
 
 ```shell
 pip install gauge-web-app-steps --user --upgrade
