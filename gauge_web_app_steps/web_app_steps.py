@@ -695,7 +695,7 @@ def set_timeout(seconds_param: str):
     seconds = _substitute(seconds_param)
     assert seconds.replace('.', '', 1).isdigit(),\
         _err_msg(f"argument '{seconds_param}' should be a number")
-    data_store.scenario[_timeout_key] = float(seconds)
+    data_store.scenario[timeout_key] = float(seconds)
 
 
 @step("Reset timeout")
@@ -1051,7 +1051,7 @@ def _marker(by_string: str, by_value: str) -> tuple[str, str]:
 
 
 def _wait_until(condition: Callable[[Remote], Any]) -> Any:
-    timeout = data_store.scenario.get(_timeout_key, config.get_implicit_timeout())
+    timeout = data_store.scenario.get(timeout_key, config.get_implicit_timeout())
     try:
         return WebDriverWait(driver(), timeout).until(condition)
     except TimeoutException:
