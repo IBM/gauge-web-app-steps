@@ -700,7 +700,7 @@ def set_timeout(seconds_param: str):
 
 @step("Reset timeout")
 def reset_timeout():
-    data_store.scenario[_timeout_key] = None
+    del data_store.scenario[timeout_key]
 
 
 # Steps Asserts ------------------------------------------------
