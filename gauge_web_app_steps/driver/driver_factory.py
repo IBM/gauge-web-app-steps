@@ -4,6 +4,7 @@
 #
 
 from __future__ import annotations
+import os
 from abc import ABC, abstractmethod
 from appium.webdriver.webdriver import WebDriver as MobileRemote
 from selenium.webdriver.remote.webdriver import WebDriver as Remote
@@ -91,7 +92,7 @@ class LocalDriverFactory(DriverFactory):
         service = {
             Browser.CHROME: lambda: ChromeService(executable_path=ChromeManager(cache_manager=cache).install()),
             Browser.EDGE: lambda: EdgeService(executable_path=EdgeManager(cache_manager=cache).install()),
-            Browser.FIREFOX: lambda: FirefoxService(executable_path=GeckoManager(cache_manager=cache).install()),
+            Browser.FIREFOX: lambda: FirefoxService(executable_path=GeckoManager(cache_manager=cache).install(), log_output=self._firefox_log_path()),
             Browser.INTERNET_EXPLORER: lambda: IeService(executable_path=IeManager(cache_manager=cache).install()),
             Browser.OPERA: lambda: ChromeService(executable_path=OperaManager(cache_manager=cache).install()),
             Browser.SAFARI: lambda: SafariService() # Driver executable for Mac/Safari comes pre-installed
@@ -156,6 +157,10 @@ class LocalDriverFactory(DriverFactory):
             options.add_argument('--disable-dev-shm-usage')
             options.add_argument('--start-maximized')
         return options
+
+    def _firefox_log_path(self) -> str:
+        project_root = os.environ.get("GAUGE_PROJECT_ROOT")
+        return os.path.join(project_root, "logs", "geckodriver.log")
 
     def _create_android_capabilities(self) -> dict:
         desired_capabilities = {
