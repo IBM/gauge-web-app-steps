@@ -31,8 +31,6 @@ class AppContext:
         self.image_path = ImagePath(config.get_browser().value, config.is_headless())
         self.images = Images(self.report)
         self.diff_formats = config.get_diff_formats()
-        self.explicit_timeout = None
-        self.implicit_timeout = config.get_implicit_timeout()
         self.mobile = config.get_operating_system().is_mobile()
         self.firefox_page_screenshot_no_scrolling = config.get_browser() == Browser.FIREFOX and config.is_whole_page_screenshot()
 

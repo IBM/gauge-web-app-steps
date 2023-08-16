@@ -17,7 +17,7 @@ from gauge_web_app_steps.web_app_steps import (
     execute_async_script, execute_async_script_on_element, execute_async_script_on_element_save_result, execute_async_script_save_result,
     execute_script, execute_script_on_element, execute_script_on_element_save_result, execute_script_save_result,
     reset_timeout, save_placeholder, set_timeout, switch_to_frame,
-    _substitute
+    _substitute, _timeout_key
 )
 
 
@@ -27,8 +27,6 @@ class TestWebAppSteps(unittest.TestCase):
         self.startTime = time.time()
         data_store.scenario.clear()
         self.app_context = Mock()
-        self.app_context.explicit_timeout = None
-        self.app_context.implicit_timeout = 0
         self.app_context.driver = Mock()
         self.app_context.report = Mock()
         data_store.spec[app_context_key] = self.app_context
@@ -93,11 +91,11 @@ class TestWebAppSteps(unittest.TestCase):
     def test_reset_timeout(self):
         set_timeout("2")
         reset_timeout()
-        self.assertIsNone(self.app_context.explicit_timeout)
+        self.assertIsNone(data_store.scenario.get(_timeout_key))
 
     def test_set_timeout(self):
         set_timeout("2.5")
-        self.assertEqual("2.5", self.app_context.explicit_timeout)
+        self.assertEqual(2.5, data_store.scenario.get(_timeout_key))
 
     def test_set_timeout_error(self):
         self.assertRaises(AssertionError, lambda: set_timeout("id"))
