@@ -40,7 +40,7 @@ max_attempts = 12
 error_message_key = "_err_msg"
 app_context_key = "_app_ctx"
 basic_auth_key = "_basic_auth"
-_timeout_key = "_timeout"
+timeout_key = "_timeout"
 
 
 @before_suite
