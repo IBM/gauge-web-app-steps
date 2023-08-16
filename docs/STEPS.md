@@ -64,6 +64,8 @@ The following Gauge steps are implemented in this module:
   - [Save placeholder \<placeholder> = \<value>](#save-placeholder-placeholder--value)
   - [Save placeholder \<placeholder> from \<by> = \<by_value>](#save-placeholder-placeholder-from-by--by_value)
   - [Save placeholder \<placeholder> from attribute \<attribute> of \<by> = \<by_value>](#save-placeholder-placeholder-from-attribute-attribute-of-by--by_value)
+  - [Set timeout \<seconds>](#set-timeout-seconds)
+  - [Reset timeout](#reset-timeout)
   - [Assert window handles is \<windows_num>](#assert-window-handles-is-windows_num)
   - [Assert title equals \<url>](#assert-title-equals-url)
   - [Assert dialog text equals \<url>](#assert-dialog-text-equals-url)
@@ -1151,6 +1153,39 @@ Support
 > \* Save placeholder "costs" from attribute "value" of "css selector" = "input.costSlider"
 
 Saves the placeholder with the defined key into the scenario data store. The value of the placeholder is the text of the specified element's attribute. This way, it can be used as a placeholder in later steps.
+
+Support
+
+|Desktop|Android (Chrome)|iOS (Safari)|
+|:-----:|:--------------:|:----------:|
+|   ✔   |        ✔       |      ✔     |
+
+## Set timeout \<seconds>
+
+> \* Set timeout "1"
+
+This step overwrites the property `driver_implicit_timeout` for a number of steps, that support it. For now, those steps are:
+* [Assert \<by> = \<by_value> exists](#assert-by--by_value-exists)
+* [Assert \<by> = \<by_value> does not exist](#assert-by--by_value-does-not-exist)
+* [Save placeholder \<placeholder> from attribute \<attribute> of \<by> = \<by_value>](#save-placeholder-placeholder-from-attribute-attribute-of-by--by_value)
+* [Assert \<by> = \<by_value> attribute \<attribute> exists](#assert-by--by_value-attribute-attribute-exists)
+* [Assert \<by> = \<by_value> attribute \<attribute> contains \<value>](#assert-by--by_value-attribute-attribute-contains-value)
+* [Assert \<by> = \<by_value> attribute \<attribute> equals \<value>](#assert-by--by_value-attribute-attribute-equals-value)
+* [Assert \<by> = \<by_value> attribute \<attribute> does not contain \<value>](#assert-by--by_value-attribute-attribute-does-not-contain-value)
+
+More steps will be refactored soon to support this configurable timeout.
+
+Support
+
+|Desktop|Android (Chrome)|iOS (Safari)|
+|:-----:|:--------------:|:----------:|
+|   ✔   |        ✔       |      ✔     |
+
+## Reset timeout
+
+> \* Reset timeout
+
+Resets the explicit timeout set by [Set timeout \<seconds>](#set-timeout-seconds).
 
 Support
 

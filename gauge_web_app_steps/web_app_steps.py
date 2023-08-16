@@ -40,6 +40,7 @@ max_attempts = 12
 error_message_key = "_err_msg"
 app_context_key = "_app_ctx"
 basic_auth_key = "_basic_auth"
+timeout_key = "_timeout"
 
 
 @before_suite
@@ -689,6 +690,19 @@ def save_placeholder_from_element_attribute(placeholder_name_param: str, attribu
     data_store.scenario[placeholder_name] = attribute_value
 
 
+@step("Set timeout <seconds>")
+def set_timeout(seconds_param: str):
+    seconds = _substitute(seconds_param)
+    assert seconds.replace('.', '', 1).isdigit(),\
+        _err_msg(f"argument '{seconds_param}' should be a number")
+    data_store.scenario[timeout_key] = float(seconds)
+
+
+@step("Reset timeout")
+def reset_timeout():
+    del data_store.scenario[timeout_key]
+
+
 # Steps Asserts ------------------------------------------------
 
 
@@ -1037,8 +1051,7 @@ def _marker(by_string: str, by_value: str) -> tuple[str, str]:
 
 
 def _wait_until(condition: Callable[[Remote], Any]) -> Any:
-    # we reuse the implicit timeout for the wait
-    timeout = config.get_implicit_timeout()
+    timeout = data_store.scenario.get(timeout_key, config.get_implicit_timeout())
     try:
         return WebDriverWait(driver(), timeout).until(condition)
     except TimeoutException:
