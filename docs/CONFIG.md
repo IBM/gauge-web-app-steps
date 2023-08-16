@@ -65,6 +65,7 @@ The following properties should be set as system variables, rather than Gauge pr
 |--|--|--|--|
 | `SAUCE_STATUS_ADDRESS` | string | `None` | The standard address of the SauceConnect tunnel API, when run locally is `127.0.0.1:8080`, without `http://`. |
 | `SAUCE_TUNNEL_ACTIVE` | boolean | `false` | Whether the SauceConnect tunnel should be started before test execution. |
+| `SAUCE_TUNNEL_POOLING` | boolean | `false` | Parallel executions will need the SauceConnect tunnel to run in pool mode. |
 | `SAUCE_HOST` | `macos` \| `windows` \| `linux` | `None` | The OS type, from which the Gauge test has been started. This property should be auto-discovered in a future release. |
 | `SAUCE_PATH` | string | `sc` | Path to the sauce connector binary. |
 | `SAUCE_USERNAME` | string | `None` | SauceLabs user name |
