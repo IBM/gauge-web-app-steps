@@ -4,6 +4,8 @@
 #
 
 from __future__ import annotations
+import shutil
+import tempfile
 import os
 from abc import ABC, abstractmethod
 from appium.webdriver.webdriver import WebDriver as MobileRemote
@@ -26,6 +28,7 @@ from selenium.webdriver.safari.service import Service as SafariService
 from selenium.webdriver.safari.webdriver import WebDriver as Safari
 from webdriver_manager.chrome import ChromeDriverManager as ChromeManager
 from webdriver_manager.core.driver_cache import DriverCacheManager as DriverCache
+from webdriver_manager.core.manager import DriverManager
 from webdriver_manager.firefox import GeckoDriverManager as GeckoManager
 from webdriver_manager.microsoft import EdgeChromiumDriverManager as EdgeManager
 from webdriver_manager.microsoft import IEDriverManager as IeManager
@@ -71,7 +74,7 @@ class DriverFactory(ABC):
 class LocalDriverFactory(DriverFactory):
 
     """
-    This factory creates drivers for browser which is installed on the machine of the user.
+    This factory creates drivers for a browser which is installed on the machine of the user.
     """
 
     def create_driver(self) -> Remote:
@@ -89,12 +92,28 @@ class LocalDriverFactory(DriverFactory):
         assert browser.is_supported(operating_system), f"Browser {browser} not supported by {operating_system}."
         browser_options = self._create_options()
         cache = DriverCache(valid_range=config.get_driver_cache_days())
+        manager: DriverManager = {
+            Browser.CHROME: lambda: ChromeManager(cache_manager=cache),
+            Browser.EDGE: lambda: EdgeManager(cache_manager=cache),
+            Browser.FIREFOX: lambda: GeckoManager(cache_manager=cache),
+            Browser.INTERNET_EXPLORER: lambda: IeManager(cache_manager=cache),
+            Browser.OPERA: lambda: OperaManager(cache_manager=cache),
+            Browser.SAFARI: lambda: None
+        }[browser]()
+        if manager is not None:
+            driver_path=manager.install()
+            executable_path = driver_path
+            if config.is_driver_binary_copy():
+                driver_name = os.path.basename(f"{driver_path}_")
+                tmp_file = tempfile.NamedTemporaryFile(prefix=driver_name) # auto-deletes after program exit
+                executable_path = tmp_file.name
+                shutil.copy(driver_path, executable_path)
         service = {
-            Browser.CHROME: lambda: ChromeService(executable_path=ChromeManager(cache_manager=cache).install()),
-            Browser.EDGE: lambda: EdgeService(executable_path=EdgeManager(cache_manager=cache).install()),
-            Browser.FIREFOX: lambda: FirefoxService(executable_path=GeckoManager(cache_manager=cache).install(), log_output=self._firefox_log_path()),
-            Browser.INTERNET_EXPLORER: lambda: IeService(executable_path=IeManager(cache_manager=cache).install()),
-            Browser.OPERA: lambda: ChromeService(executable_path=OperaManager(cache_manager=cache).install()),
+            Browser.CHROME: lambda: ChromeService(executable_path=executable_path),
+            Browser.EDGE: lambda: EdgeService(executable_path=executable_path),
+            Browser.FIREFOX: lambda: FirefoxService(executable_path=executable_path, log_output=self._firefox_log_path()),
+            Browser.INTERNET_EXPLORER: lambda: IeService(executable_path=executable_path),
+            Browser.OPERA: lambda: ChromeService(executable_path=executable_path),
             Browser.SAFARI: lambda: SafariService() # Driver executable for Mac/Safari comes pre-installed
         }[browser]()
         driver: Remote = None
