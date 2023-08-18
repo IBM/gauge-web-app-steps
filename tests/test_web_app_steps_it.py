@@ -78,7 +78,7 @@ class TestWebAppStepsIT(unittest.TestCase):
         self._open_page(sub_page="/checkboxes")
         assert_attribute_exists("css selector", "#checkboxes input[checked]", "checked")
 
-    #ignore for now because it influences other tests, we need to quite the driver somehow after this test
+    #ignore for now because it influences other tests, we need to quit the driver somehow after this test
     @unittest.SkipTest
     def test_assert_dialog_text(self):
         self._open_page(sub_page="/javascript_alerts")
