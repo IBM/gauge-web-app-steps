@@ -4,6 +4,7 @@
 #
 
 from __future__ import annotations
+import tempfile
 import os
 from abc import ABC, abstractmethod
 from appium.webdriver.webdriver import WebDriver as MobileRemote
@@ -151,6 +152,10 @@ class LocalDriverFactory(DriverFactory):
         options.add_argument('--no-sandbox')
         options.add_argument('--hide-scrollbars')
         options.add_argument('--disable-extensions')
+        temp_profile = tempfile.mkdtemp()
+        print(f"Created temp directory {temp_profile}")
+        #options.add_argument(f"--profile-directory={temp_profile}")
+        options.add_argument(f"user-data-dir={temp_profile}")
         if config.is_headless():
             # to run chrome headless in a docker container without any GUI environment
             options.add_argument('--headless')

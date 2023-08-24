@@ -55,21 +55,14 @@ def after_suite_hook() -> None:
 
 @before_spec
 def before_spec_hook(exe_ctx: ExecutionContext) -> None:
-    try:
-        app_ctx = AppContext(exe_ctx)
-        data_store.spec[app_context_key] = app_ctx
-    except Exception as e:
-        print(str(e))
+    app_ctx = AppContext(exe_ctx)
+    data_store.spec[app_context_key] = app_ctx
 
 
 @after_spec
 def after_spec_hook() -> None:
-    try:
-        if driver():
-            print("closing driver")
-            driver().quit()
-    except KeyError:
-        pass  # Error before driver initialization
+    if driver() is not None:
+        driver().quit()
 
 
 @before_step
@@ -986,22 +979,22 @@ def fail(message_param: str) -> None:
 
 
 def driver() -> Remote:
-    app_ctx: AppContext = data_store.spec[app_context_key]
+    app_ctx: AppContext = data_store.spec.get(app_context_key)
     return app_ctx.driver
 
 
 def report() -> Report:
-    app_ctx: AppContext = data_store.spec[app_context_key]
+    app_ctx: AppContext = data_store.spec.get(app_context_key)
     return app_ctx.report
 
 
 def image_path() -> ImagePath:
-    app_ctx: AppContext = data_store.spec[app_context_key]
+    app_ctx: AppContext = data_store.spec.get(app_context_key)
     return app_ctx.image_path
 
 
 def images() -> Images:
-    app_ctx: AppContext = data_store.spec[app_context_key]
+    app_ctx: AppContext = data_store.spec.get(app_context_key)
     return app_ctx.images
 
 
