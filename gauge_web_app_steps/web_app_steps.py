@@ -55,21 +55,16 @@ def after_suite_hook() -> None:
 
 @before_spec
 def before_spec_hook(exe_ctx: ExecutionContext) -> None:
-    try:
-        app_ctx = AppContext(exe_ctx)
-        data_store.spec[app_context_key] = app_ctx
-    except Exception as e:
-        print(str(e))
+    app_ctx = AppContext(exe_ctx)
+    data_store.spec[app_context_key] = app_ctx
 
 
 @after_spec
 def after_spec_hook() -> None:
-    try:
-        if driver():
-            print("closing driver")
-            driver().quit()
-    except KeyError:
-        pass  # Error before driver initialization
+    app_ctx: AppContext = data_store.spec.get(app_context_key)
+    if app_ctx is not None and app_ctx.driver is not None:
+        print("closing driver")
+        app_ctx.driver.quit()
 
 
 @before_step

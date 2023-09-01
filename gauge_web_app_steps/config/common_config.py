@@ -91,3 +91,7 @@ def is_headless() -> bool:
 def get_custom_args() -> list:
     args_prop = os.environ.get("driver_custom_args", "")
     return [arg.strip() for arg in args_prop.split(",") if arg.strip()]
+
+
+def is_driver_binary_copy() -> bool:
+    return os.environ.get("driver_binary_copy", "false").lower() in ("true", "1")
