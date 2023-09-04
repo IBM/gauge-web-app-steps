@@ -33,6 +33,7 @@ The following properties are supported:
 | `driver_platform_local_headless`| boolean | `false` | When `driver_platform` = `local`, then tests can be run in headless mode. |
 | `driver_custom_args` | string | `None` | Optional custom arguments, that are appended to the browser options, f.i. `incognito` for chrome browsers. Multiple arguments can be comma-separated. |
 | `driver_binary_copy` | boolean | `false` | The driver binary will be copied to a unique temporary file for each parallel process. This is a workaround for parallel selenium driver executions. Use it if you experience errors in parallel test runs. |
+| `driver_manager_selenium4` | boolean | `false` | Use the build-in driver manager of Selenium 4 (currently beta) instead of the standard third party 'webdriver-manager'. This might help solve issues with parallel test executions, when `driver_binary_copy` does not work. Does not work with Opera. |
 
 ## Appium
 

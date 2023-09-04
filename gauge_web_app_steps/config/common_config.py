@@ -95,3 +95,7 @@ def get_custom_args() -> list:
 
 def is_driver_binary_copy() -> bool:
     return os.environ.get("driver_binary_copy", "false").lower() in ("true", "1")
+
+
+def is_selenium4_driver_manager() -> bool:
+    return os.environ.get("driver_manager_selenium4", "false").lower() in ("true", "1")
