@@ -93,6 +93,7 @@ The following Gauge steps are implemented in this module:
   - [Assert page screenshots resemble \<file> with SSIM more than \<threshold>](#assert-page-screenshots-resemble-file-with-ssim-more-than-threshold)
   - [Assert page screenshots resemble \<file> with SSIM more than \<threshold> for \<pages>](#assert-page-screenshots-resemble-file-with-ssim-more-than-threshold-for-pages)
   - [Fail \<message>](#fail-message)
+  - [Print message \<message>](#print-message-message)
 
 
 ## Wait \<secs>
