@@ -1782,3 +1782,15 @@ Support
 |Desktop|Android (Chrome)|iOS (Safari)|
 |:-----:|:--------------:|:----------:|
 |   ✔   |       ✔        |     ✔      |
+
+## Print message \<message>
+
+> \* Print message "Please finish this scenario"
+
+This step will leave the specified message in the report and print it in the terminal.
+
+Support
+
+|Desktop|Android (Chrome)|iOS (Safari)|
+|:-----:|:--------------:|:----------:|
+|   ✔   |       ✔        |     ✔      |
