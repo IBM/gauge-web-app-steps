@@ -1787,7 +1787,7 @@ Support
 
 > \* Print message "Please finish this scenario"
 
-This step adds the specified message in the report and print it in the terminal.
+This step adds the specified message in the report and prints it in the terminal.
 
 Support
 
