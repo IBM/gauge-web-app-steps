@@ -1785,7 +1785,7 @@ Support
 
 ## Print message \<message>
 
-> \* Print message "Please finish this scenario"
+> \* Print message "Your Message"
 
 This step adds the specified message in the report and prints it in the terminal.
 
