@@ -20,9 +20,9 @@ from gauge_web_app_steps.web_app_steps import (
     assert_text_contains, assert_text_does_not_contain, assert_text_does_not_equal, assert_text_equals,
     assert_title, assert_whole_page_resembles,
     before_spec_hook, check_element, click_element, double_click_element, driver,
-    hover_over, maximize, move_into_view, move_out_of_view, mouse_down, mouse_up, open_page,
+    hover_over, move_into_view, move_out_of_view, mouse_down, mouse_up, open_page,
     save_placeholder_from_element, save_placeholder_from_element_attribute,
-    select_option, send_keys, switch_to_frame, switch_to_window,
+    select_option, switch_to_frame, switch_to_window,
     take_screenshots_of_whole_page, type_string, uncheck_element, wait_for
 
 )
