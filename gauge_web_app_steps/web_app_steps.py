@@ -976,6 +976,10 @@ def fail(message_param: str) -> None:
     report().log(message)
     assert False
 
+@step("Print message <message>")
+def print_message(message_param: str) -> None:
+    message = _substitute(message_param)
+    report().log(message)
 
 # Context methods -------------------------------------------
 

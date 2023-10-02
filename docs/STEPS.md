@@ -95,6 +95,7 @@ The following Gauge steps are implemented in this module:
   - [Assert page screenshots resemble \<file> with SSIM more than \<threshold>](#assert-page-screenshots-resemble-file-with-ssim-more-than-threshold)
   - [Assert page screenshots resemble \<file> with SSIM more than \<threshold> for \<pages>](#assert-page-screenshots-resemble-file-with-ssim-more-than-threshold-for-pages)
   - [Fail \<message>](#fail-message)
+  - [Print message \<message>](#print-message-message)
 
 
 ## Wait \<secs>
@@ -1810,6 +1811,18 @@ Support
 
 This step will always fail and leave the specified message in the report.
 The intention is to provide an early exit, especially for scenarios, that are 'in progress'. Working this way ensures that a half done scenario will not be forgotten to be finished.
+
+Support
+
+|Desktop|Android (Chrome)|iOS (Safari)|
+|:-----:|:--------------:|:----------:|
+|   ✔   |       ✔        |     ✔      |
+
+## Print message \<message>
+
+> \* Print message "Your Message"
+
+This step adds the specified message in the report and prints it in the terminal.
 
 Support
 
