@@ -11,7 +11,7 @@ from getgauge.python import data_store
 from unittest.mock import Mock, call, patch
 
 from gauge_web_app_steps.web_app_steps import (
-    app_context_key,
+    app_context_key, answer_in_prompt,
     assert_element_does_not_exist, assert_element_exists, assert_element_is_enabled,
     before_step_hook,
     execute_async_script, execute_async_script_on_element, execute_async_script_on_element_save_result, execute_async_script_save_result,
@@ -43,6 +43,13 @@ class TestWebAppSteps(unittest.TestCase):
         ctx = Mock(step = Mock(text=step_text))
         before_step_hook(ctx)
         self.app_context.report.assert_has_calls([call.log(f"The step '{step_text}' is deprecated, please use '{new_step_text}'")])
+
+    def test_answer_in_prompt(self):
+        alert = Mock()
+        self.app_context.driver.switch_to.alert = alert
+        answer_in_prompt("foo")
+        alert.send_keys.assert_called()
+        alert.accept.assert_called()
 
     def test_assert_element_exists(self):
         self.element.is_displayed.return_value = True
