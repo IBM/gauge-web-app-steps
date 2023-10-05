@@ -13,7 +13,7 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 from gauge_web_app_steps.web_app_steps import (
-    after_spec_hook,
+    after_spec_hook, answer_in_prompt,
     assert_attribute_contains, assert_attribute_does_not_contain, assert_attribute_equals, assert_attribute_exists,
     assert_dialog_text, assert_element_exists, assert_element_does_not_exist,
     assert_element_is_selected, assert_element_is_not_selected, assert_selected_option,
@@ -77,6 +77,12 @@ class TestWebAppStepsIT(unittest.TestCase):
     def test_assert_attribute_exists(self):
         self._open_page(sub_page="/checkboxes")
         assert_attribute_exists("css selector", "#checkboxes input[checked]", "checked")
+
+    def test_answer_in_prompt(self):
+        self._open_page(sub_page="/javascript_alerts")
+        click_element("xpath", "(//button)[3]")
+        answer_in_prompt("foo")
+        assert_text_equals("xpath", "//*[@id='result']", "You entered: foo")
 
     #ignore for now because it influences other tests, we need to quit the driver somehow after this test
     @unittest.SkipTest
