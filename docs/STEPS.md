@@ -368,7 +368,7 @@ Support
 |:-----:|:--------------:|:----------:|
 |   ✔   |       ✔        |            |
 
-## Answer in prompt
+## Answer in prompt \<answer>
 
 > \* Answer in prompt "Hello"
 
