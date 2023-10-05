@@ -25,7 +25,7 @@ The following Gauge steps are implemented in this module:
   - [Switch to frame \<by> = \<by_value>](#switch-to-frame-by--by_value)
   - [Dismiss alert](#dismiss-alert)
   - [Accept alert](#accept-alert)
-  - [Answer in prompt](#answer-in-prompt)
+  - [Answer in prompt \<answer>](#answer-in-prompt-answer)
   - [Take a screenshot](#take-a-screenshot)
   - [Take a screenshot of \<by> = \<by_value> \<file>](#take-a-screenshot-of-by--by_value-file)
   - [Take screenshots of whole page \<file>](#take-screenshots-of-whole-page-file)
