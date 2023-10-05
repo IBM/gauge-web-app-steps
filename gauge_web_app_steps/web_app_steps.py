@@ -312,6 +312,7 @@ def answer_in_prompt(text: str) -> None:
     alert = driver().switch_to.alert
     alert.send_keys(prompt_text)
     alert.accept()
+    driver().switch_to.default_content()
 
 
 @step("Take a screenshot <file>")

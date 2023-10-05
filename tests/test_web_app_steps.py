@@ -50,6 +50,7 @@ class TestWebAppSteps(unittest.TestCase):
         answer_in_prompt("foo")
         alert.send_keys.assert_called()
         alert.accept.assert_called()
+        self.app_context.driver.switch_to.default_content.assert_called()
 
     def test_assert_element_exists(self):
         self.element.is_displayed.return_value = True
