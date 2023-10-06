@@ -306,6 +306,15 @@ def accept_alert() -> None:
     driver().switch_to.default_content()
 
 
+@step("Answer in prompt <text>")
+def answer_in_prompt(text: str) -> None:
+    prompt_text = _substitute(text)
+    alert = driver().switch_to.alert
+    alert.send_keys(prompt_text)
+    alert.accept()
+    driver().switch_to.default_content()
+
+
 @step("Take a screenshot <file>")
 def take_screenshot(image_file_name_param: str) -> None:
     image_file_name = _substitute(image_file_name_param)
