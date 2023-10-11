@@ -1183,7 +1183,7 @@ Support
 
 > \* Save window handles
 
-Saves all current window handles in a placeholder with the name "window_handles".
+Saves all current window handles in a placeholder with the name "\_window_handles".
 
 Support
 
