@@ -41,6 +41,7 @@ error_message_key = "_err_msg"
 app_context_key = "_app_ctx"
 basic_auth_key = "_basic_auth"
 timeout_key = "_timeout"
+window_handles = "_window_handles"
 
 
 @before_suite
@@ -692,6 +693,11 @@ def save_placeholder_from_element_attribute(placeholder_name_param: str, attribu
     attribute = _substitute(attribute_param)
     attribute_value = _find_attribute(by, by_value, attribute)
     data_store.scenario[placeholder_name] = attribute_value
+
+
+@step("Save window handles")
+def save_window_handles() -> None:
+    data_store.scenario[window_handles] = driver().window_handles
 
 
 @step("Set timeout <seconds>")
