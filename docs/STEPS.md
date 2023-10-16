@@ -1175,10 +1175,6 @@ Support
 |:-----:|:--------------:|:----------:|
 |   ✔   |        ✔       |      ✔     |
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |        ✔       |      ✔     |
-
 ## Save window handles
 
 > \* Save window handles
