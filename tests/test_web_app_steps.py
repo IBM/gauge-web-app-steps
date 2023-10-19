@@ -5,8 +5,10 @@
 
 import unittest
 import os
+import re
 import time
 
+from datetime import datetime
 from getgauge.python import data_store
 from unittest.mock import Mock, call, patch
 
@@ -154,6 +156,24 @@ class TestWebAppSteps(unittest.TestCase):
         result = _substitute("This is ${placeholder1}/url and ${placeholder2}")
         self.assertEqual("This is lala/url and baba", result)
 
+    def test_substitute_with_uuid_expression(self):
+        result = _substitute("!{uuid}")
+        self.assertRegex(result, "^[0-9a-f]{8}.[0-9a-f]{4}.[0-9a-f]{4}.[0-9a-f]{4}.[0-9a-f]{12}$")
+
+    def test_substitute_with_time_expression(self):
+        result = _substitute("!{time}")
+        self.assertTrue(self._datetime_valid(result))
+
+    def test_substitute_with_time_and_format_expression(self):
+        result = _substitute("!{time:%Y}")
+        self.assertTrue(re.fullmatch("[0-9]{4}", result) is not None)
+
+    def test_substitute_raises_with_invalid_time(self):
+        self.assertRaises(ValueError, lambda: _substitute("!{time-ly}"))
+
+    def test_substitute_raises_with_invalid_expression(self):
+        self.assertRaises(ValueError, lambda: _substitute("!{nonexistent}"))
+
     def test_switch_to_frame_by_index(self):
         self.app_context.driver.find_elements.return_value=[]
         self.assertRaises(AssertionError, lambda: switch_to_frame("1"))
@@ -219,6 +239,12 @@ class TestWebAppSteps(unittest.TestCase):
         ])
         self.assertEqual("result", data_store.scenario.get("placeholder"))
 
+    def _datetime_valid(self, dt_str: str) -> bool:
+        try:
+            datetime.fromisoformat(dt_str)
+        except:
+            return False
+        return True
 
 if __name__ == '__main__':
     unittest.main()
