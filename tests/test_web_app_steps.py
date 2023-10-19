@@ -242,7 +242,7 @@ class TestWebAppSteps(unittest.TestCase):
     def _datetime_valid(self, dt_str: str) -> bool:
         try:
             datetime.fromisoformat(dt_str)
-        except:
+        except ValueError:
             return False
         return True
 
