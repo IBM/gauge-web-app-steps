@@ -9,7 +9,9 @@ import os
 import re
 import time
 import urllib
+import uuid
 
+from datetime import datetime
 from itertools import filterfalse
 from string import Template
 from typing import Any, Callable, Iterable, List, Tuple
@@ -1039,21 +1041,47 @@ def _substitute(gauge_param: str) -> str:
     Generally, placeholders are substituted first, expressions are evaluated sencond.
     """
     template = Template(gauge_param)
-    #pipe operator does not work on windows
+    #pipe operator for sets does not work on windows
     substituted = template.safe_substitute(os.environ)
     template = Template(substituted)
     substituted = template.safe_substitute(data_store.scenario)
+    substituted = _substitute_expressions('#', substituted, lambda expression: array2string(numexpr.evaluate(expression)) )
+    substituted = _substitute_expressions('!', substituted, lambda expression: _evaluate_expression(expression))
+    return substituted
+
+
+def _substitute_expressions(marker_char: str, text: str, evaluator: Callable[[str], str]) -> str:
+    substituted = text
     while True:
-        start = substituted.find('#{')
+        start = substituted.find(marker_char + '{')
         end = substituted.find('}', start)
         if start < 0 or end < 0:
             break
         expression = substituted[start + 2:end]
         before = substituted[0:start]
         after = substituted[end + 1:len(substituted)]
-        value = array2string(numexpr.evaluate(expression))
+        value = evaluator(expression)
         substituted = before + value + after
     return substituted
+
+
+def _evaluate_expression(expression: str) -> str:
+    expression_lower = expression.lower()
+    if expression_lower == "uuid":
+        return str(uuid.uuid4())
+    elif expression_lower.startswith("time"):
+        if expression_lower.startswith("time:"):
+            format = expression.split(':', 2)[1]
+        elif expression_lower == "time":
+            format = None
+        else:
+            raise ValueError(f"unsupported substitute {expression}")
+        if format is None:
+            return datetime.now().isoformat()
+        else:
+            return datetime.now().strftime(format)
+    else:
+        raise ValueError(f"unsupported substitute {expression}")
 
 
 def _marker(by_string: str, by_value: str) -> tuple[str, str]:

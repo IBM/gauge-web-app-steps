@@ -78,21 +78,37 @@ A lot of behaviour, including the browsers and devices to use for the tests, can
 
 [Configuration Overview](./docs/CONFIG.md)
 
-## Placeholders and Mathematical Expressions
+## Expressions in Parameters
 
-Step parameters allow the use of placeholders, that can be defined in the Gauge environment properties files. Some steps also allow to set a placeholder value manually. Property keys act as placeholders, they are defined like "\${key}" and they will be replaced by its value if such a property key/value pair exists in any _env/\*/\*.properties_ file or within the execution scope.
+### Property Placeholders
 
-Mathematical expressions can also be evaluated. For example: "#{5 + 5 * 5}" will be evaluated as "30".
+Step parameters allow the use of placeholders, that can be defined in the Gauge environment properties files. Some steps also allow to set a placeholder value manually. Property keys act as placeholders, they are defined like `${key}`. They will be replaced by its value if such a property key/value pair exists in any _env/\*/\*.properties_ file or within the execution scope.
 
-It is possible to combine the two features. Placeholder substitution takes place before mathematical expression evaluation. Note that the first starts with a \$dollar sign, and the second with a \#hash sign.
+### Mathematical Expressions
 
-Examples:
+Mathematical expressions can also be evaluated. For example: `#{5 + 5 * 5}` is evaluated to `30`.
+
+It is possible to combine the two features. Placeholder substitution takes place before mathematical expression evaluation.
+
+### Functional Expressions
+
+Functional expressions will generate a result during step execution. There are 2 expressions: One will generate a UUID, and the other will yield the current date and time: `!{uuid}`, `!{time}`, `!{time:%Y-%m-%d}`. The time format is optional, if omitted it will be use ISO format. The time format pattern is described in the [Python language documentation](https://docs.python.org/3.10/library/time.html#time.strftime).
+
+### Expression Examples
+
+Note that the property expressions start with `$`, mathematical expressions with `#`, and functional expressions with `!`.
 
 > \* Open "\${homepage_url}/home"
 
 > \* Assert "id" = "sum" equals "#{5 + 6}"
 
 > \* Assert "id" = "sum" equals "#{$addend + 5 * 5}"
+
+> \* Type "!{uuid}"
+
+> \* Type "!{time}"
+
+> \* Type "!{time:%Y-%m-%d}"
 
 The property "homepage_url" can be defined in _env/default/test.properties_ like this:
 
