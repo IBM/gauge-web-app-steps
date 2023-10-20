@@ -82,7 +82,7 @@ A lot of behaviour, including the browsers and devices to use for the tests, can
 
 ### Property Placeholders
 
-Step parameters allow the use of placeholders, that can be defined in the Gauge environment properties files. Some steps also allow to set a placeholder value manually. Property keys act as placeholders, they are defined like `${key}` and they will be replaced by its value if such a property key/value pair exists in any _env/\*/\*.properties_ file or within the execution scope.
+Step parameters allow the use of placeholders, that can be defined in the Gauge environment properties files. Some steps also allow to set a placeholder value manually. Property keys act as placeholders, they are defined like `${key}`. They will be replaced by its value if such a property key/value pair exists in any _env/\*/\*.properties_ file or within the execution scope.
 
 ### Mathematical Expressions
 
