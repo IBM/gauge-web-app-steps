@@ -114,6 +114,10 @@ class TestWebAppSteps(unittest.TestCase):
         result = data_store.scenario.get(placeholder)
         self.assertEqual(placeholder, result)
 
+    def test_wait_for_window_missing_handles(self):
+        placeholder = "handle"
+        self.assertRaises(AssertionError, lambda: wait_for_window("0", placeholder))
+
     def test_reset_timeout(self):
         set_timeout("2")
         reset_timeout()
