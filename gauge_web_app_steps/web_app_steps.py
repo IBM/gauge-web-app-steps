@@ -120,8 +120,9 @@ def wait_for_window(secs_param: str, placeholder_name_param: str) -> None:
     secs = _substitute(secs_param)
     placeholder_name = _substitute(placeholder_name_param)
     time.sleep(float(secs))
-    wh_now = driver().window_handles
+    #previous saved window handles
     wh_then = data_store.scenario[window_handles_key]
+    wh_now = driver().window_handles
     if len(wh_now) > len(wh_then):
         win_handle = set(wh_now).difference(set(wh_then)).pop()
         data_store.scenario[placeholder_name] = win_handle
