@@ -44,6 +44,7 @@ app_context_key = "_app_ctx"
 basic_auth_key = "_basic_auth"
 timeout_key = "_timeout"
 window_handles_key = "_window_handles"
+delayed_window_key = "_delayed_window"
 
 
 @before_suite
@@ -113,6 +114,17 @@ def take_screenshot_on_failure() -> bytes:
 def wait_for(secs_param: str) -> None:
     secs = _substitute(secs_param)
     time.sleep(float(secs))
+
+
+@step("Wait for window <secs>")
+def wait_for_window(secs_param: str) -> None:
+    secs = _substitute(secs_param)
+    time.sleep(float(secs))
+    wh_now = driver().window_handles
+    wh_then = data_store.scenario[window_handles_key]
+    if len(wh_now) > len(wh_then):
+        wh = set(wh_now).difference(set(wh_then)).pop()
+        data_store.scenario[delayed_window_key] = wh
 
 
 @step("Fullscreen")
@@ -268,7 +280,6 @@ def switch_to_window(window_param: str) -> None:
             driver().switch_to.window(original_window)
         else:
             report().log(f"Switched to window with name {window_param}")
-
 
 
 @step("Switch to default content")

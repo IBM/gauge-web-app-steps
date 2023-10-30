@@ -6,6 +6,7 @@ The following Gauge steps are implemented in this module:
 ## Overview
 
   - [Wait \<secs>](#wait-secs)
+  - [Wait for window \<secs>](#wait-for-window-secs)
   - [Fullscreen](#fullscreen)
   - [Maximize](#maximize)
   - [Window size \<width>x\<height>](#window-size-widthxheight)
@@ -116,6 +117,22 @@ Support
 |:-----:|:--------------:|:----------:|
 |   ✔   |       ✔        |     ✔      |
 
+## Wait for window \<secs>
+
+> \* Wait for window "2"
+
+> \* Wait for window "0.3"
+
+> \* Wait for window "\${secs}"
+
+Waits for a window the specified time in seconds. If there is a new windows after the time expired, then this window handle can be used via the placeholder
+"\_delayed_window"
+
+Support
+
+|Desktop|Android (Chrome)|iOS (Safari)|
+|:-----:|:--------------:|:----------:|
+|   ✔   |       ✔        |     ✔      |
 
 ## Fullscreen
 
