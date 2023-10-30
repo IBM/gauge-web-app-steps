@@ -44,7 +44,6 @@ app_context_key = "_app_ctx"
 basic_auth_key = "_basic_auth"
 timeout_key = "_timeout"
 window_handles_key = "_window_handles"
-delayed_window_key = "_delayed_window"
 
 
 @before_suite
@@ -116,15 +115,16 @@ def wait_for(secs_param: str) -> None:
     time.sleep(float(secs))
 
 
-@step("Wait for window <secs>")
-def wait_for_window(secs_param: str) -> None:
+@step("Wait for window <secs> and save handle as <placeholder>")
+def wait_for_window(secs_param: str, placeholder_name_param: str) -> None:
     secs = _substitute(secs_param)
+    placeholder_name = _substitute(placeholder_name_param)
     time.sleep(float(secs))
     wh_now = driver().window_handles
     wh_then = data_store.scenario[window_handles_key]
     if len(wh_now) > len(wh_then):
-        wh = set(wh_now).difference(set(wh_then)).pop()
-        data_store.scenario[delayed_window_key] = wh
+        win_handle = set(wh_now).difference(set(wh_then)).pop()
+        data_store.scenario[placeholder_name] = win_handle
 
 
 @step("Fullscreen")

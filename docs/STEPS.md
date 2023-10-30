@@ -6,7 +6,7 @@ The following Gauge steps are implemented in this module:
 ## Overview
 
   - [Wait \<secs>](#wait-secs)
-  - [Wait for window \<secs>](#wait-for-window-secs)
+  - [Wait for window \<secs> and save handle as \<placeholder>](#wait-for-window-secs-and-save-handle-as-placeholder)
   - [Fullscreen](#fullscreen)
   - [Maximize](#maximize)
   - [Window size \<width>x\<height>](#window-size-widthxheight)
@@ -117,16 +117,15 @@ Support
 |:-----:|:--------------:|:----------:|
 |   ✔   |       ✔        |     ✔      |
 
-## Wait for window \<secs>
+## Wait for window \<secs> and save handle as \<placeholder>
 
-> \* Wait for window "2"
+> \* Wait for window "2" and save handle as "delayed_window"
 
-> \* Wait for window "0.3"
+> \* Wait for window "0.3" and save handle as "delayed_window"
 
-> \* Wait for window "\${secs}"
+> \* Wait for window "\${secs}" and save handle as "delayed_window"
 
-Waits for a window the specified time in seconds. If there is a new windows after the time expired, then this window handle can be used via the placeholder
-"\_delayed_window"
+Waits for a window the specified time in seconds. If there is a new window after the time expired, then the window handle is been saved, using the value of the placeholder.
 
 Support
 
