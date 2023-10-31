@@ -125,7 +125,7 @@ Support
 
 > \* Wait for window "\${secs}" and save handle as "delayed_window"
 
-Waits for a window the specified time in seconds. If there is a new window after the time expired, then the window handle is been saved, using the value of the placeholder. You have to save all window handles before, see also: [Save window handles](#save-window-handles). 
+Waits for a window the specified time in seconds. If there is a new window after the time expired, then the window handle is been saved, using the value of the placeholder. You have to save all window handles before, see also: [Save window handles as <placeholder>](#save-window-handles-as-placeholder). 
 
 Support
 
