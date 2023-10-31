@@ -43,7 +43,6 @@ error_message_key = "_err_msg"
 app_context_key = "_app_ctx"
 basic_auth_key = "_basic_auth"
 timeout_key = "_timeout"
-window_handles_key = "_window_handles"
 
 
 @before_suite
@@ -119,12 +118,12 @@ def wait_for(secs_param: str) -> None:
 def wait_for_window(secs_param: str, placeholder_name_param: str) -> None:
     secs = _substitute(secs_param)
     placeholder_name = _substitute(placeholder_name_param)
-    assert window_handles_key in data_store.scenario.keys(), "Expected saved window handles. Did you use '* Save window handles'?"
+    assert placeholder_name_param in data_store.scenario.keys(), "Expected saved window handles. Did you use '* Save window handles'?"
     
     time.sleep(float(secs))
     wh_now = driver().window_handles
     #previous saved window handles
-    wh_then = data_store.scenario[window_handles_key]
+    wh_then = data_store.scenario[placeholder_name_param]
     if len(wh_now) > len(wh_then):
         win_handle = set(wh_now).difference(set(wh_then)).pop()
         data_store.scenario[placeholder_name] = win_handle
@@ -711,9 +710,10 @@ def save_placeholder_from_element_attribute(placeholder_name_param: str, attribu
     data_store.scenario[placeholder_name] = attribute_value
 
 
-@step("Save window handles")
-def save_window_handles() -> None:
-    data_store.scenario[window_handles_key] = driver().window_handles
+@step("Save window handles as <placeholder>")
+def save_window_handles(placeholder_name_param: str) -> None:
+    placeholder_name = _substitute(placeholder_name_param)
+    data_store.scenario[placeholder_name] = driver().window_handles
 
 
 @step("Set timeout <seconds>")

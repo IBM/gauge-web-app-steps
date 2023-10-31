@@ -66,7 +66,7 @@ The following Gauge steps are implemented in this module:
   - [Save placeholder \<placeholder> = \<value>](#save-placeholder-placeholder--value)
   - [Save placeholder \<placeholder> from \<by> = \<by_value>](#save-placeholder-placeholder-from-by--by_value)
   - [Save placeholder \<placeholder> from attribute \<attribute> of \<by> = \<by_value>](#save-placeholder-placeholder-from-attribute-attribute-of-by--by_value)
-  - [Save window handles](#save-window-handles)
+  - [Save window handles as <placeholder>](#save-window-handles-as-placeholder)
   - [Set timeout \<seconds>](#set-timeout-seconds)
   - [Reset timeout](#reset-timeout)
   - [Assert window handles is \<windows_num>](#assert-window-handles-is-windows_num)
@@ -1191,11 +1191,11 @@ Support
 |:-----:|:--------------:|:----------:|
 |   ✔   |        ✔       |      ✔     |
 
-## Save window handles
+## Save window handles as \<placeholder>
 
-> \* Save window handles
+> \* Save window handles as "handles"
 
-Saves all current window handles in a placeholder with the name "\_window_handles".
+Saves all current window handles in a placeholder with the given name "handles".
 
 Support
 
