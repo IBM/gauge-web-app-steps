@@ -6,6 +6,7 @@ The following Gauge steps are implemented in this module:
 ## Overview
 
   - [Wait \<secs>](#wait-secs)
+  - [Wait for window \<secs> and save handle as \<placeholder>](#wait-for-window-secs-and-save-handle-as-placeholder)
   - [Fullscreen](#fullscreen)
   - [Maximize](#maximize)
   - [Window size \<width>x\<height>](#window-size-widthxheight)
@@ -65,7 +66,7 @@ The following Gauge steps are implemented in this module:
   - [Save placeholder \<placeholder> = \<value>](#save-placeholder-placeholder--value)
   - [Save placeholder \<placeholder> from \<by> = \<by_value>](#save-placeholder-placeholder-from-by--by_value)
   - [Save placeholder \<placeholder> from attribute \<attribute> of \<by> = \<by_value>](#save-placeholder-placeholder-from-attribute-attribute-of-by--by_value)
-  - [Save window handles](#save-window-handles)
+  - [Save window handles as <placeholder>](#save-window-handles-as-placeholder)
   - [Set timeout \<seconds>](#set-timeout-seconds)
   - [Reset timeout](#reset-timeout)
   - [Assert window handles is \<windows_num>](#assert-window-handles-is-windows_num)
@@ -116,6 +117,21 @@ Support
 |:-----:|:--------------:|:----------:|
 |   ✔   |       ✔        |     ✔      |
 
+## Wait for window \<secs> and save handle as \<placeholder>
+
+> \* Wait for window "2" and save handle as "handles"
+
+> \* Wait for window "0.3" and save handle as "handles"
+
+> \* Wait for window "\${secs}" and save handle as "handles"
+
+Waits for a window the specified time in seconds. If there is a new window after the time expired, then the window handle is been saved, using the value of the placeholder. You have to save all window handles before, see also: [Save window handles as <placeholder>](#save-window-handles-as-placeholder). 
+
+Support
+
+|Desktop|Android (Chrome)|iOS (Safari)|
+|:-----:|:--------------:|:----------:|
+|   ✔   |       ✔        |     ✔      |
 
 ## Fullscreen
 
@@ -1175,11 +1191,11 @@ Support
 |:-----:|:--------------:|:----------:|
 |   ✔   |        ✔       |      ✔     |
 
-## Save window handles
+## Save window handles as \<placeholder>
 
-> \* Save window handles
+> \* Save window handles as "handles"
 
-Saves all current window handles in a placeholder with the name "\_window_handles".
+Saves all current window handles in a placeholder with the given name "handles".
 
 Support
 
