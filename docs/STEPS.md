@@ -1204,6 +1204,18 @@ Support
 |:-----:|:--------------:|:----------:|
 |   ✔   |        ✔       |      ✔     |
 
+## Save window title as \<placeholder>
+
+> \* Save window title as "title"
+
+Saves the title of the current window in a placeholder with the given name "title".
+
+Support
+
+|Desktop|Android (Chrome)|iOS (Safari)|
+|:-----:|:--------------:|:----------:|
+|   ✔   |        ✔       |      ✔     |
+
 ## Set timeout \<seconds>
 
 > \* Set timeout "1"
