@@ -18,7 +18,7 @@ from gauge_web_app_steps.web_app_steps import (
     before_step_hook,
     execute_async_script, execute_async_script_on_element, execute_async_script_on_element_save_result, execute_async_script_save_result,
     execute_script, execute_script_on_element, execute_script_on_element_save_result, execute_script_save_result,
-    reset_timeout, save_placeholder, save_window_handles, set_timeout, switch_to_frame,
+    reset_timeout, save_placeholder, save_window_handles, save_window_title, set_timeout, switch_to_frame,
     _substitute, timeout_key, wait_for_window
 )
 
@@ -105,6 +105,13 @@ class TestWebAppSteps(unittest.TestCase):
         save_window_handles(placeholder)
         result = data_store.scenario.get(placeholder).return_value
         self.assertEqual(["foo"], result)
+
+    def test_save_window_title(self):
+        placeholder = "title"
+        self.app_context.driver.title.return_value = "foo"
+        save_window_title(placeholder)
+        result = data_store.scenario.get(placeholder).return_value
+        self.assertEqual("foo", result)
 
     def test_wait_for_window(self):
         placeholder = "handle"
