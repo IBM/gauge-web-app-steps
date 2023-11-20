@@ -716,6 +716,12 @@ def save_window_handles(placeholder_name_param: str) -> None:
     data_store.scenario[placeholder_name] = driver().window_handles
 
 
+@step("Save window title as <placeholder>")
+def save_window_title(placeholder_name_param: str) -> None:
+    placeholder_name = _substitute(placeholder_name_param)
+    data_store.scenario[placeholder_name] = driver().title
+
+
 @step("Set timeout <seconds>")
 def set_timeout(seconds_param: str):
     seconds = _substitute(seconds_param)
