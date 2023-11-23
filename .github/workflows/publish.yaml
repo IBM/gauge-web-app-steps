@@ -6,6 +6,10 @@ on:
   workflow_dispatch:
   release:
     types: [published]
+
+# Declare default permissions as read only.
+permissions: read-all
+
 jobs:
   upload:
     runs-on: ubuntu-latest
