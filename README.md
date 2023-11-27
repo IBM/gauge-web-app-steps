@@ -6,7 +6,7 @@
 [![Appium](https://img.shields.io/badge/-Appium-blue)](https://github.com/appium)
 [![Gauge](https://img.shields.io/badge/Framework-Gauge-blue)](https://github.com/getgauge)
 [![SauceLabs](https://img.shields.io/badge/Cloud-SauceLabs-blue)](https://saucelabs.com)
-[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/ibm/gauge-web-app-steps/badge)](https://securityscorecards.dev/viewer/?uri=github.com/ibm/gauge-web-app-steps)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/IBM/gauge-web-app-steps/badge)](https://securityscorecards.dev/viewer/?uri=github.com/IBM/gauge-web-app-steps)
 
 A Python module, that provides re-usable steps for testing web applications with the [Gauge](https://gauge.org/) framework.
 
