@@ -378,7 +378,10 @@ class SaucelabsDriverFactory(DriverFactory):
         return operating_system_version if version is None else version.value
 
     def _get_sauce_options(self) -> dict:
-        sauce_options = {}
+        sauce_options = {
+            "username": saucelabs_config.get_sauce_user_name(),
+            "accessKey": saucelabs_config.get_sauce_access_key(),
+        }
         operating_system = config.get_operating_system()
         appium_version = saucelabs_config.get_appium_version()
         if operating_system and operating_system.is_mobile() and appium_version:
