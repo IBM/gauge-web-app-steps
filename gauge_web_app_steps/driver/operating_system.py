@@ -41,7 +41,8 @@ class OperatingSystem(Enum):
 
 class SaucelabsOperatingSystem(Enum):
 
-    MACOS_DEFAULT = "macOS 13"
+    MACOS_DEFAULT = "macOS 14"
+    MACOS_14 = "macOS 14"
     MACOS_13 = "macOS 13"
     MACOS_12 = "macOS 12"
     MACOS_11 = "macOS 11"
