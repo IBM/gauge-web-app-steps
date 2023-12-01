@@ -63,7 +63,7 @@ def before_spec_hook(exe_ctx: ExecutionContext) -> None:
         data_store.spec[app_context_key] = app_ctx
     except BaseException as e:
         # Gauge swallows some exceptions, so they are handled here
-        print("An exception occured while instantiating the driver:")
+        print(f"An exception occured while instantiating the driver: {e}")
         traceback.print_exception(e)
         raise e
 
@@ -77,7 +77,7 @@ def after_spec_hook() -> None:
             app_ctx.driver.quit()
     except BaseException as e:
         # Gauge swallows some exceptions, so they are handled here
-        print("An exception occured while closing the driver:")
+        print(f"An exception occured while closing the driver: {e}")
         traceback.print_exception(e)
         raise e
 
