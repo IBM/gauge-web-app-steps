@@ -56,7 +56,7 @@ class TestSaucelabsDriverFactory(unittest.TestCase):
             # act
             result = SaucelabsDriverFactory("test")._get_sauce_options()
             # assert
-            self.assertEqual(should_have_tunnel_name, "tunnelIdentifier" in result, f"tunnel name was in the result: {result}")
+            self.assertEqual(should_have_tunnel_name, "tunnelName" in result, f"tunnel name was in the result: {result}")
 
     @parameterized.expand([
         (OperatingSystem.WINDOWS, "11", SaucelabsOperatingSystem.WINDOWS_11.value),
@@ -65,6 +65,10 @@ class TestSaucelabsDriverFactory(unittest.TestCase):
         (OperatingSystem.WINDOWS, "8", SaucelabsOperatingSystem.WINDOWS_8.value),
         (OperatingSystem.WINDOWS, "7", SaucelabsOperatingSystem.WINDOWS_7.value),
         (OperatingSystem.WINDOWS, "foobar", SaucelabsOperatingSystem.WINDOWS_DEFAULT.value),
+        (OperatingSystem.MACOS, "14", SaucelabsOperatingSystem.MACOS_14.value),
+        (OperatingSystem.MACOS, "sonoma", SaucelabsOperatingSystem.MACOS_14.value),
+        (OperatingSystem.MACOS, "13", SaucelabsOperatingSystem.MACOS_13.value),
+        (OperatingSystem.MACOS, "ventura", SaucelabsOperatingSystem.MACOS_13.value),
         (OperatingSystem.MACOS, "12", SaucelabsOperatingSystem.MACOS_12.value),
         (OperatingSystem.MACOS, "monterey", SaucelabsOperatingSystem.MACOS_12.value),
         (OperatingSystem.MACOS, "11", SaucelabsOperatingSystem.MACOS_11.value),
@@ -88,7 +92,7 @@ class TestSaucelabsDriverFactory(unittest.TestCase):
         (OperatingSystem.MACOS, "el-capitan", SaucelabsOperatingSystem.MACOS_10_11.value),
         (OperatingSystem.MACOS, "10.10", SaucelabsOperatingSystem.MACOS_10_10.value),
         (OperatingSystem.MACOS, "yosemite", SaucelabsOperatingSystem.MACOS_10_10.value),
-        (OperatingSystem.MACOS, "foobar", SaucelabsOperatingSystem.MACOS_DEFAULT.value),
+        (OperatingSystem.MACOS, "foobar", "foobar"),
     ])
     def test__get_platform_name(self, operating_system: OperatingSystem, operating_system_version: str, expected_value: str):
         result = SaucelabsDriverFactory("test")._get_platform_name(operating_system, operating_system_version)

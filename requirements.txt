@@ -1,11 +1,11 @@
-Appium-Python-Client>=2.9.0
+Appium-Python-Client==3.1.0
 getgauge
 numpy # transitive dependency of scikit-image
-numexpr>=2.8.1
+numexpr==2.8.7
 scikit-image==0.21.0
-selenium>=4.11.2
+selenium==4.15.2
 webcolors==1.11.1
-webdriver-manager>=4.0.0
+webdriver-manager==4.0.1
 #only for development purposes
 flake8
 parameterized
