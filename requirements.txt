@@ -1,7 +1,7 @@
 Appium-Python-Client==3.1.0
 getgauge
 numpy # transitive dependency of scikit-image
-numexpr==2.8.7
+numexpr==2.8.8
 scikit-image==0.21.0
 selenium==4.15.2
 webcolors==1.11.1
