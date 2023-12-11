@@ -22,7 +22,7 @@ setup(
         'Appium-Python-Client>=2.9.0',
         'getgauge',
         'numexpr>=2.8.1',
-        'scikit-image==0.21.0',
+        'scikit-image==0.22.0',
         'selenium>=4.11.2',
         'webcolors==1.11.1',
         'webdriver-manager>=4.0.0',
