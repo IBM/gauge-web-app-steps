@@ -311,6 +311,7 @@ class SaucelabsDriverFactory(DriverFactory):
         }
         options = self._create_browser_options()
         if operating_system == OperatingSystem.ANDROID:
+            desired_capabilities['appium:automationName'] = 'UiAutomator2'
             desired_capabilities["goog:chromeOptions"] = {
                 'w3c': True,
                 'extensions': []
