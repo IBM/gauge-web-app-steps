@@ -93,7 +93,7 @@ It is possible to combine the two features. Placeholder substitution takes place
 
 ### Functional Expressions
 
-Functional expressions will generate a result during step execution. There are 2 expressions: One will generate a UUID, and the other will yield the current date and time: `!{uuid}`, `!{time}`, `!{time:%Y-%m-%d}`. The time format is optional, if omitted it will be use ISO format. The time format pattern is described in the [Python language documentation](https://docs.python.org/3.10/library/time.html#time.strftime).
+Functional expressions will generate a result during step execution. There are 2 expressions: One will generate a UUID, and the other will yield the current date and time: `!{uuid}`, `!{time}`, `!{time:%Y-%m-%d}`. The time format is optional, if omitted ISO format will be used. The time format pattern is described in the [Python language documentation](https://docs.python.org/3.10/library/time.html#time.strftime).
 
 ### Expression Examples
 
