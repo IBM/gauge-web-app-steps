@@ -52,19 +52,22 @@ def find_attribute(by: str, by_value: str, attribute: str) -> str | bool:
         return value if value is not None else False
     return wait_until(_element_attribute)
 
+
 def wait_until(condition: Callable[[Remote], Any]) -> Any:
     timeout = data_store.scenario.get(timeout_key, config.get_implicit_timeout())
     try:
         return WebDriverWait(_driver(), timeout).until(condition)
     except TimeoutException:
         return False
-    
+
+
 def get_marker(by_string: str, by_value: str) -> tuple[str, str]:
     mapped_by = ByMapper.map_string(by_string)
     if mapped_by == By.ID:
         mapped_by = By.CSS_SELECTOR
         by_value = f"#{by_value}"
     return mapped_by, by_value
-    
+
+
 def _driver() -> Remote:
     return data_store.spec[app_context_key].driver

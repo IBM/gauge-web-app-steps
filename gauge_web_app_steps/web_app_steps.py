@@ -11,7 +11,7 @@ import traceback
 import urllib
 
 from itertools import filterfalse
-from typing import Iterable, Tuple
+from typing import Tuple
 from getgauge.python import data_store, step, before_spec, after_spec, screenshot, before_suite, after_suite, before_step, ExecutionContext
 from selenium.common.exceptions import JavascriptException, WebDriverException
 from selenium.webdriver import Remote
@@ -23,12 +23,14 @@ from .app_context import AppContext, app_context_key, timeout_key
 from .config import common_config as config
 from .driver.browsers import Browser
 from .element_lookup import find_element, find_elements, find_attribute, get_text_from_element, get_marker, wait_until
-from .imagepaths import ImagePath
 from .images import Images
 from .keymapper import KeyMapper
 from .report import Report
 from .sauce_tunnel import SauceTunnel
 from .selector import SelectKey, Selector
+from .screenshot import (append_structured_similarity, create_screenshot, create_screenshot_on_failure, 
+                        create_actual_screenshot_file_path, create_expected_screenshot_file_path, crop_image,
+                        get_structured_similarity_to_expected, ssim_screenshot_scrolling, ssim_screenshot_noscrolling)
 from .substitute import substitute
 
 
@@ -98,8 +100,7 @@ def take_screenshot_on_failure() -> bytes:
         # Error before driver initialization
         return b''
     try:
-        screenshot_file_path = image_path().create_failure_screenshot_file_path()
-        driver().save_screenshot(screenshot_file_path)
+        screenshot_file_path = create_screenshot_on_failure()
         report().log_image(screenshot_file_path, "Step Failure Screenshot")
         with open(screenshot_file_path, "rb") as sf:
             file_bin = sf.read()
@@ -337,21 +338,17 @@ def answer_in_prompt(text: str) -> None:
 
 @step("Take a screenshot <file>")
 def take_screenshot(image_file_name_param: str) -> None:
-    image_file_name = substitute(image_file_name_param)
-    screenshot_file_path = image_path().create_screenshot_file_path(image_file_name)
-    driver().save_screenshot(screenshot_file_path)
+    screenshot_file_path = create_screenshot(image_file_name_param)
     report().log_image(screenshot_file_path)
 
 
 @step("Take a screenshot of <by> = <by_value> <file>")
 def take_screenshot_of_element(by: str, by_value: str, image_file_name_param: str) -> None:
     element = find_element(by, by_value)
-    image_file_name = substitute(image_file_name_param)
-    screenshot_file_path = image_path().create_screenshot_file_path(image_file_name)
-    driver().save_screenshot(screenshot_file_path)
+    screenshot_file_path = create_screenshot(image_file_name_param)
     pixel_ratio = _device_pixel_ratio()
     viewport_offset = _viewport_offset()
-    images().crop_image_file(
+    crop_image(
         screenshot_file_path,
         element.location,
         element.size,
@@ -363,17 +360,12 @@ def take_screenshot_of_element(by: str, by_value: str, image_file_name_param: st
 
 @step("Take screenshots of whole page <file>")
 def take_screenshots_of_whole_page(image_file_name_param: str) -> None:
-    image_file_name = substitute(image_file_name_param)
     if _is_firefox_page_screenshot_no_scrolling():
-        _screenshot_of_whole_page_no_scrolling(image_file_name)
+        screenshot_file_path = create_screenshot(image_file_name_param)
+        report().log_image(screenshot_file_path)
     else:
+        image_file_name = substitute(image_file_name_param)
         _screenshot_of_whole_page_with_scrolling(image_file_name)
-
-
-def _screenshot_of_whole_page_no_scrolling(image_file_name: str) -> None:
-    screenshot_file_path = image_path().create_screenshot_file_path(image_file_name)
-    driver().save_full_page_screenshot(screenshot_file_path)
-    report().log_image(screenshot_file_path)
 
 
 def _screenshot_of_whole_page_with_scrolling(image_file_name: str) -> None:
@@ -956,21 +948,9 @@ def assert_image_resembles(by: str, by_value: str, image_file_name_param: str, t
     element = find_element(by, by_value)
     threshold = float(substitute(threshold_param))
     assert 0.0 <= threshold <= 1.0, "threshold must be between 0.0 and 1.0"
-    image_file_name = substitute(image_file_name_param)
-    actual_screenshot_full_path = image_path().create_actual_screenshot_file_path(image_file_name)
-    driver().save_screenshot(actual_screenshot_full_path)
     pixel_ratio = _device_pixel_ratio()
-    viewport_offset = _viewport_offset()
-    images().crop_image_file(
-        actual_screenshot_full_path,
-        element.location,
-        element.size,
-        pixel_ratio,
-        viewport_offset
-    )
-    expected_screenshot_full_path = image_path().create_expected_screenshot_file_path(image_file_name)
-    diff_formats = config.get_diff_formats()
-    ssim = images().adapt_and_compare_images(expected_screenshot_full_path, actual_screenshot_full_path, diff_formats)
+    viewport_offset = _viewport_offset()    
+    ssim = get_structured_similarity_to_expected(image_file_name_param, element.location, element.size, pixel_ratio, viewport_offset)
     assert ssim >= threshold, \
         _err_msg(f"SSIM {ssim} is less than threshold {threshold}")
 
@@ -981,9 +961,9 @@ def assert_whole_page_resembles(image_file_name_param: str, threshold_param: str
     assert 0.0 <= threshold <= 1.0, "threshold must be between 0.0 and 1.0"
     image_file_name = substitute(image_file_name_param)
     if _is_firefox_page_screenshot_no_scrolling():
-        failed_asserts = _ssim_screenshot_noscrolling(image_file_name, threshold)
+        failed_asserts = ssim_screenshot_noscrolling(image_file_name, threshold)
     else:
-        failed_asserts = _ssim_screenshot_scrolling(image_file_name, threshold)
+        failed_asserts = ssim_screenshot_scrolling(image_file_name, threshold)
     assert len(failed_asserts) == 0,\
             _err_msg("Assertions failed:\n\t{}".format("\n\t".join(failed_asserts)))
 
@@ -997,16 +977,16 @@ def assert_pages_resemble(image_file_name_param: str, threshold_param: str, page
     pages = int(substitute(pages_param))
     failed_asserts = []
     for page in range(1, pages + 1):
-        actual_screenshot_full_path = image_path().create_actual_screenshot_file_path(image_file_name, page)
-        driver().save_screenshot(actual_screenshot_full_path)
-        expected_screenshot_full_path = image_path().create_expected_screenshot_file_path(image_file_name, page)
+        actual_screenshot_full_path = create_actual_screenshot_file_path(image_file_name, page)
+        expected_screenshot_full_path = create_expected_screenshot_file_path(image_file_name, page)
         page += 1
         send_keys("PAGE_DOWN")
         time.sleep(0.6)
         if not os.path.isfile(expected_screenshot_full_path):
             failed_asserts.append("screenshot {} does not exist".format(expected_screenshot_full_path))
         else:
-            _append_structured_similarity(failed_asserts, expected_screenshot_full_path, actual_screenshot_full_path, threshold)
+            append_structured_similarity(failed_asserts, expected_screenshot_full_path, actual_screenshot_full_path, threshold)
+
     assert len(failed_asserts) == 0,\
             _err_msg("Assertions failed:\n\t{}".format("\n\t".join(failed_asserts)))
 
@@ -1035,16 +1015,6 @@ def report() -> Report:
     return app_ctx.report
 
 
-def image_path() -> ImagePath:
-    app_ctx: AppContext = data_store.spec[app_context_key]
-    return app_ctx.image_path
-
-
-def images() -> Images:
-    app_ctx: AppContext = data_store.spec[app_context_key]
-    return app_ctx.images
-
-
 # Private methods -------------------------------------------
 
 def _device_pixel_ratio() -> int:
@@ -1054,61 +1024,12 @@ def _device_pixel_ratio() -> int:
 def _viewport_offset() -> int:
     return int(driver().execute_script("return window.pageYOffset"))
 
-
-def _scroll() -> int:
-    """
-    Scrolls down the size of the current window height and returns True, if scrolling down is still possible
-    (The page is not ended yet)
-    """
-    current_offset: int = driver().execute_script("return window.pageYOffset")
-    driver().execute_script("window.scrollBy(0, window.innerHeight)")
-    time.sleep(0.3)
-    after_scroll_offset: int = driver().execute_script("return window.pageYOffset")
-    return after_scroll_offset > current_offset
-
-
 def _is_firefox_page_screenshot_no_scrolling() -> bool:
     return config.get_browser() == Browser.FIREFOX and config.is_whole_page_screenshot()
 
 
 def _is_mobile_operating_system() -> bool:
     return config.get_operating_system().is_mobile()
-
-
-def _ssim_screenshot_noscrolling(image_file_name: str, threshold: float) -> Iterable[str]:
-    failed_asserts = []
-    actual_screenshot_full_path = image_path().create_actual_screenshot_file_path(image_file_name)
-    driver().save_full_page_screenshot(actual_screenshot_full_path)
-    expected_screenshot_full_path = image_path().create_expected_screenshot_file_path(image_file_name)
-    if not os.path.isfile(expected_screenshot_full_path):
-        failed_asserts.append("screenshot {} does not exist".format(expected_screenshot_full_path))
-    else:
-        _append_structured_similarity(failed_asserts, expected_screenshot_full_path, actual_screenshot_full_path, threshold)
-    return failed_asserts
-
-
-def _ssim_screenshot_scrolling(image_file_name: str, threshold: float) -> Iterable[str]:
-    failed_asserts = []
-    postfix = 1
-    should_continue = True
-    while should_continue:
-        actual_screenshot_full_path = image_path().create_actual_screenshot_file_path(image_file_name, postfix)
-        driver().save_screenshot(actual_screenshot_full_path)
-        expected_screenshot_full_path = image_path().create_expected_screenshot_file_path(image_file_name, postfix)
-        should_continue = _scroll() and postfix <= 32
-        postfix += 1
-        if not os.path.isfile(expected_screenshot_full_path):
-            failed_asserts.append("screenshot {} does not exist".format(expected_screenshot_full_path))
-        else:
-            _append_structured_similarity(failed_asserts, expected_screenshot_full_path, actual_screenshot_full_path, threshold)
-    return failed_asserts
-
-
-def _append_structured_similarity(asserts: list, expected_screenshot: str, actual_screenshot: str, threshold: float) -> Iterable[str]:
-    diff_formats = config.get_diff_formats()
-    ssim = images().adapt_and_compare_images(expected_screenshot, actual_screenshot, diff_formats)
-    if ssim < threshold:
-        asserts.append("SSIM {} is less than threshold {} for {}".format(ssim, threshold, actual_screenshot))
 
 
 def _focused_element() -> WebElement:

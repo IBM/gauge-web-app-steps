@@ -14,7 +14,7 @@ from getgauge.python import data_store
 from gauge_web_app_steps.substitute import substitute
 
 
-class TestWebAppSteps(unittest.TestCase):
+class TestSubstitute(unittest.TestCase):
 
     def setUp(self):
         self.startTime = time.time()
