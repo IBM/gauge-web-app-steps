@@ -11,20 +11,18 @@ import traceback
 import urllib
 
 from itertools import filterfalse
-from typing import Any, Callable, Iterable, List, Tuple
+from typing import Iterable, Tuple
 from getgauge.python import data_store, step, before_spec, after_spec, screenshot, before_suite, after_suite, before_step, ExecutionContext
-from selenium.common.exceptions import TimeoutException, JavascriptException, WebDriverException
+from selenium.common.exceptions import JavascriptException, WebDriverException
 from selenium.webdriver import Remote
 from selenium.webdriver.common.action_chains import ActionChains
-from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
-from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-from .app_context import AppContext
-from .bymapper import ByMapper
+from .app_context import AppContext, app_context_key, timeout_key
 from .config import common_config as config
 from .driver.browsers import Browser
+from .element_lookup import find_element, find_elements, find_attribute, get_text_from_element, get_marker, wait_until
 from .imagepaths import ImagePath
 from .images import Images
 from .keymapper import KeyMapper
@@ -36,11 +34,8 @@ from .substitute import substitute
 
 # Repeat an action a number of times before failing
 max_attempts = 12
-error_message_key = "_err_msg"
-app_context_key = "_app_ctx"
 basic_auth_key = "_basic_auth"
-timeout_key = "_timeout"
-
+error_message_key = "_err_msg"
 
 @before_suite
 def before_suite_hook() -> None:
@@ -303,9 +298,9 @@ def switch_to_frame(frame_name_or_index_param: str) -> None:
     frame_param = substitute(frame_name_or_index_param)
     if frame_param.isdigit():
         index = int(frame_param)
-        frames = _find_elements("tag name", "frame")
+        frames = find_elements("tag name", "frame")
         if len(frames) == 0:
-            frames = _find_elements("tag name", "iframe")
+            frames = find_elements("tag name", "iframe")
         assert len(frames)  > 0, "no frames or iframes found in current page."
         assert len(frames) >= index, f"frame index {index} is higher than number of frames in current page: {len(frames)}"
         driver().switch_to.frame(frames[index])
@@ -315,7 +310,7 @@ def switch_to_frame(frame_name_or_index_param: str) -> None:
 
 @step("Switch to frame <by> = <by_value>")
 def switch_to_frame_by_selector(by: str, by_value: str) -> None:
-    frame = _find_element(by, by_value)
+    frame = find_element(by, by_value)
     driver().switch_to.frame(frame)
 
 
@@ -350,7 +345,7 @@ def take_screenshot(image_file_name_param: str) -> None:
 
 @step("Take a screenshot of <by> = <by_value> <file>")
 def take_screenshot_of_element(by: str, by_value: str, image_file_name_param: str) -> None:
-    element = _find_element(by, by_value)
+    element = find_element(by, by_value)
     image_file_name = substitute(image_file_name_param)
     screenshot_file_path = image_path().create_screenshot_file_path(image_file_name)
     driver().save_screenshot(screenshot_file_path)
@@ -398,21 +393,21 @@ def _screenshot_of_whole_page_with_scrolling(image_file_name: str) -> None:
 
 @step("Check <by> = <by_value>")
 def check_element(by: str, by_value: str) -> None:
-    element = _find_element(by, by_value)
+    element = find_element(by, by_value)
     if not element.is_selected():
         element.click()
 
 
 @step("Uncheck <by> = <by_value>")
 def uncheck_element(by: str, by_value: str) -> None:
-    element = _find_element(by, by_value)
+    element = find_element(by, by_value)
     if element.is_selected():
         element.click()
 
 
 @step("Select <by> = <by_value> option <select_key> = <select_value>")
 def select_option(by: str, by_value: str, select_key_param: str, select_value_param: str) -> None:
-    element = _find_element(by, by_value)
+    element = find_element(by, by_value)
     select_key = substitute(select_key_param)
     select_value = substitute(select_value_param)
     key = SelectKey.to_enum(select_key)
@@ -421,19 +416,19 @@ def select_option(by: str, by_value: str, select_key_param: str, select_value_pa
 
 @step("Click <by> = <by_value>")
 def click_element(by: str, by_value: str) -> None:
-    _find_element(by, by_value).click()
+    find_element(by, by_value).click()
 
 
 @step("Double click <by> = <by_value>")
 def double_click_element(by: str, by_value: str) -> None:
-    element = _find_element(by, by_value)
+    element = find_element(by, by_value)
     ActionChains(driver()).double_click(element).perform()
 
 
 @step("Click <by> = <by_value> <key_down>")
 def click_element_with_key_down(by: str, by_value: str, key_down_param: str) -> None:
     keys_down = _map_keys(substitute(key_down_param))
-    element = _find_element(by, by_value)
+    element = find_element(by, by_value)
     ac = ActionChains(driver())
     for key in keys_down:
         ac.key_down(key)
@@ -446,7 +441,7 @@ def click_element_with_key_down(by: str, by_value: str, key_down_param: str) -> 
 @step("Right click <by> = <by_value>")
 def right_click_element(by: str, by_value: str) -> None:
     actionChains = ActionChains(driver())
-    element = _find_element(by, by_value)
+    element = find_element(by, by_value)
     actionChains.context_click(element).perform()
 
 
@@ -477,7 +472,7 @@ def type_string_with_key_down(key_down_param: str, a_string_param: str) -> None:
 @step("Type <by> = <by_value> <string>")
 def type_string_into_element(by: str, by_value: str, a_string_param: str) -> None:
     a_string = substitute(a_string_param)
-    element = _find_element(by, by_value)
+    element = find_element(by, by_value)
     element.clear()
     if not _is_mobile_operating_system():
         ActionChains(driver())\
@@ -493,7 +488,7 @@ def type_string_into_element(by: str, by_value: str, a_string_param: str) -> Non
 def type_string_into_element_with_key_down(by: str, by_value: str, key_down_param: str, a_string_param: str) -> None:
     keys_down = _map_keys(substitute(key_down_param))
     a_string = substitute(a_string_param)
-    element = _find_element(by, by_value)
+    element = find_element(by, by_value)
     element.clear()
     ac = ActionChains(driver())\
         .click(element)
@@ -529,7 +524,7 @@ def send_keys_with_key_down(key_down_param: str, keys_param: str) -> None:
 @step("Send <by> = <by_value> keys <keys>")
 def send_keys_to_element(by: str, by_value: str, keys_param: str) -> None:
     send_keys = _map_keys(substitute(keys_param))
-    element = _find_element(by, by_value)
+    element = find_element(by, by_value)
     ActionChains(driver())\
         .click(element)\
         .send_keys(send_keys)\
@@ -540,7 +535,7 @@ def send_keys_to_element(by: str, by_value: str, keys_param: str) -> None:
 def send_keys_to_element_with_key_down(by: str, by_value: str, key_down_param: str, keys_param: str) -> None:
     keys_down = _map_keys(substitute(key_down_param))
     send_keys = _map_keys(substitute(keys_param))
-    element = _find_element(by, by_value)
+    element = find_element(by, by_value)
     ac = ActionChains(driver())\
         .click(element)
     for key in keys_down:
@@ -553,25 +548,25 @@ def send_keys_to_element_with_key_down(by: str, by_value: str, key_down_param: s
 
 @step("Clear <by> = <by_value>")
 def clear_element(by: str, by_value: str) -> None:
-    element = _find_element(by, by_value)
+    element = find_element(by, by_value)
     element.clear()
 
 
 @step("Mouse down <by> = <by_value>")
 def mouse_down(by: str, by_value: str) -> None:
-    element = _find_element(by, by_value)
+    element = find_element(by, by_value)
     ActionChains(driver()).move_to_element(element).click_and_hold(element).perform()
 
 
 @step("Mouse up <by> = <by_value>")
 def mouse_up(by: str, by_value: str) -> None:
-    element = _find_element(by, by_value)
+    element = find_element(by, by_value)
     ActionChains(driver()).move_to_element(element).release(element).perform()
 
 
 @step("Move to <by> = <by_value>")
 def move_into_view(by: str, by_value: str) -> None:
-    element = _find_element(by, by_value)
+    element = find_element(by, by_value)
     # the following script is needed for some browsers
     driver().execute_script("arguments[0].scrollIntoView(true);", element)
     try:
@@ -583,39 +578,39 @@ def move_into_view(by: str, by_value: str) -> None:
 
 @step("Move to and center <by> = <by_value>")
 def move_into_view_and_center(by: str, by_value: str) -> None:
-    element = _find_element(by, by_value)
+    element = find_element(by, by_value)
     driver().execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'nearest'});", element)
 
 
 @step("Move out")
 def move_out_of_view() -> None:
-    element = _find_element("css selector", "body")
+    element = find_element("css selector", "body")
     ActionChains(driver()).move_to_element_with_offset(element, 0, 0).perform()
 
 
 @step("Hover over <by> = <by_value>")
 def hover_over(by: str, by_value: str) -> None:
-    element = _find_element(by, by_value)
+    element = find_element(by, by_value)
     ActionChains(driver()).move_to_element(element).perform()
 
 
 @step("Scroll <by> = <by_value> into view")
 def scrollElementIntoView(by: str, by_value: str) -> None:
-    _find_element(by, by_value)\
+    find_element(by, by_value)\
         .location_once_scrolled_into_view
 
 
 @step("Drag and drop <by_source> = <by_value_source> into <by_dest> = <by_value_dest>")
 def dragAndDropElement(by_source: str, by_value_source: str, by_dest: str, by_value_dest: str) -> None:
-    sourceElement = _find_element(by_source, by_value_source)
-    destinationElement = _find_element(by_dest, by_value_dest)
+    sourceElement = find_element(by_source, by_value_source)
+    destinationElement = find_element(by_dest, by_value_dest)
     ActionChains(driver()).drag_and_drop(sourceElement, destinationElement).perform()
 
 
 @step("Upload file = <file_path> into <by> = <by_value>")
 def uploadFile(file_path_param: str, by: str, by_value: str) -> None:
     file_path = substitute(file_path_param)
-    _find_element(by, by_value).send_keys(file_path)
+    find_element(by, by_value).send_keys(file_path)
 
 
 @step("Execute <script>")
@@ -637,7 +632,7 @@ def execute_script_on_element(script_param: str, by: str, by_value: str, elem_pa
     script = substitute(script_param)
     elem = substitute(elem_param)
     assert elem in script, f"no element with name '{elem}' is referred to in the script"
-    found = _find_element(by, by_value)
+    found = find_element(by, by_value)
     driver().execute_script(f"var {elem}=arguments[0]; {script}", found)
 
 
@@ -647,7 +642,7 @@ def execute_script_on_element_save_result(script_param: str, by: str, by_value: 
     elem = substitute(elem_param)
     placeholder_name = substitute(placeholder_name_param)
     assert elem in script, f"no element with name '{elem}' is referred to in the script"
-    found = _find_element(by, by_value)
+    found = find_element(by, by_value)
     res = driver().execute_script(f"var {elem}=arguments[0]; {script}", found)
     data_store.scenario[placeholder_name] = res
 
@@ -673,7 +668,7 @@ def execute_async_script_on_element(script_param: str, by: str, by_value: str, e
     script = substitute(script_param)
     elem = substitute(elem_param)
     assert elem in script, f"no element with name '{elem}' is referred to in the script"
-    found = _find_element(by, by_value)
+    found = find_element(by, by_value)
     driver().execute_async_script(f"var {elem}=arguments[0]; {script}", found)
 
 
@@ -692,7 +687,7 @@ def execute_async_script_on_element_save_result(
     callback = substitute(callback_param)
     assert elem in script, f"no element with name '{elem}' is referred to in the script"
     assert callback in script, f"no callback with name '{callback}' is invoked in the script"
-    found = _find_element(by, by_value)
+    found = find_element(by, by_value)
     res = driver().execute_async_script(f"var {elem}=arguments[0]; var {callback}=arguments[arguments.length-1]; {script}", found)
     data_store.scenario[placeholder_name] = res
 
@@ -707,7 +702,7 @@ def save_placeholder(placeholder_name_param: str, placeholder_value_param: str) 
 @step("Save placeholder <placeholder> from <by> = <by_value>")
 def save_placeholder_from_element(placeholder_name_param: str, by: str, by_value: str) -> None:
     placeholder_name = substitute(placeholder_name_param)
-    text = _get_text_from_element(by, by_value)
+    text = get_text_from_element(by, by_value)
     data_store.scenario[placeholder_name] = text
 
 
@@ -715,7 +710,7 @@ def save_placeholder_from_element(placeholder_name_param: str, by: str, by_value
 def save_placeholder_from_element_attribute(placeholder_name_param: str, attribute_param: str, by: str, by_value: str) -> None:
     placeholder_name = substitute(placeholder_name_param)
     attribute = substitute(attribute_param)
-    attribute_value = _find_attribute(by, by_value, attribute)
+    attribute_value = find_attribute(by, by_value, attribute)
     data_store.scenario[placeholder_name] = attribute_value
 
 
@@ -811,8 +806,8 @@ def assert_url_contains(expected_url_param: str) -> None:
 # see also before_step_hook
 @step(["Assert <by> = <by_value> exists", "Assert <by> = <by_value> is displayed"])
 def assert_element_exists(by: str, by_value: str) -> None:
-    marker = _marker(substitute(by), substitute(by_value))
-    visible = _wait_until(EC.visibility_of_element_located(marker))
+    marker = get_marker(substitute(by), substitute(by_value))
+    visible = wait_until(EC.visibility_of_element_located(marker))
     assert visible,\
         _err_msg(f"element {by} = {by_value} does not exists")
 
@@ -822,36 +817,36 @@ def assert_element_exists(by: str, by_value: str) -> None:
 def assert_element_does_not_exist(by_param: str, by_value_param: str) -> None:
     by = substitute(by_param)
     by_value = substitute(by_value_param)
-    marker = _marker(by, by_value)
-    invisible = _wait_until(EC.invisibility_of_element(marker))
+    marker = get_marker(by, by_value)
+    invisible = wait_until(EC.invisibility_of_element(marker))
     assert invisible, \
         _err_msg(f"element {by} = {by_value} exists")
 
 
 @step("Assert <by> = <by_value> is enabled")
 def assert_element_is_enabled(by: str, by_value: str) -> None:
-    element = _find_element(by, by_value)
+    element = find_element(by, by_value)
     assert element.is_enabled(),\
         _err_msg(f"element {by} = {by_value} is disabled")
 
 
 @step("Assert <by> = <by_value> is disabled")
 def assert_element_is_disabled(by: str, by_value: str) -> None:
-    element = _find_element(by, by_value)
+    element = find_element(by, by_value)
     assert not element.is_enabled(), \
         _err_msg(f"element {by} = {by_value} is enabled")
 
 
 @step("Assert <by> = <by_value> is selected")
 def assert_element_is_selected(by: str, by_value: str) -> None:
-    element = _find_element(by, by_value)
+    element = find_element(by, by_value)
     assert element.is_selected(),\
         _err_msg(f"element {by} = {by_value} is not selected")
 
 
 @step("Assert <by> = <by_value> has selected value <value>")
 def assert_selected_option(by: str, by_value: str, expected_param: str) -> None:
-    element = _find_element(by, by_value)
+    element = find_element(by, by_value)
     actual = Selector.get_selected_value(element)
     expected = substitute(expected_param)
     assert expected == actual,\
@@ -860,7 +855,7 @@ def assert_selected_option(by: str, by_value: str, expected_param: str) -> None:
 
 @step("Assert <by> = <by_value> is not selected")
 def assert_element_is_not_selected(by: str, by_value: str) -> None:
-    element = _find_element(by, by_value)
+    element = find_element(by, by_value)
     assert not element.is_selected(), \
         _err_msg(f"element {by} = {by_value} is selected")
 
@@ -868,7 +863,7 @@ def assert_element_is_not_selected(by: str, by_value: str) -> None:
 @step("Assert <by> = <by_value> equals <string>")
 def assert_text_equals(by: str, by_value: str, expected_text_param: str) -> None:
     expected_text = substitute(expected_text_param)
-    text = _get_text_from_element(by, by_value)
+    text = get_text_from_element(by, by_value)
     assert text == expected_text,\
         _err_msg(f"element {by} = {by_value} expected text {expected_text}, actual {text}")
 
@@ -876,7 +871,7 @@ def assert_text_equals(by: str, by_value: str, expected_text_param: str) -> None
 @step("Assert <by> = <by_value> does not equal <string>")
 def assert_text_does_not_equal(by: str, by_value: str, expected_text_param: str) -> None:
     expected_text = substitute(expected_text_param)
-    text = _get_text_from_element(by, by_value)
+    text = get_text_from_element(by, by_value)
     assert text != expected_text,\
         _err_msg(f"element {by} = {by_value} expected actual {text} not to be equal to {expected_text}")
 
@@ -884,7 +879,7 @@ def assert_text_does_not_equal(by: str, by_value: str, expected_text_param: str)
 @step("Assert <by> = <by_value> regexp <regexp>")
 def assert_regexp_in_element(by: str, by_value: str, regexp_param: str) -> None:
     regexp = substitute(regexp_param)
-    text = _get_text_from_element(by, by_value)
+    text = get_text_from_element(by, by_value)
     assert re.match(regexp, text),\
         _err_msg(f"element {by} = {by_value}: regexp {regexp} does not match {text}")
 
@@ -892,7 +887,7 @@ def assert_regexp_in_element(by: str, by_value: str, regexp_param: str) -> None:
 @step("Assert <by> = <by_value> contains <string>")
 def assert_text_contains(by: str, by_value: str, contains_text_param: str) -> None:
     contains_text = substitute(contains_text_param)
-    text = _get_text_from_element(by, by_value)
+    text = get_text_from_element(by, by_value)
     assert contains_text in text,\
         _err_msg(f"element {by} = {by_value} expected actual {text} to contain {contains_text}")
 
@@ -900,14 +895,14 @@ def assert_text_contains(by: str, by_value: str, contains_text_param: str) -> No
 @step("Assert <by> = <by_value> does not contain <string>")
 def assert_text_does_not_contain(by: str, by_value: str, contains_text_param: str) -> None:
     contains_text = substitute(contains_text_param)
-    text = _get_text_from_element(by, by_value)
+    text = get_text_from_element(by, by_value)
     assert contains_text not in text,\
         _err_msg(f"element {by} = {by_value} expected actual {text} to not contain {contains_text}")
 
 
 @step("Assert <by> = <by_value> css <css_property_name> is <css_expected_value>")
 def assert_css_property(by: str, by_value: str, css_property_name_param: str, css_expected_value_param: str) -> None:
-    element = _find_element(by, by_value)
+    element = find_element(by, by_value)
     css_property_name = substitute(css_property_name_param)
     css_expected_value = substitute(css_expected_value_param)
     css_actual_value = element.value_of_css_property(css_property_name)
@@ -917,7 +912,7 @@ def assert_css_property(by: str, by_value: str, css_property_name_param: str, cs
 
 @step("Assert <by> = <by_value> is focused")
 def assert_element_is_focused(by: str, by_value: str) -> None:
-    element = _find_element(by, by_value)
+    element = find_element(by, by_value)
     assert element == _focused_element(),\
         _err_msg(f"element {by} = {by_value} is not in focus")
 
@@ -925,7 +920,7 @@ def assert_element_is_focused(by: str, by_value: str) -> None:
 @step("Assert <by> = <by_value> attribute <attribute> exists")
 def assert_attribute_exists(by: str, by_value: str, attribute_param: str) -> None:
     attribute = substitute(attribute_param)
-    found_value =  _find_attribute(by, by_value, attribute)
+    found_value =  find_attribute(by, by_value, attribute)
     assert found_value, _err_msg(f"element {by} = {by_value} has no attribute {attribute}")
 
 
@@ -933,7 +928,7 @@ def assert_attribute_exists(by: str, by_value: str, attribute_param: str) -> Non
 def assert_attribute_contains(by: str, by_value: str, attribute_param: str, value_param: str) -> None:
     attribute = substitute(attribute_param)
     value = substitute(value_param)
-    found_value = _find_attribute(by, by_value, attribute)
+    found_value = find_attribute(by, by_value, attribute)
     assert found_value, _err_msg(f"element {by} = {by_value} has no attribute {attribute}")
     assert value in found_value, _err_msg(f"attribute {attribute} in element {by} = {by_value} does not contain {value} - found: {found_value}")
 
@@ -942,7 +937,7 @@ def assert_attribute_contains(by: str, by_value: str, attribute_param: str, valu
 def assert_attribute_equals(by: str, by_value: str, attribute_param: str, value_param: str) -> None:
     attribute = substitute(attribute_param)
     value = substitute(value_param)
-    found_value = _find_attribute(by, by_value, attribute)
+    found_value = find_attribute(by, by_value, attribute)
     assert found_value, _err_msg(f"element {by} = {by_value} has no attribute {attribute}")
     assert value == found_value, _err_msg(f"attribute {attribute} in element {by} = {by_value} does not equal {value} - found: {found_value}")
 
@@ -951,14 +946,14 @@ def assert_attribute_equals(by: str, by_value: str, attribute_param: str, value_
 def assert_attribute_does_not_contain(by: str, by_value: str, attribute_param: str, value_param: str) -> None:
     attribute = substitute(attribute_param)
     value = substitute(value_param)
-    found_value = _find_attribute(by, by_value, attribute)
+    found_value = find_attribute(by, by_value, attribute)
     if found_value:
         assert value not in found_value, _err_msg(f"attribute {attribute} in element {by} = {by_value} contains {value} - found: {found_value}")
 
 
 @step("Assert <by> = <by_value> screenshot resembles <file> with SSIM more than <threshold>")
 def assert_image_resembles(by: str, by_value: str, image_file_name_param: str, threshold_param: str) -> None:
-    element = _find_element(by, by_value)
+    element = find_element(by, by_value)
     threshold = float(substitute(threshold_param))
     assert 0.0 <= threshold <= 1.0, "threshold must be between 0.0 and 1.0"
     image_file_name = substitute(image_file_name_param)
@@ -1051,58 +1046,6 @@ def images() -> Images:
 
 
 # Private methods -------------------------------------------
-
-def _marker(by_string: str, by_value: str) -> tuple[str, str]:
-    mapped_by = ByMapper.map_string(by_string)
-    if mapped_by == By.ID:
-        mapped_by = By.CSS_SELECTOR
-        by_value = f"#{by_value}"
-    return mapped_by, by_value
-
-
-def _wait_until(condition: Callable[[Remote], Any]) -> Any:
-    timeout = data_store.scenario.get(timeout_key, config.get_implicit_timeout())
-    try:
-        return WebDriverWait(driver(), timeout).until(condition)
-    except TimeoutException:
-        return False
-
-
-def _find_element(by_param: str, by_value_param: str) -> WebElement:
-    by = substitute(by_param)
-    by_value = substitute(by_value_param)
-    marker = _marker(by, by_value)
-    return driver().find_element(*marker)
-
-
-def _find_elements(by_param: str, by_value_param: str) -> List[WebElement]:
-    by = substitute(by_param)
-    by_value = substitute(by_value_param)
-    marker = _marker(by, by_value)
-    return driver().find_elements(*marker)
-
-
-def _get_text_from_element(by: str, by_value: str) -> str:
-    element = _find_element(by, by_value)
-    if "input" == element.tag_name:
-        return element.get_attribute("value")
-    else:
-        return element.text
-
-
-def _find_attribute(by: str, by_value: str, attribute: str) -> str | bool:
-    """
-    This will return the string value of the attribute.
-    Empty attributes will return 'true', never an empty string.
-    If the attribute does not exist, it will return `False`.
-    """
-    def _element_attribute(driver: Remote) -> Any:
-        marker = _marker(substitute(by), substitute(by_value))
-        element = driver.find_element(*marker)
-        value = element.get_dom_attribute(attribute)
-        return value if value is not None else False
-    return _wait_until(_element_attribute)
-
 
 def _device_pixel_ratio() -> int:
     return int(driver().execute_script("return window.devicePixelRatio"))

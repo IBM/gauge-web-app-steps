@@ -10,7 +10,6 @@ import time
 
 from datetime import datetime
 from getgauge.python import data_store
-from unittest.mock import Mock, call, patch
 
 from gauge_web_app_steps.substitute import substitute
 
