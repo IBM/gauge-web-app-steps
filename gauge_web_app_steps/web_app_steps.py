@@ -427,7 +427,7 @@ def double_click_element(by: str, by_value: str) -> None:
 
 @step("Click <by> = <by_value> <key_down>")
 def click_element_with_key_down(by: str, by_value: str, key_down_param: str) -> None:
-    keys_down = _map_keys(substitute(key_down_param))
+    keys_down = KeyMapper.map_keys(substitute(key_down_param))
     element = find_element(by, by_value)
     ac = ActionChains(driver())
     for key in keys_down:
@@ -458,7 +458,7 @@ def type_string(a_string_param: str) -> None:
 
 @step("Type <key_down> <string>")
 def type_string_with_key_down(key_down_param: str, a_string_param: str) -> None:
-    keys_down = _map_keys(substitute(key_down_param))
+    keys_down = KeyMapper.map_keys(substitute(key_down_param))
     a_string = substitute(a_string_param)
     ac = ActionChains(driver())
     for key in keys_down:
@@ -486,7 +486,7 @@ def type_string_into_element(by: str, by_value: str, a_string_param: str) -> Non
 
 @step("Type <by> = <by_value> <key_down> <string>")
 def type_string_into_element_with_key_down(by: str, by_value: str, key_down_param: str, a_string_param: str) -> None:
-    keys_down = _map_keys(substitute(key_down_param))
+    keys_down = KeyMapper.map_keys(substitute(key_down_param))
     a_string = substitute(a_string_param)
     element = find_element(by, by_value)
     element.clear()
@@ -502,7 +502,7 @@ def type_string_into_element_with_key_down(by: str, by_value: str, key_down_para
 
 @step("Send keys <keys>")
 def send_keys(keys_param: str) -> None:
-    send_keys = _map_keys(substitute(keys_param))
+    send_keys = KeyMapper.map_keys(substitute(keys_param))
     ActionChains(driver())\
         .send_keys(send_keys)\
         .perform()
@@ -510,8 +510,8 @@ def send_keys(keys_param: str) -> None:
 
 @step("Send keys <key_down> <keys>")
 def send_keys_with_key_down(key_down_param: str, keys_param: str) -> None:
-    keys_down = _map_keys(substitute(key_down_param))
-    send_keys = _map_keys(substitute(keys_param))
+    keys_down = KeyMapper.map_keys(substitute(key_down_param))
+    send_keys = KeyMapper.map_keys(substitute(keys_param))
     ac = ActionChains(driver())
     for key in keys_down:
         ac.key_down(key)
@@ -523,7 +523,7 @@ def send_keys_with_key_down(key_down_param: str, keys_param: str) -> None:
 
 @step("Send <by> = <by_value> keys <keys>")
 def send_keys_to_element(by: str, by_value: str, keys_param: str) -> None:
-    send_keys = _map_keys(substitute(keys_param))
+    send_keys = KeyMapper.map_keys(substitute(keys_param))
     element = find_element(by, by_value)
     ActionChains(driver())\
         .click(element)\
@@ -533,8 +533,8 @@ def send_keys_to_element(by: str, by_value: str, keys_param: str) -> None:
 
 @step("Send <by> = <by_value> keys <key_down> <keys>")
 def send_keys_to_element_with_key_down(by: str, by_value: str, key_down_param: str, keys_param: str) -> None:
-    keys_down = _map_keys(substitute(key_down_param))
-    send_keys = _map_keys(substitute(keys_param))
+    keys_down = KeyMapper.map_keys(substitute(key_down_param))
+    send_keys = KeyMapper.map_keys(substitute(keys_param))
     element = find_element(by, by_value)
     ac = ActionChains(driver())\
         .click(element)
@@ -1053,15 +1053,6 @@ def _device_pixel_ratio() -> int:
 
 def _viewport_offset() -> int:
     return int(driver().execute_script("return window.pageYOffset"))
-
-
-def _map_keys(keys_param: str) -> Iterable[str]:
-    keys = re.split(r'[,\s]+', keys_param)
-    unknown_keys = [k for k in keys if k not in KeyMapper._KEYS]
-    assert len(unknown_keys) == 0,\
-        "Keys %s unknown.\nUse those instead: %s" % (unknown_keys, KeyMapper._KEYS)
-    send_keys = [KeyMapper.map_string(k) for k in keys]
-    return send_keys
 
 
 def _scroll() -> int:

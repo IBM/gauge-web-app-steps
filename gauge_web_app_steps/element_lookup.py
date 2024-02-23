@@ -1,3 +1,8 @@
+#
+# Copyright IBM Corp. 2019-
+# SPDX-License-Identifier: MIT
+#
+
 from typing import Any, Callable, List
 from getgauge.python import data_store
 from selenium.webdriver import Remote
