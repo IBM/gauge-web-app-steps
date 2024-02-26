@@ -23,7 +23,6 @@ from .app_context import AppContext, app_context_key, timeout_key
 from .config import common_config as config
 from .driver.browsers import Browser
 from .element_lookup import find_element, find_elements, find_attribute, get_text_from_element, get_marker, wait_until
-from .images import Images
 from .keymapper import KeyMapper
 from .report import Report
 from .sauce_tunnel import SauceTunnel
