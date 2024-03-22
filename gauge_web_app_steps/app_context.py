@@ -13,6 +13,8 @@ from .report import Report
 from .config import common_config as config
 from .config import local_config, saucelabs_config
 
+app_context_key = "_app_ctx"
+timeout_key = "_timeout"
 
 class AppContext:
     """

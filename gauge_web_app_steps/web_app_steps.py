@@ -4,47 +4,39 @@
 #
 
 import base64
-import numexpr
 import os
 import re
 import time
 import traceback
 import urllib
-import uuid
 
-from datetime import datetime
 from itertools import filterfalse
-from string import Template
-from typing import Any, Callable, Iterable, List, Tuple
+from typing import Tuple
 from getgauge.python import data_store, step, before_spec, after_spec, screenshot, before_suite, after_suite, before_step, ExecutionContext
-from numpy import array2string
-from selenium.common.exceptions import TimeoutException, JavascriptException, WebDriverException
+from selenium.common.exceptions import JavascriptException, WebDriverException
 from selenium.webdriver import Remote
 from selenium.webdriver.common.action_chains import ActionChains
-from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
-from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-from .app_context import AppContext
-from .bymapper import ByMapper
+from .app_context import AppContext, app_context_key, timeout_key
 from .config import common_config as config
 from .driver.browsers import Browser
-from .imagepaths import ImagePath
-from .images import Images
+from .element_lookup import find_element, find_elements, find_attribute, get_text_from_element, get_marker, wait_until
 from .keymapper import KeyMapper
 from .report import Report
 from .sauce_tunnel import SauceTunnel
 from .selector import SelectKey, Selector
+from .screenshot import (append_structured_similarity, create_screenshot, create_failure_screenshot, 
+                        create_actual_screenshot_file_path, create_expected_screenshot_file_path, crop_image,
+                        get_structured_similarity_to_expected, ssim_screenshot_scrolling, ssim_screenshot_noscrolling)
+from .substitute import substitute
 
 
 # Repeat an action a number of times before failing
 max_attempts = 12
-error_message_key = "_err_msg"
-app_context_key = "_app_ctx"
 basic_auth_key = "_basic_auth"
-timeout_key = "_timeout"
-
+error_message_key = "_err_msg"
 
 @before_suite
 def before_suite_hook() -> None:
@@ -107,8 +99,7 @@ def take_screenshot_on_failure() -> bytes:
         # Error before driver initialization
         return b''
     try:
-        screenshot_file_path = image_path().create_failure_screenshot_file_path()
-        driver().save_screenshot(screenshot_file_path)
+        screenshot_file_path = create_failure_screenshot()
         report().log_image(screenshot_file_path, "Step Failure Screenshot")
         with open(screenshot_file_path, "rb") as sf:
             file_bin = sf.read()
@@ -123,14 +114,14 @@ def take_screenshot_on_failure() -> bytes:
 
 @step("Wait <secs>")
 def wait_for(secs_param: str) -> None:
-    secs = _substitute(secs_param)
+    secs = substitute(secs_param)
     time.sleep(float(secs))
 
 
 @step("Wait for window <secs> and save handle as <placeholder>")
 def wait_for_window(secs_param: str, placeholder_name_param: str) -> None:
-    secs = _substitute(secs_param)
-    placeholder_name = _substitute(placeholder_name_param)
+    secs = substitute(secs_param)
+    placeholder_name = substitute(placeholder_name_param)
     assert placeholder_name in data_store.scenario.keys(), "Expected saved window handles. Did you use '* Save window handles'?"
     
     time.sleep(float(secs))
@@ -154,8 +145,8 @@ def maximize() -> None:
 
 @step("Window size <width>x<height>")
 def window_size(width_param: str, height_param: str) -> None:
-    width = int(_substitute(width_param))
-    height = int(_substitute(height_param))
+    width = int(substitute(width_param))
+    height = int(substitute(height_param))
     outer_width, inner_width, outer_height, inner_height = driver().execute_script("""
     return [window.outerWidth, window.innerWidth, window.outerHeight, window.innerHeight]""")
     if outer_width == 0:
@@ -203,7 +194,7 @@ def forward() -> None:
 
 @step("Open <page>")
 def open_page(page_param: str) -> None:
-    page = _substitute(page_param)
+    page = substitute(page_param)
     basic_auth_list = data_store.spec.get(basic_auth_key, [])
     webdriver = driver()
     uses_basic_auth = False
@@ -236,12 +227,12 @@ def open_page(page_param: str) -> None:
 def open_page_for_user_and_password(page_param: str, user_param: str, password_param: str) -> None:
     report().log("This step is deprecated for security concerns. Instead use:")
     report().log("`* Register authentication <user>: <password> for <regexp>`")
-    page = _substitute(page_param)
+    page = substitute(page_param)
     prefix_match = re.match(r"https?://", page)
     prefix = prefix_match.group(0) if prefix_match else ""
     page = page[len(prefix):]
-    user = urllib.parse.quote_plus(_substitute(user_param))
-    password = urllib.parse.quote_plus(_substitute(password_param))
+    user = urllib.parse.quote_plus(substitute(user_param))
+    password = urllib.parse.quote_plus(substitute(password_param))
     url = "{}{}:{}@{}".format(prefix, user, password, page)
     driver().get(url)
     # Chrome sometimes opens the page in the middle, when visited before
@@ -253,9 +244,9 @@ def open_page_for_user_and_password(page_param: str, user_param: str, password_p
 @step("Register authentication <user>: <password> for <regexp>")
 def register_basic_auth_for_regexp(user_param: str, password_param: str, regexp_param: str):
     # Basic auth with CDP is not supported by all browser yet
-    username = _substitute(user_param)
-    password = _substitute(password_param)
-    regexp = _substitute(regexp_param)
+    username = substitute(user_param)
+    password = substitute(password_param)
+    regexp = substitute(regexp_param)
     authorization = base64.b64encode(f"{username}:{password}".encode("utf-8")).decode("ascii")
     auth_list = data_store.spec.get(basic_auth_key, [])
     auth_list.append((regexp, authorization, ))
@@ -264,7 +255,7 @@ def register_basic_auth_for_regexp(user_param: str, password_param: str, regexp_
 
 @step("Remove authentication for <regexp>")
 def remove_basic_auth_for_regexp(regexp_param: str):
-    regexp = _substitute(regexp_param)
+    regexp = substitute(regexp_param)
     auth_list = data_store.spec.get(basic_auth_key, [])
     auth_list[:] = filterfalse(lambda t: regexp == t[0], auth_list)
 
@@ -278,7 +269,7 @@ def print_window_handles() -> None:
 @step("Switch to window <window_param>")
 def switch_to_window(window_param: str) -> None:
     if window_param.isdigit():
-        window_num = int(_substitute(window_param))
+        window_num = int(substitute(window_param))
         window = driver().window_handles[window_num]
         driver().switch_to.window(window)
         report().log(f"Switched to window with index {window_num}")
@@ -304,12 +295,12 @@ def switch_to_default_content() -> None:
 
 @step("Switch to frame <frame_param>")
 def switch_to_frame(frame_name_or_index_param: str) -> None:
-    frame_param = _substitute(frame_name_or_index_param)
+    frame_param = substitute(frame_name_or_index_param)
     if frame_param.isdigit():
         index = int(frame_param)
-        frames = _find_elements("tag name", "frame")
+        frames = find_elements("tag name", "frame")
         if len(frames) == 0:
-            frames = _find_elements("tag name", "iframe")
+            frames = find_elements("tag name", "iframe")
         assert len(frames)  > 0, "no frames or iframes found in current page."
         assert len(frames) >= index, f"frame index {index} is higher than number of frames in current page: {len(frames)}"
         driver().switch_to.frame(frames[index])
@@ -319,7 +310,7 @@ def switch_to_frame(frame_name_or_index_param: str) -> None:
 
 @step("Switch to frame <by> = <by_value>")
 def switch_to_frame_by_selector(by: str, by_value: str) -> None:
-    frame = _find_element(by, by_value)
+    frame = find_element(by, by_value)
     driver().switch_to.frame(frame)
 
 
@@ -337,7 +328,7 @@ def accept_alert() -> None:
 
 @step("Answer in prompt <text>")
 def answer_in_prompt(text: str) -> None:
-    prompt_text = _substitute(text)
+    prompt_text = substitute(text)
     alert = driver().switch_to.alert
     alert.send_keys(prompt_text)
     alert.accept()
@@ -346,21 +337,19 @@ def answer_in_prompt(text: str) -> None:
 
 @step("Take a screenshot <file>")
 def take_screenshot(image_file_name_param: str) -> None:
-    image_file_name = _substitute(image_file_name_param)
-    screenshot_file_path = image_path().create_screenshot_file_path(image_file_name)
-    driver().save_screenshot(screenshot_file_path)
+    image_file_name = substitute(image_file_name_param)
+    screenshot_file_path = create_screenshot(image_file_name)
     report().log_image(screenshot_file_path)
 
 
 @step("Take a screenshot of <by> = <by_value> <file>")
 def take_screenshot_of_element(by: str, by_value: str, image_file_name_param: str) -> None:
-    element = _find_element(by, by_value)
-    image_file_name = _substitute(image_file_name_param)
-    screenshot_file_path = image_path().create_screenshot_file_path(image_file_name)
-    driver().save_screenshot(screenshot_file_path)
+    element = find_element(by, by_value)
+    image_file_name = substitute(image_file_name_param)
+    screenshot_file_path = create_screenshot(image_file_name)
     pixel_ratio = _device_pixel_ratio()
     viewport_offset = _viewport_offset()
-    images().crop_image_file(
+    crop_image(
         screenshot_file_path,
         element.location,
         element.size,
@@ -372,17 +361,13 @@ def take_screenshot_of_element(by: str, by_value: str, image_file_name_param: st
 
 @step("Take screenshots of whole page <file>")
 def take_screenshots_of_whole_page(image_file_name_param: str) -> None:
-    image_file_name = _substitute(image_file_name_param)
     if _is_firefox_page_screenshot_no_scrolling():
-        _screenshot_of_whole_page_no_scrolling(image_file_name)
+        image_file_name = substitute(image_file_name_param)
+        screenshot_file_path = create_screenshot(image_file_name)
+        report().log_image(screenshot_file_path)
     else:
+        image_file_name = substitute(image_file_name_param)
         _screenshot_of_whole_page_with_scrolling(image_file_name)
-
-
-def _screenshot_of_whole_page_no_scrolling(image_file_name: str) -> None:
-    screenshot_file_path = image_path().create_screenshot_file_path(image_file_name)
-    driver().save_full_page_screenshot(screenshot_file_path)
-    report().log_image(screenshot_file_path)
 
 
 def _screenshot_of_whole_page_with_scrolling(image_file_name: str) -> None:
@@ -402,42 +387,42 @@ def _screenshot_of_whole_page_with_scrolling(image_file_name: str) -> None:
 
 @step("Check <by> = <by_value>")
 def check_element(by: str, by_value: str) -> None:
-    element = _find_element(by, by_value)
+    element = find_element(by, by_value)
     if not element.is_selected():
         element.click()
 
 
 @step("Uncheck <by> = <by_value>")
 def uncheck_element(by: str, by_value: str) -> None:
-    element = _find_element(by, by_value)
+    element = find_element(by, by_value)
     if element.is_selected():
         element.click()
 
 
 @step("Select <by> = <by_value> option <select_key> = <select_value>")
 def select_option(by: str, by_value: str, select_key_param: str, select_value_param: str) -> None:
-    element = _find_element(by, by_value)
-    select_key = _substitute(select_key_param)
-    select_value = _substitute(select_value_param)
+    element = find_element(by, by_value)
+    select_key = substitute(select_key_param)
+    select_value = substitute(select_value_param)
     key = SelectKey.to_enum(select_key)
     Selector.select(element, select_value, key)
 
 
 @step("Click <by> = <by_value>")
 def click_element(by: str, by_value: str) -> None:
-    _find_element(by, by_value).click()
+    find_element(by, by_value).click()
 
 
 @step("Double click <by> = <by_value>")
 def double_click_element(by: str, by_value: str) -> None:
-    element = _find_element(by, by_value)
+    element = find_element(by, by_value)
     ActionChains(driver()).double_click(element).perform()
 
 
 @step("Click <by> = <by_value> <key_down>")
 def click_element_with_key_down(by: str, by_value: str, key_down_param: str) -> None:
-    keys_down = _map_keys(_substitute(key_down_param))
-    element = _find_element(by, by_value)
+    keys_down = KeyMapper.map_keys(substitute(key_down_param))
+    element = find_element(by, by_value)
     ac = ActionChains(driver())
     for key in keys_down:
         ac.key_down(key)
@@ -450,13 +435,13 @@ def click_element_with_key_down(by: str, by_value: str, key_down_param: str) -> 
 @step("Right click <by> = <by_value>")
 def right_click_element(by: str, by_value: str) -> None:
     actionChains = ActionChains(driver())
-    element = _find_element(by, by_value)
+    element = find_element(by, by_value)
     actionChains.context_click(element).perform()
 
 
 @step("Type <string>")
 def type_string(a_string_param: str) -> None:
-    a_string = _substitute(a_string_param)
+    a_string = substitute(a_string_param)
     if not _is_mobile_operating_system():
         ActionChains(driver())\
             .send_keys(a_string)\
@@ -467,8 +452,8 @@ def type_string(a_string_param: str) -> None:
 
 @step("Type <key_down> <string>")
 def type_string_with_key_down(key_down_param: str, a_string_param: str) -> None:
-    keys_down = _map_keys(_substitute(key_down_param))
-    a_string = _substitute(a_string_param)
+    keys_down = KeyMapper.map_keys(substitute(key_down_param))
+    a_string = substitute(a_string_param)
     ac = ActionChains(driver())
     for key in keys_down:
         ac.key_down(key)
@@ -480,8 +465,8 @@ def type_string_with_key_down(key_down_param: str, a_string_param: str) -> None:
 
 @step("Type <by> = <by_value> <string>")
 def type_string_into_element(by: str, by_value: str, a_string_param: str) -> None:
-    a_string = _substitute(a_string_param)
-    element = _find_element(by, by_value)
+    a_string = substitute(a_string_param)
+    element = find_element(by, by_value)
     element.clear()
     if not _is_mobile_operating_system():
         ActionChains(driver())\
@@ -495,9 +480,9 @@ def type_string_into_element(by: str, by_value: str, a_string_param: str) -> Non
 
 @step("Type <by> = <by_value> <key_down> <string>")
 def type_string_into_element_with_key_down(by: str, by_value: str, key_down_param: str, a_string_param: str) -> None:
-    keys_down = _map_keys(_substitute(key_down_param))
-    a_string = _substitute(a_string_param)
-    element = _find_element(by, by_value)
+    keys_down = KeyMapper.map_keys(substitute(key_down_param))
+    a_string = substitute(a_string_param)
+    element = find_element(by, by_value)
     element.clear()
     ac = ActionChains(driver())\
         .click(element)
@@ -511,7 +496,7 @@ def type_string_into_element_with_key_down(by: str, by_value: str, key_down_para
 
 @step("Send keys <keys>")
 def send_keys(keys_param: str) -> None:
-    send_keys = _map_keys(_substitute(keys_param))
+    send_keys = KeyMapper.map_keys(substitute(keys_param))
     ActionChains(driver())\
         .send_keys(send_keys)\
         .perform()
@@ -519,8 +504,8 @@ def send_keys(keys_param: str) -> None:
 
 @step("Send keys <key_down> <keys>")
 def send_keys_with_key_down(key_down_param: str, keys_param: str) -> None:
-    keys_down = _map_keys(_substitute(key_down_param))
-    send_keys = _map_keys(_substitute(keys_param))
+    keys_down = KeyMapper.map_keys(substitute(key_down_param))
+    send_keys = KeyMapper.map_keys(substitute(keys_param))
     ac = ActionChains(driver())
     for key in keys_down:
         ac.key_down(key)
@@ -532,8 +517,8 @@ def send_keys_with_key_down(key_down_param: str, keys_param: str) -> None:
 
 @step("Send <by> = <by_value> keys <keys>")
 def send_keys_to_element(by: str, by_value: str, keys_param: str) -> None:
-    send_keys = _map_keys(_substitute(keys_param))
-    element = _find_element(by, by_value)
+    send_keys = KeyMapper.map_keys(substitute(keys_param))
+    element = find_element(by, by_value)
     ActionChains(driver())\
         .click(element)\
         .send_keys(send_keys)\
@@ -542,9 +527,9 @@ def send_keys_to_element(by: str, by_value: str, keys_param: str) -> None:
 
 @step("Send <by> = <by_value> keys <key_down> <keys>")
 def send_keys_to_element_with_key_down(by: str, by_value: str, key_down_param: str, keys_param: str) -> None:
-    keys_down = _map_keys(_substitute(key_down_param))
-    send_keys = _map_keys(_substitute(keys_param))
-    element = _find_element(by, by_value)
+    keys_down = KeyMapper.map_keys(substitute(key_down_param))
+    send_keys = KeyMapper.map_keys(substitute(keys_param))
+    element = find_element(by, by_value)
     ac = ActionChains(driver())\
         .click(element)
     for key in keys_down:
@@ -557,25 +542,25 @@ def send_keys_to_element_with_key_down(by: str, by_value: str, key_down_param: s
 
 @step("Clear <by> = <by_value>")
 def clear_element(by: str, by_value: str) -> None:
-    element = _find_element(by, by_value)
+    element = find_element(by, by_value)
     element.clear()
 
 
 @step("Mouse down <by> = <by_value>")
 def mouse_down(by: str, by_value: str) -> None:
-    element = _find_element(by, by_value)
+    element = find_element(by, by_value)
     ActionChains(driver()).move_to_element(element).click_and_hold(element).perform()
 
 
 @step("Mouse up <by> = <by_value>")
 def mouse_up(by: str, by_value: str) -> None:
-    element = _find_element(by, by_value)
+    element = find_element(by, by_value)
     ActionChains(driver()).move_to_element(element).release(element).perform()
 
 
 @step("Move to <by> = <by_value>")
 def move_into_view(by: str, by_value: str) -> None:
-    element = _find_element(by, by_value)
+    element = find_element(by, by_value)
     # the following script is needed for some browsers
     driver().execute_script("arguments[0].scrollIntoView(true);", element)
     try:
@@ -587,86 +572,86 @@ def move_into_view(by: str, by_value: str) -> None:
 
 @step("Move to and center <by> = <by_value>")
 def move_into_view_and_center(by: str, by_value: str) -> None:
-    element = _find_element(by, by_value)
+    element = find_element(by, by_value)
     driver().execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'nearest'});", element)
 
 
 @step("Move out")
 def move_out_of_view() -> None:
-    element = _find_element("css selector", "body")
+    element = find_element("css selector", "body")
     ActionChains(driver()).move_to_element_with_offset(element, 0, 0).perform()
 
 
 @step("Hover over <by> = <by_value>")
 def hover_over(by: str, by_value: str) -> None:
-    element = _find_element(by, by_value)
+    element = find_element(by, by_value)
     ActionChains(driver()).move_to_element(element).perform()
 
 
 @step("Scroll <by> = <by_value> into view")
 def scrollElementIntoView(by: str, by_value: str) -> None:
-    _find_element(by, by_value)\
+    find_element(by, by_value)\
         .location_once_scrolled_into_view
 
 
 @step("Drag and drop <by_source> = <by_value_source> into <by_dest> = <by_value_dest>")
 def dragAndDropElement(by_source: str, by_value_source: str, by_dest: str, by_value_dest: str) -> None:
-    sourceElement = _find_element(by_source, by_value_source)
-    destinationElement = _find_element(by_dest, by_value_dest)
+    sourceElement = find_element(by_source, by_value_source)
+    destinationElement = find_element(by_dest, by_value_dest)
     ActionChains(driver()).drag_and_drop(sourceElement, destinationElement).perform()
 
 
 @step("Upload file = <file_path> into <by> = <by_value>")
 def uploadFile(file_path_param: str, by: str, by_value: str) -> None:
-    file_path = _substitute(file_path_param)
-    _find_element(by, by_value).send_keys(file_path)
+    file_path = substitute(file_path_param)
+    find_element(by, by_value).send_keys(file_path)
 
 
 @step("Execute <script>")
 def execute_script(script_param: str) -> None:
-    script = _substitute(script_param)
+    script = substitute(script_param)
     driver().execute_script(script)
 
 
 @step("Execute <script> and save result in <placeholder>")
 def execute_script_save_result(script_param: str, placeholder_name_param: str) -> None:
-    script = _substitute(script_param)
-    placeholder_name = _substitute(placeholder_name_param)
+    script = substitute(script_param)
+    placeholder_name = substitute(placeholder_name_param)
     res = driver().execute_script(script)
     data_store.scenario[placeholder_name] = res
 
 
 @step("Execute <script> with <by> = <by_value> as <elem>")
 def execute_script_on_element(script_param: str, by: str, by_value: str, elem_param: str) -> None:
-    script = _substitute(script_param)
-    elem = _substitute(elem_param)
+    script = substitute(script_param)
+    elem = substitute(elem_param)
     assert elem in script, f"no element with name '{elem}' is referred to in the script"
-    found = _find_element(by, by_value)
+    found = find_element(by, by_value)
     driver().execute_script(f"var {elem}=arguments[0]; {script}", found)
 
 
 @step("Execute <script> with <by> = <by_value> as <elem> and save result in <placeholder>")
 def execute_script_on_element_save_result(script_param: str, by: str, by_value: str, elem_param: str, placeholder_name_param: str) -> None:
-    script = _substitute(script_param)
-    elem = _substitute(elem_param)
-    placeholder_name = _substitute(placeholder_name_param)
+    script = substitute(script_param)
+    elem = substitute(elem_param)
+    placeholder_name = substitute(placeholder_name_param)
     assert elem in script, f"no element with name '{elem}' is referred to in the script"
-    found = _find_element(by, by_value)
+    found = find_element(by, by_value)
     res = driver().execute_script(f"var {elem}=arguments[0]; {script}", found)
     data_store.scenario[placeholder_name] = res
 
 
 @step("Execute async <script>")
 def execute_async_script(script_param: str) -> None:
-    script = _substitute(script_param)
+    script = substitute(script_param)
     driver().execute_async_script(script)
 
 
 @step("Execute async <script> and save result in <placeholder> with callback <callback>")
 def execute_async_script_save_result(script_param: str, placeholder_name_param: str, callback_param: str) -> None:
-    script = _substitute(script_param)
-    placeholder_name = _substitute(placeholder_name_param)
-    callback = _substitute(callback_param)
+    script = substitute(script_param)
+    placeholder_name = substitute(placeholder_name_param)
+    callback = substitute(callback_param)
     assert callback in script, f"no callback with name '{callback}' is invoked in the script"
     res = driver().execute_async_script(f"var {callback}=arguments[arguments.length-1]; {script}")
     data_store.scenario[placeholder_name] = res
@@ -674,10 +659,10 @@ def execute_async_script_save_result(script_param: str, placeholder_name_param: 
 
 @step("Execute async <script> with <by> = <by_value> as <elem>")
 def execute_async_script_on_element(script_param: str, by: str, by_value: str, elem_param: str) -> None:
-    script = _substitute(script_param)
-    elem = _substitute(elem_param)
+    script = substitute(script_param)
+    elem = substitute(elem_param)
     assert elem in script, f"no element with name '{elem}' is referred to in the script"
-    found = _find_element(by, by_value)
+    found = find_element(by, by_value)
     driver().execute_async_script(f"var {elem}=arguments[0]; {script}", found)
 
 
@@ -690,54 +675,54 @@ def execute_async_script_on_element_save_result(
     placeholder_name_param: str,
     callback_param: str
 ) -> None:
-    script = _substitute(script_param)
-    elem = _substitute(elem_param)
-    placeholder_name = _substitute(placeholder_name_param)
-    callback = _substitute(callback_param)
+    script = substitute(script_param)
+    elem = substitute(elem_param)
+    placeholder_name = substitute(placeholder_name_param)
+    callback = substitute(callback_param)
     assert elem in script, f"no element with name '{elem}' is referred to in the script"
     assert callback in script, f"no callback with name '{callback}' is invoked in the script"
-    found = _find_element(by, by_value)
+    found = find_element(by, by_value)
     res = driver().execute_async_script(f"var {elem}=arguments[0]; var {callback}=arguments[arguments.length-1]; {script}", found)
     data_store.scenario[placeholder_name] = res
 
 
 @step("Save placeholder <placeholder> = <value>")
 def save_placeholder(placeholder_name_param: str, placeholder_value_param: str) -> None:
-    placeholder_name = _substitute(placeholder_name_param)
-    placeholder_value = _substitute(placeholder_value_param)
+    placeholder_name = substitute(placeholder_name_param)
+    placeholder_value = substitute(placeholder_value_param)
     data_store.scenario[placeholder_name] = placeholder_value
 
 
 @step("Save placeholder <placeholder> from <by> = <by_value>")
 def save_placeholder_from_element(placeholder_name_param: str, by: str, by_value: str) -> None:
-    placeholder_name = _substitute(placeholder_name_param)
-    text = _get_text_from_element(by, by_value)
+    placeholder_name = substitute(placeholder_name_param)
+    text = get_text_from_element(by, by_value)
     data_store.scenario[placeholder_name] = text
 
 
 @step("Save placeholder <placeholder> from attribute <attribute_param> of <by> = <by_value>")
 def save_placeholder_from_element_attribute(placeholder_name_param: str, attribute_param: str, by: str, by_value: str) -> None:
-    placeholder_name = _substitute(placeholder_name_param)
-    attribute = _substitute(attribute_param)
-    attribute_value = _find_attribute(by, by_value, attribute)
+    placeholder_name = substitute(placeholder_name_param)
+    attribute = substitute(attribute_param)
+    attribute_value = find_attribute(by, by_value, attribute)
     data_store.scenario[placeholder_name] = attribute_value
 
 
 @step("Save window handles as <placeholder>")
 def save_window_handles(placeholder_name_param: str) -> None:
-    placeholder_name = _substitute(placeholder_name_param)
+    placeholder_name = substitute(placeholder_name_param)
     data_store.scenario[placeholder_name] = driver().window_handles
 
 
 @step("Save window title as <placeholder>")
 def save_window_title(placeholder_name_param: str) -> None:
-    placeholder_name = _substitute(placeholder_name_param)
+    placeholder_name = substitute(placeholder_name_param)
     data_store.scenario[placeholder_name] = driver().title
 
 
 @step("Set timeout <seconds>")
 def set_timeout(seconds_param: str):
-    seconds = _substitute(seconds_param)
+    seconds = substitute(seconds_param)
     assert seconds.replace('.', '', 1).isdigit(),\
         _err_msg(f"argument '{seconds_param}' should be a number")
     data_store.scenario[timeout_key] = float(seconds)
@@ -753,13 +738,13 @@ def reset_timeout():
 
 @step("Show message in an error case <error_message>")
 def show_error_message_in_case(error_msg_param: str) -> None:
-    error_msg = _substitute(error_msg_param)
+    error_msg = substitute(error_msg_param)
     data_store.scenario[error_message_key] = error_msg
 
 
 @step("Assert window handles is <windows_num>")
 def assert_window_handle_num(window_num_param: str) -> None:
-    window_num = _substitute(window_num_param)
+    window_num = substitute(window_num_param)
     expected = int(window_num)
     actual = len(driver().window_handles)
     assert expected == actual,\
@@ -782,7 +767,7 @@ def assert_dialog_text(expected_text: str) -> None:
 
 @step("Assert url equals <url>")
 def assert_url(expected_url_param: str) -> None:
-    expected_url = _substitute(expected_url_param)
+    expected_url = substitute(expected_url_param)
     current_url = driver().current_url
     assert expected_url == current_url,\
         _err_msg(f"expected url: {expected_url}, actual {current_url}")
@@ -790,7 +775,7 @@ def assert_url(expected_url_param: str) -> None:
 
 @step("Assert url starts with <url>")
 def assert_url_starts_with(expected_url_param: str) -> None:
-    expected_url = _substitute(expected_url_param)
+    expected_url = substitute(expected_url_param)
     current_url = driver().current_url
     assert current_url.startswith(expected_url),\
         _err_msg(f"url {current_url} does not start with {expected_url}")
@@ -798,7 +783,7 @@ def assert_url_starts_with(expected_url_param: str) -> None:
 
 @step("Assert url ends with <url>")
 def assert_url_ends_with(expected_url_param: str) -> None:
-    expected_url = _substitute(expected_url_param)
+    expected_url = substitute(expected_url_param)
     current_url = driver().current_url
     assert current_url.endswith(expected_url),\
         _err_msg(f"url {current_url} does not end with {expected_url}")
@@ -806,7 +791,7 @@ def assert_url_ends_with(expected_url_param: str) -> None:
 
 @step("Assert url contains <url>")
 def assert_url_contains(expected_url_param: str) -> None:
-    expected_url = _substitute(expected_url_param)
+    expected_url = substitute(expected_url_param)
     current_url = driver().current_url
     assert expected_url in current_url,\
         _err_msg(f"url {current_url} does not contain {expected_url}")
@@ -815,8 +800,8 @@ def assert_url_contains(expected_url_param: str) -> None:
 # see also before_step_hook
 @step(["Assert <by> = <by_value> exists", "Assert <by> = <by_value> is displayed"])
 def assert_element_exists(by: str, by_value: str) -> None:
-    marker = _marker(_substitute(by), _substitute(by_value))
-    visible = _wait_until(EC.visibility_of_element_located(marker))
+    marker = get_marker(substitute(by), substitute(by_value))
+    visible = wait_until(EC.visibility_of_element_located(marker))
     assert visible,\
         _err_msg(f"element {by} = {by_value} does not exists")
 
@@ -824,96 +809,96 @@ def assert_element_exists(by: str, by_value: str) -> None:
 # see also before_step_hook
 @step(["Assert <by> = <by_value> does not exist", "Assert <by> = <by_value> is invisible"])
 def assert_element_does_not_exist(by_param: str, by_value_param: str) -> None:
-    by = _substitute(by_param)
-    by_value = _substitute(by_value_param)
-    marker = _marker(by, by_value)
-    invisible = _wait_until(EC.invisibility_of_element(marker))
+    by = substitute(by_param)
+    by_value = substitute(by_value_param)
+    marker = get_marker(by, by_value)
+    invisible = wait_until(EC.invisibility_of_element(marker))
     assert invisible, \
         _err_msg(f"element {by} = {by_value} exists")
 
 
 @step("Assert <by> = <by_value> is enabled")
 def assert_element_is_enabled(by: str, by_value: str) -> None:
-    element = _find_element(by, by_value)
+    element = find_element(by, by_value)
     assert element.is_enabled(),\
         _err_msg(f"element {by} = {by_value} is disabled")
 
 
 @step("Assert <by> = <by_value> is disabled")
 def assert_element_is_disabled(by: str, by_value: str) -> None:
-    element = _find_element(by, by_value)
+    element = find_element(by, by_value)
     assert not element.is_enabled(), \
         _err_msg(f"element {by} = {by_value} is enabled")
 
 
 @step("Assert <by> = <by_value> is selected")
 def assert_element_is_selected(by: str, by_value: str) -> None:
-    element = _find_element(by, by_value)
+    element = find_element(by, by_value)
     assert element.is_selected(),\
         _err_msg(f"element {by} = {by_value} is not selected")
 
 
 @step("Assert <by> = <by_value> has selected value <value>")
 def assert_selected_option(by: str, by_value: str, expected_param: str) -> None:
-    element = _find_element(by, by_value)
+    element = find_element(by, by_value)
     actual = Selector.get_selected_value(element)
-    expected = _substitute(expected_param)
+    expected = substitute(expected_param)
     assert expected == actual,\
         _err_msg(f"expected value: {expected}, actual {actual}")
 
 
 @step("Assert <by> = <by_value> is not selected")
 def assert_element_is_not_selected(by: str, by_value: str) -> None:
-    element = _find_element(by, by_value)
+    element = find_element(by, by_value)
     assert not element.is_selected(), \
         _err_msg(f"element {by} = {by_value} is selected")
 
 
 @step("Assert <by> = <by_value> equals <string>")
 def assert_text_equals(by: str, by_value: str, expected_text_param: str) -> None:
-    expected_text = _substitute(expected_text_param)
-    text = _get_text_from_element(by, by_value)
+    expected_text = substitute(expected_text_param)
+    text = get_text_from_element(by, by_value)
     assert text == expected_text,\
         _err_msg(f"element {by} = {by_value} expected text {expected_text}, actual {text}")
 
 
 @step("Assert <by> = <by_value> does not equal <string>")
 def assert_text_does_not_equal(by: str, by_value: str, expected_text_param: str) -> None:
-    expected_text = _substitute(expected_text_param)
-    text = _get_text_from_element(by, by_value)
+    expected_text = substitute(expected_text_param)
+    text = get_text_from_element(by, by_value)
     assert text != expected_text,\
         _err_msg(f"element {by} = {by_value} expected actual {text} not to be equal to {expected_text}")
 
 
 @step("Assert <by> = <by_value> regexp <regexp>")
 def assert_regexp_in_element(by: str, by_value: str, regexp_param: str) -> None:
-    regexp = _substitute(regexp_param)
-    text = _get_text_from_element(by, by_value)
+    regexp = substitute(regexp_param)
+    text = get_text_from_element(by, by_value)
     assert re.match(regexp, text),\
         _err_msg(f"element {by} = {by_value}: regexp {regexp} does not match {text}")
 
 
 @step("Assert <by> = <by_value> contains <string>")
 def assert_text_contains(by: str, by_value: str, contains_text_param: str) -> None:
-    contains_text = _substitute(contains_text_param)
-    text = _get_text_from_element(by, by_value)
+    contains_text = substitute(contains_text_param)
+    text = get_text_from_element(by, by_value)
     assert contains_text in text,\
         _err_msg(f"element {by} = {by_value} expected actual {text} to contain {contains_text}")
 
 
 @step("Assert <by> = <by_value> does not contain <string>")
 def assert_text_does_not_contain(by: str, by_value: str, contains_text_param: str) -> None:
-    contains_text = _substitute(contains_text_param)
-    text = _get_text_from_element(by, by_value)
+    contains_text = substitute(contains_text_param)
+    text = get_text_from_element(by, by_value)
     assert contains_text not in text,\
         _err_msg(f"element {by} = {by_value} expected actual {text} to not contain {contains_text}")
 
 
 @step("Assert <by> = <by_value> css <css_property_name> is <css_expected_value>")
 def assert_css_property(by: str, by_value: str, css_property_name_param: str, css_expected_value_param: str) -> None:
-    element = _find_element(by, by_value)
-    css_property_name = _substitute(css_property_name_param)
-    css_expected_value = _substitute(css_expected_value_param)
+    element = find_element(by, by_value)
+    css_property_name = substitute(css_property_name_param)
+    css_expected_value = substitute(css_expected_value_param)
     css_actual_value = element.value_of_css_property(css_property_name)
     assert css_actual_value == css_expected_value,\
         _err_msg(f"element {by} = {by_value}: css property {css_property_name} expected: {css_expected_value}, actual: {css_actual_value}")
@@ -921,78 +906,67 @@ def assert_css_property(by: str, by_value: str, css_property_name_param: str, cs
 
 @step("Assert <by> = <by_value> is focused")
 def assert_element_is_focused(by: str, by_value: str) -> None:
-    element = _find_element(by, by_value)
+    element = find_element(by, by_value)
     assert element == _focused_element(),\
         _err_msg(f"element {by} = {by_value} is not in focus")
 
 
 @step("Assert <by> = <by_value> attribute <attribute> exists")
 def assert_attribute_exists(by: str, by_value: str, attribute_param: str) -> None:
-    attribute = _substitute(attribute_param)
-    found_value =  _find_attribute(by, by_value, attribute)
+    attribute = substitute(attribute_param)
+    found_value =  find_attribute(by, by_value, attribute)
     assert found_value, _err_msg(f"element {by} = {by_value} has no attribute {attribute}")
 
 
 @step("Assert <by> = <by_value> attribute <attribute> contains <value>")
 def assert_attribute_contains(by: str, by_value: str, attribute_param: str, value_param: str) -> None:
-    attribute = _substitute(attribute_param)
-    value = _substitute(value_param)
-    found_value = _find_attribute(by, by_value, attribute)
+    attribute = substitute(attribute_param)
+    value = substitute(value_param)
+    found_value = find_attribute(by, by_value, attribute)
     assert found_value, _err_msg(f"element {by} = {by_value} has no attribute {attribute}")
     assert value in found_value, _err_msg(f"attribute {attribute} in element {by} = {by_value} does not contain {value} - found: {found_value}")
 
 
 @step("Assert <by> = <by_value> attribute <attribute> equals <value>")
 def assert_attribute_equals(by: str, by_value: str, attribute_param: str, value_param: str) -> None:
-    attribute = _substitute(attribute_param)
-    value = _substitute(value_param)
-    found_value = _find_attribute(by, by_value, attribute)
+    attribute = substitute(attribute_param)
+    value = substitute(value_param)
+    found_value = find_attribute(by, by_value, attribute)
     assert found_value, _err_msg(f"element {by} = {by_value} has no attribute {attribute}")
     assert value == found_value, _err_msg(f"attribute {attribute} in element {by} = {by_value} does not equal {value} - found: {found_value}")
 
 
 @step("Assert <by> = <by_value> attribute <attribute> does not contain <value>")
 def assert_attribute_does_not_contain(by: str, by_value: str, attribute_param: str, value_param: str) -> None:
-    attribute = _substitute(attribute_param)
-    value = _substitute(value_param)
-    found_value = _find_attribute(by, by_value, attribute)
+    attribute = substitute(attribute_param)
+    value = substitute(value_param)
+    found_value = find_attribute(by, by_value, attribute)
     if found_value:
         assert value not in found_value, _err_msg(f"attribute {attribute} in element {by} = {by_value} contains {value} - found: {found_value}")
 
 
 @step("Assert <by> = <by_value> screenshot resembles <file> with SSIM more than <threshold>")
 def assert_image_resembles(by: str, by_value: str, image_file_name_param: str, threshold_param: str) -> None:
-    element = _find_element(by, by_value)
-    threshold = float(_substitute(threshold_param))
+    element = find_element(by, by_value)
+    threshold = float(substitute(threshold_param))
     assert 0.0 <= threshold <= 1.0, "threshold must be between 0.0 and 1.0"
-    image_file_name = _substitute(image_file_name_param)
-    actual_screenshot_full_path = image_path().create_actual_screenshot_file_path(image_file_name)
-    driver().save_screenshot(actual_screenshot_full_path)
     pixel_ratio = _device_pixel_ratio()
     viewport_offset = _viewport_offset()
-    images().crop_image_file(
-        actual_screenshot_full_path,
-        element.location,
-        element.size,
-        pixel_ratio,
-        viewport_offset
-    )
-    expected_screenshot_full_path = image_path().create_expected_screenshot_file_path(image_file_name)
-    diff_formats = config.get_diff_formats()
-    ssim = images().adapt_and_compare_images(expected_screenshot_full_path, actual_screenshot_full_path, diff_formats)
+    image_file_name = substitute(image_file_name_param)
+    ssim = get_structured_similarity_to_expected(image_file_name, element.location, element.size, pixel_ratio, viewport_offset)
     assert ssim >= threshold, \
         _err_msg(f"SSIM {ssim} is less than threshold {threshold}")
 
 
 @step("Assert page screenshots resemble <file> with SSIM more than <threshold>")
 def assert_whole_page_resembles(image_file_name_param: str, threshold_param: str) -> None:
-    threshold = float(_substitute(threshold_param))
+    threshold = float(substitute(threshold_param))
     assert 0.0 <= threshold <= 1.0, "threshold must be between 0.0 and 1.0"
-    image_file_name = _substitute(image_file_name_param)
+    image_file_name = substitute(image_file_name_param)
     if _is_firefox_page_screenshot_no_scrolling():
-        failed_asserts = _ssim_screenshot_noscrolling(image_file_name, threshold)
+        failed_asserts = ssim_screenshot_noscrolling(image_file_name, threshold)
     else:
-        failed_asserts = _ssim_screenshot_scrolling(image_file_name, threshold)
+        failed_asserts = ssim_screenshot_scrolling(image_file_name, threshold)
     assert len(failed_asserts) == 0,\
             _err_msg("Assertions failed:\n\t{}".format("\n\t".join(failed_asserts)))
 
@@ -1000,35 +974,35 @@ def assert_whole_page_resembles(image_file_name_param: str, threshold_param: str
 @step("Assert page screenshots resemble <file> with SSIM more than <threshold> for <pages> pages")
 def assert_pages_resemble(image_file_name_param: str, threshold_param: str, pages_param: str) -> None:
     """This step exists in case the upper step does not work, f.i. due to framework restrictions"""
-    threshold = float(_substitute(threshold_param))
+    threshold = float(substitute(threshold_param))
     assert 0.0 <= threshold <= 1.0, "threshold must be between 0.0 and 1.0"
-    image_file_name = _substitute(image_file_name_param)
-    pages = int(_substitute(pages_param))
+    image_file_name = substitute(image_file_name_param)
+    pages = int(substitute(pages_param))
     failed_asserts = []
     for page in range(1, pages + 1):
-        actual_screenshot_full_path = image_path().create_actual_screenshot_file_path(image_file_name, page)
-        driver().save_screenshot(actual_screenshot_full_path)
-        expected_screenshot_full_path = image_path().create_expected_screenshot_file_path(image_file_name, page)
+        actual_screenshot_full_path = create_actual_screenshot_file_path(image_file_name, page)
+        expected_screenshot_full_path = create_expected_screenshot_file_path(image_file_name, page)
         page += 1
         send_keys("PAGE_DOWN")
         time.sleep(0.6)
         if not os.path.isfile(expected_screenshot_full_path):
             failed_asserts.append("screenshot {} does not exist".format(expected_screenshot_full_path))
         else:
-            _append_structured_similarity(failed_asserts, expected_screenshot_full_path, actual_screenshot_full_path, threshold)
+            append_structured_similarity(failed_asserts, expected_screenshot_full_path, actual_screenshot_full_path, threshold)
+
     assert len(failed_asserts) == 0,\
             _err_msg("Assertions failed:\n\t{}".format("\n\t".join(failed_asserts)))
 
 
 @step("Fail <message>")
 def fail(message_param: str) -> None:
-    message = _substitute(message_param)
+    message = substitute(message_param)
     report().log(message)
     assert False
 
 @step("Print message <message>")
 def print_message(message_param: str) -> None:
-    message = _substitute(message_param)
+    message = substitute(message_param)
     report().log(message)
 
 # Context methods -------------------------------------------
@@ -1044,130 +1018,7 @@ def report() -> Report:
     return app_ctx.report
 
 
-def image_path() -> ImagePath:
-    app_ctx: AppContext = data_store.spec[app_context_key]
-    return app_ctx.image_path
-
-
-def images() -> Images:
-    app_ctx: AppContext = data_store.spec[app_context_key]
-    return app_ctx.images
-
-
 # Private methods -------------------------------------------
-
-
-def _substitute(gauge_param: str) -> str:
-    """Substitutes placeholders in a step parameter with values from environment variables
-    and evaluates mathematical expressions.
-    The environment variables are usually defined in the env/*.properties files in the gauge project
-    or are placed into the context with specific steps.
-    So the same placeholder can be replaced with different values in different environments.
-    Examples:
-    * Open "${homepage_url}/home"
-    * Assert "id" = "sum" equals "#{5 + 6}"
-    * Assert "id" = "sum" equals "#{5 + $addend}"
-    In the first example, the placeholder `homepage_url` will be substituted by the environment variable with the same name.
-    The substitution of placeholders is 'safe', which means, that if no variable is found, the placeholder will be unchanged.
-    The second example shows a mathematical expression. Those expressions can throw exceptions, when they are invalid.
-    The third example shows placeholders and mathematical expressions combined.
-    Generally, placeholders are substituted first, expressions are evaluated sencond.
-    """
-    template = Template(gauge_param)
-    #pipe operator for sets does not work on windows
-    substituted = template.safe_substitute(os.environ)
-    template = Template(substituted)
-    substituted = template.safe_substitute(data_store.scenario)
-    substituted = _substitute_expressions('#', substituted, lambda expression: array2string(numexpr.evaluate(expression)) )
-    substituted = _substitute_expressions('!', substituted, lambda expression: _evaluate_expression(expression))
-    return substituted
-
-
-def _substitute_expressions(marker_char: str, text: str, evaluator: Callable[[str], str]) -> str:
-    substituted = text
-    while True:
-        start = substituted.find(marker_char + '{')
-        end = substituted.find('}', start)
-        if start < 0 or end < 0:
-            break
-        expression = substituted[start + 2:end]
-        before = substituted[0:start]
-        after = substituted[end + 1:len(substituted)]
-        value = evaluator(expression)
-        substituted = before + value + after
-    return substituted
-
-
-def _evaluate_expression(expression: str) -> str:
-    expression_lower = expression.lower()
-    if expression_lower == "uuid":
-        return str(uuid.uuid4())
-    elif expression_lower.startswith("time"):
-        if expression_lower.startswith("time:"):
-            format = expression.split(':', 2)[1]
-        elif expression_lower == "time":
-            format = None
-        else:
-            raise ValueError(f"unsupported substitute {expression}")
-        if format is None:
-            return datetime.now().isoformat()
-        else:
-            return datetime.now().strftime(format)
-    else:
-        raise ValueError(f"unsupported substitute {expression}")
-
-
-def _marker(by_string: str, by_value: str) -> tuple[str, str]:
-    mapped_by = ByMapper.map_string(by_string)
-    if mapped_by == By.ID:
-        mapped_by = By.CSS_SELECTOR
-        by_value = f"#{by_value}"
-    return mapped_by, by_value
-
-
-def _wait_until(condition: Callable[[Remote], Any]) -> Any:
-    timeout = data_store.scenario.get(timeout_key, config.get_implicit_timeout())
-    try:
-        return WebDriverWait(driver(), timeout).until(condition)
-    except TimeoutException:
-        return False
-
-
-def _find_element(by_param: str, by_value_param: str) -> WebElement:
-    by = _substitute(by_param)
-    by_value = _substitute(by_value_param)
-    marker = _marker(by, by_value)
-    return driver().find_element(*marker)
-
-
-def _find_elements(by_param: str, by_value_param: str) -> List[WebElement]:
-    by = _substitute(by_param)
-    by_value = _substitute(by_value_param)
-    marker = _marker(by, by_value)
-    return driver().find_elements(*marker)
-
-
-def _get_text_from_element(by: str, by_value: str) -> str:
-    element = _find_element(by, by_value)
-    if "input" == element.tag_name:
-        return element.get_attribute("value")
-    else:
-        return element.text
-
-
-def _find_attribute(by: str, by_value: str, attribute: str) -> str | bool:
-    """
-    This will return the string value of the attribute.
-    Empty attributes will return 'true', never an empty string.
-    If the attribute does not exist, it will return `False`.
-    """
-    def _element_attribute(driver: Remote) -> Any:
-        marker = _marker(_substitute(by), _substitute(by_value))
-        element = driver.find_element(*marker)
-        value = element.get_dom_attribute(attribute)
-        return value if value is not None else False
-    return _wait_until(_element_attribute)
-
 
 def _device_pixel_ratio() -> int:
     return int(driver().execute_script("return window.devicePixelRatio"))
@@ -1176,70 +1027,12 @@ def _device_pixel_ratio() -> int:
 def _viewport_offset() -> int:
     return int(driver().execute_script("return window.pageYOffset"))
 
-
-def _map_keys(keys_param: str) -> Iterable[str]:
-    keys = re.split(r'[,\s]+', keys_param)
-    unknown_keys = [k for k in keys if k not in KeyMapper._KEYS]
-    assert len(unknown_keys) == 0,\
-        "Keys %s unknown.\nUse those instead: %s" % (unknown_keys, KeyMapper._KEYS)
-    send_keys = [KeyMapper.map_string(k) for k in keys]
-    return send_keys
-
-
-def _scroll() -> int:
-    """
-    Scrolls down the size of the current window height and returns True, if scrolling down is still possible
-    (The page is not ended yet)
-    """
-    current_offset: int = driver().execute_script("return window.pageYOffset")
-    driver().execute_script("window.scrollBy(0, window.innerHeight)")
-    time.sleep(0.3)
-    after_scroll_offset: int = driver().execute_script("return window.pageYOffset")
-    return after_scroll_offset > current_offset
-
-
 def _is_firefox_page_screenshot_no_scrolling() -> bool:
     return config.get_browser() == Browser.FIREFOX and config.is_whole_page_screenshot()
 
 
 def _is_mobile_operating_system() -> bool:
     return config.get_operating_system().is_mobile()
-
-
-def _ssim_screenshot_noscrolling(image_file_name: str, threshold: float) -> Iterable[str]:
-    failed_asserts = []
-    actual_screenshot_full_path = image_path().create_actual_screenshot_file_path(image_file_name)
-    driver().save_full_page_screenshot(actual_screenshot_full_path)
-    expected_screenshot_full_path = image_path().create_expected_screenshot_file_path(image_file_name)
-    if not os.path.isfile(expected_screenshot_full_path):
-        failed_asserts.append("screenshot {} does not exist".format(expected_screenshot_full_path))
-    else:
-        _append_structured_similarity(failed_asserts, expected_screenshot_full_path, actual_screenshot_full_path, threshold)
-    return failed_asserts
-
-
-def _ssim_screenshot_scrolling(image_file_name: str, threshold: float) -> Iterable[str]:
-    failed_asserts = []
-    postfix = 1
-    should_continue = True
-    while should_continue:
-        actual_screenshot_full_path = image_path().create_actual_screenshot_file_path(image_file_name, postfix)
-        driver().save_screenshot(actual_screenshot_full_path)
-        expected_screenshot_full_path = image_path().create_expected_screenshot_file_path(image_file_name, postfix)
-        should_continue = _scroll() and postfix <= 32
-        postfix += 1
-        if not os.path.isfile(expected_screenshot_full_path):
-            failed_asserts.append("screenshot {} does not exist".format(expected_screenshot_full_path))
-        else:
-            _append_structured_similarity(failed_asserts, expected_screenshot_full_path, actual_screenshot_full_path, threshold)
-    return failed_asserts
-
-
-def _append_structured_similarity(asserts: list, expected_screenshot: str, actual_screenshot: str, threshold: float) -> Iterable[str]:
-    diff_formats = config.get_diff_formats()
-    ssim = images().adapt_and_compare_images(expected_screenshot, actual_screenshot, diff_formats)
-    if ssim < threshold:
-        asserts.append("SSIM {} is less than threshold {} for {}".format(ssim, threshold, actual_screenshot))
 
 
 def _focused_element() -> WebElement:
