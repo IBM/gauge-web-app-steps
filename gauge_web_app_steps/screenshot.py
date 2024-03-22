@@ -14,11 +14,9 @@ from .app_context import app_context_key
 from .config import common_config as config
 from .imagepaths import ImagePath
 from .images import Images
-from .substitute import substitute
 
 
-def create_screenshot(file_name: str) -> str:
-    image_file_name = substitute(file_name)
+def create_screenshot(image_file_name: str) -> str:
     screenshot_file_path = _image_path().create_screenshot_file_path(image_file_name)
     _driver().save_screenshot(screenshot_file_path)
     return screenshot_file_path
@@ -66,11 +64,10 @@ def append_structured_similarity(asserts: list, expected_screenshot: str, actual
         asserts.append("SSIM {} is less than threshold {} for {}".format(ssim, threshold, actual_screenshot))
 
 
-def get_structured_similarity_to_expected(file_name: str, location: int, size: int, pixel_ratio: int, viewport_offset: int):
+def get_structured_similarity_to_expected(image_file_name: str, location: int, size: int, pixel_ratio: int, viewport_offset: int):
     """
     Get the structured similarity of a croped screenshot to an existing one.
     """
-    image_file_name = substitute(file_name)
     actual_screenshot_full_path = _image_path().create_actual_screenshot_file_path(image_file_name)
     _driver().save_screenshot(actual_screenshot_full_path)
     crop_image(

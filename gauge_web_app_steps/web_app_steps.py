@@ -337,14 +337,16 @@ def answer_in_prompt(text: str) -> None:
 
 @step("Take a screenshot <file>")
 def take_screenshot(image_file_name_param: str) -> None:
-    screenshot_file_path = create_screenshot(image_file_name_param)
+    image_file_name = substitute(image_file_name_param)
+    screenshot_file_path = create_screenshot(image_file_name)
     report().log_image(screenshot_file_path)
 
 
 @step("Take a screenshot of <by> = <by_value> <file>")
 def take_screenshot_of_element(by: str, by_value: str, image_file_name_param: str) -> None:
     element = find_element(by, by_value)
-    screenshot_file_path = create_screenshot(image_file_name_param)
+    image_file_name = substitute(image_file_name_param)
+    screenshot_file_path = create_screenshot(image_file_name)
     pixel_ratio = _device_pixel_ratio()
     viewport_offset = _viewport_offset()
     crop_image(
@@ -360,7 +362,8 @@ def take_screenshot_of_element(by: str, by_value: str, image_file_name_param: st
 @step("Take screenshots of whole page <file>")
 def take_screenshots_of_whole_page(image_file_name_param: str) -> None:
     if _is_firefox_page_screenshot_no_scrolling():
-        screenshot_file_path = create_screenshot(image_file_name_param)
+        image_file_name = substitute(image_file_name_param)
+        screenshot_file_path = create_screenshot(image_file_name)
         report().log_image(screenshot_file_path)
     else:
         image_file_name = substitute(image_file_name_param)
@@ -948,8 +951,9 @@ def assert_image_resembles(by: str, by_value: str, image_file_name_param: str, t
     threshold = float(substitute(threshold_param))
     assert 0.0 <= threshold <= 1.0, "threshold must be between 0.0 and 1.0"
     pixel_ratio = _device_pixel_ratio()
-    viewport_offset = _viewport_offset()    
-    ssim = get_structured_similarity_to_expected(image_file_name_param, element.location, element.size, pixel_ratio, viewport_offset)
+    viewport_offset = _viewport_offset()
+    image_file_name = substitute(image_file_name_param)
+    ssim = get_structured_similarity_to_expected(image_file_name, element.location, element.size, pixel_ratio, viewport_offset)
     assert ssim >= threshold, \
         _err_msg(f"SSIM {ssim} is less than threshold {threshold}")
 
