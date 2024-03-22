@@ -27,7 +27,7 @@ from .keymapper import KeyMapper
 from .report import Report
 from .sauce_tunnel import SauceTunnel
 from .selector import SelectKey, Selector
-from .screenshot import (append_structured_similarity, create_screenshot, create_screenshot_on_failure, 
+from .screenshot import (append_structured_similarity, create_screenshot, create_failure_screenshot, 
                         create_actual_screenshot_file_path, create_expected_screenshot_file_path, crop_image,
                         get_structured_similarity_to_expected, ssim_screenshot_scrolling, ssim_screenshot_noscrolling)
 from .substitute import substitute
@@ -99,7 +99,7 @@ def take_screenshot_on_failure() -> bytes:
         # Error before driver initialization
         return b''
     try:
-        screenshot_file_path = create_screenshot_on_failure()
+        screenshot_file_path = create_failure_screenshot()
         report().log_image(screenshot_file_path, "Step Failure Screenshot")
         with open(screenshot_file_path, "rb") as sf:
             file_bin = sf.read()
