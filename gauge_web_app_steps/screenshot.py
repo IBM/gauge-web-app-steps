@@ -24,7 +24,7 @@ def create_screenshot(file_name: str) -> str:
     return screenshot_file_path
 
 
-def create_screenshot_on_failure() -> str:
+def create_failure_screenshot() -> str:
     screenshot_path = _image_path().create_failure_screenshot_file_path()
     _driver().save_screenshot(screenshot_path)
     return screenshot_path
