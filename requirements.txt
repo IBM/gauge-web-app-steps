@@ -3,7 +3,7 @@ getgauge
 numpy # transitive dependency of scikit-image
 numexpr==2.8.7
 scikit-image==0.21.0
-selenium==4.15.2
+selenium==4.19.0
 webcolors==1.11.1
 webdriver-manager==4.0.1
 #only for development purposes
