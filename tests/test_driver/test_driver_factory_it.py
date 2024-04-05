@@ -8,6 +8,7 @@ import unittest
 
 from appium.webdriver import Remote as MobileRemote
 from parameterized import parameterized
+from pathlib import Path
 from selenium.webdriver import Chrome, Firefox, Remote
 from selenium.webdriver.common.by import By
 from unittest.mock import patch
@@ -15,6 +16,7 @@ from unittest.mock import patch
 from gauge_web_app_steps.driver.browsers import Browser
 from gauge_web_app_steps.driver.operating_system import OperatingSystem
 from gauge_web_app_steps.driver.driver_factory import LocalDriverFactory, RemoteDriverFactory, SaucelabsDriverFactory
+from tests import TEST_OUT_DIR
 
 
 # noinspection DuplicatedCode
@@ -24,9 +26,11 @@ class TestLocalDriverFactoryIT(unittest.TestCase):
     @parameterized.expand([(Browser.CHROME, Chrome), (Browser.FIREFOX, Firefox)])
     def test_create_desktop_systems(self, browser: Browser, expected_driver):
         # arrange
+        Path(f"{TEST_OUT_DIR}/logs").mkdir(exist_ok=True)
         with patch.dict(os.environ, {
             "driver_operating_system": OperatingSystem.MACOS.value,
-            "driver_browser": browser.value
+            "driver_browser": browser.value,
+            "GAUGE_PROJECT_ROOT": TEST_OUT_DIR,
         }):
             # act
             result = LocalDriverFactory().create_driver()
