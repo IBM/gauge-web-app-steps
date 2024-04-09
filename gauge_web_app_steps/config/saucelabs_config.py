@@ -38,6 +38,10 @@ def get_build() -> Optional[str]:
     return os.environ.get("driver_platform_saucelabs_build")
 
 
+def is_device_cached() -> bool:
+    return os.environ.get("driver_platform_saucelabs_devicecache", "false").lower() in ('true', '1')
+
+
 def get_sauce_status_address() -> Optional[str]:
     return os.environ.get("SAUCE_STATUS_ADDRESS")
 

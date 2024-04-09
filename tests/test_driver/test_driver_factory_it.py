@@ -104,7 +104,7 @@ class TestSaucelabsDriverFactoryIT(unittest.TestCase):
             "driver_operating_system_version": "11"
         }):
             # act
-            result = SaucelabsDriverFactory("test").create_driver()
+            result = SaucelabsDriverFactory("test", "suite-id").create_driver()
             # assert
             self.assertIsNotNone(result)
             self.assertIsInstance(result, Remote)
@@ -121,7 +121,7 @@ class TestSaucelabsDriverFactoryIT(unittest.TestCase):
             "driver_operating_system_version": "11"
         }):
             # act
-            result = SaucelabsDriverFactory("test").create_driver()
+            result = SaucelabsDriverFactory("test", "suite-id").create_driver()
             # assert
             result.get("http://localhost:3000")
             result.find_element(By.CLASS_NAME, "title")
