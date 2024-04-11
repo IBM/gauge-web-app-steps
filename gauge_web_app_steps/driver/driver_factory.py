@@ -51,9 +51,9 @@ class DriverFactory(ABC):
     """
 
     @staticmethod
-    def create_driver_factory(spec_name: str) -> DriverFactory:
+    def create_driver_factory(spec_name: str, suite_id: str) -> DriverFactory:
         if config.get_platform().is_remote():
-            return SaucelabsDriverFactory(spec_name)
+            return SaucelabsDriverFactory(spec_name, suite_id)
         elif config.get_platform().is_local():
             return LocalDriverFactory()
         else:
@@ -270,8 +270,9 @@ class SaucelabsDriverFactory(DriverFactory):
     This factory creates drivers for the remote Saucelabs environment.
     """
 
-    def __init__(self, spec_name: str) -> None:
+    def __init__(self, spec_name: str, suite_id: str) -> None:
         self.spec_name = spec_name
+        self.suite_id = suite_id
 
     def create_driver(self) -> Remote:
         """Creates and returns a driver for https://saucelabs.com/"""
@@ -396,4 +397,6 @@ class SaucelabsDriverFactory(DriverFactory):
         build = saucelabs_config.get_build()
         if build:
             sauce_options["build"] = build
+        if saucelabs_config.is_device_cached():
+            sauce_options["cacheId"] = self.suite_id
         return sauce_options

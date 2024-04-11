@@ -60,6 +60,7 @@ The following properties define a connection to the [SauceLabs](https://saucelab
 | `driver_platform_saucelabs_tunnel_name` | string | `None` | If the SauceConnect tunnel is used, the name can be placed here. The Name can be found on the SauceLabs [Tunnel Proxies](https://app.saucelabs.com/tunnels) page. |
 | `driver_platform_saucelabs_test_title` | string | `None` | Test runs can be given a title, so they can be found more easily in the [Test Results](https://app.saucelabs.com/dashboard/tests) or [Builds](https://app.saucelabs.com/dashboard/builds/vdc). |
 | `driver_platform_saucelabs_build` | string | `None` | Test runs can be given a build ID, so they can be found more easily in the [Test Results](https://app.saucelabs.com/dashboard/tests) or [Builds](https://app.saucelabs.com/dashboard/builds/vdc). |
+| `driver_platform_saucelabs_devicecache` | boolean | `false` | Whether real devices should be allocated to a test suite and bypass the device cleaning process in between multiple specifications. A [cacheId](https://docs.saucelabs.com/dev/test-configuration-options/index.html#cacheid) will be assigned automatically. |
 
 The following properties should be set as system variables, rather than Gauge properties:
 

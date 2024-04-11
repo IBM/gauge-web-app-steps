@@ -21,7 +21,7 @@ class AppContext:
     Context objects are created and kept here.
     """
 
-    def __init__(self, ctx: ExecutionContext = None) -> None:
+    def __init__(self, ctx: ExecutionContext = None, suite_id: str = None) -> None:
         """Initiates objects used in the basic steps."""
         if ctx is None:
             # getgauge's loading mechanism might try to instantiate the class before the lib is ready.
@@ -29,15 +29,15 @@ class AppContext:
         self.report = Report(ctx, config.is_debug_log())
         self._report_driver_options()
         spec : Specification = ctx.specification
-        self.driver = self._create_driver(spec.name)
+        self.driver = self._create_driver(spec.name, suite_id)
         self.image_path = ImagePath(config.get_browser().value, config.is_headless())
         self.images = Images(self.report)
         self.diff_formats = config.get_diff_formats()
         self.mobile = config.get_operating_system().is_mobile()
         self.firefox_page_screenshot_no_scrolling = config.get_browser() == Browser.FIREFOX and config.is_whole_page_screenshot()
 
-    def _create_driver(self, spec_name: str) -> Remote:
-        driver_factory = DriverFactory.create_driver_factory(spec_name)
+    def _create_driver(self, spec_name: str, suite_id: str) -> Remote:
+        driver_factory = DriverFactory.create_driver_factory(spec_name, suite_id)
         return driver_factory.create_driver()
 
     def _report_driver_options(self) -> None:

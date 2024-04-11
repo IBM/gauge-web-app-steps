@@ -9,6 +9,7 @@ import re
 import time
 import traceback
 import urllib
+from uuid import uuid4
 
 from itertools import filterfalse
 from typing import Tuple
@@ -37,10 +38,12 @@ from .substitute import substitute
 max_attempts = 12
 basic_auth_key = "_basic_auth"
 error_message_key = "_err_msg"
+suite_id_key = "_suite_id"
 
 @before_suite
 def before_suite_hook() -> None:
     SauceTunnel.start()
+    data_store.suite[suite_id_key] = str(uuid4())
 
 
 @after_suite
@@ -51,7 +54,8 @@ def after_suite_hook() -> None:
 @before_spec
 def before_spec_hook(exe_ctx: ExecutionContext) -> None:
     try:
-        app_ctx = AppContext(exe_ctx)
+        suite_id = data_store.suite[suite_id_key]
+        app_ctx = AppContext(exe_ctx, suite_id)
         data_store.spec[app_context_key] = app_ctx
     except BaseException as e:
         # Gauge swallows some exceptions, so they are handled here
