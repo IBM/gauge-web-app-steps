@@ -47,17 +47,6 @@ class TestSaucelabsDriverFactory(unittest.TestCase):
             self.assertEqual(should_have_appium_version, "appiumVersion" in result,
                 f"result has appium version: {result}, OS: {operating_system}, is mobile: {operating_system.is_mobile()}")
 
-    @parameterized.expand([("tunnel-name", True), (None, False)])
-    def test__get_sauce_options__tunnel_name(self, tunnel_name: str, should_have_tunnel_name: bool):
-        # arrange
-        with patch.dict('os.environ'):
-            if tunnel_name is not None: os.environ["driver_platform_saucelabs_tunnel_name"] = tunnel_name
-            else: os.environ.pop("driver_platform_saucelabs_tunnel_name", None)
-            # act
-            result = SaucelabsDriverFactory("test", "suite-id")._get_sauce_options()
-            # assert
-            self.assertEqual(should_have_tunnel_name, "tunnelName" in result, f"tunnel name was in the result: {result}")
-
     @parameterized.expand([
         (OperatingSystem.WINDOWS, "11", SaucelabsOperatingSystem.WINDOWS_11.value),
         (OperatingSystem.WINDOWS, "10", SaucelabsOperatingSystem.WINDOWS_10.value),
@@ -98,16 +87,41 @@ class TestSaucelabsDriverFactory(unittest.TestCase):
         result = SaucelabsDriverFactory("test", "suite-id")._get_platform_name(operating_system, operating_system_version)
         self.assertEqual(expected_value, result)
 
-    @parameterized.expand([("cache-id", True), ("cache-id", False)])
-    def test__get_sauce_options__cache_id(self, cache_id: str, should_have_device_caching: bool):
-        # arrange
+    def test__get_sauce_options__minimal(self):
         with patch.dict('os.environ'):
-            if cache_id is not None: os.environ["driver_platform_saucelabs_devicecache"] = str(should_have_device_caching)
-            else: os.environ.pop("driver_platform_saucelabs_devicecache", None)
-            # act
-            result = SaucelabsDriverFactory("tunnel", cache_id)._get_sauce_options()
+            os.environ["SAUCE_USERNAME"] = "sauce-user"
+            os.environ["SAUCE_ACCESS_KEY"] = "sauce-access-key"
+            result = SaucelabsDriverFactory("tunnel", None)._get_sauce_options()
             # assert
-            self.assertEqual(should_have_device_caching, "cacheId" in result, f"cacheId was in the result: {result}")
+            self.assertEqual({
+                "username": "sauce-user",
+                "accessKey": "sauce-access-key",
+                "name": "tunnel",
+            }, result)
+
+    def test__get_sauce_options__maximal(self):
+        with patch.dict('os.environ'):
+            os.environ["SAUCE_USERNAME"] = "sauce-user"
+            os.environ["SAUCE_ACCESS_KEY"] = "sauce-access-key"
+            os.environ["driver_platform_saucelabs_extended_debugging"] = "true"
+            os.environ["driver_operating_system"] = "android"
+            os.environ["driver_platform_saucelabs_mobile_appium_version"] = "appium-version"
+            os.environ["SAUCE_TUNNEL_NAME"] = "tunnel-name"
+            os.environ["driver_platform_saucelabs_test_title"] = "test-title"
+            os.environ["driver_platform_saucelabs_build"] = "build"
+            os.environ["driver_platform_saucelabs_devicecache"] = "true"
+            result = SaucelabsDriverFactory("spec-name", "suite-id")._get_sauce_options()
+            # assert
+            self.assertEqual({
+                'accessKey': 'sauce-access-key',
+                'appiumVersion': 'appium-version',
+                'build': 'build',
+                'cacheId': "suite-id",
+                'extendedDebugging': True,
+                'name': 'spec-name - test-title',
+                'tunnelName': 'tunnel-name',
+                'username': 'sauce-user',
+             }, result)
 
 if __name__ == '__main__':
     unittest.main()

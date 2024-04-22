@@ -6,6 +6,7 @@
 import base64
 import os
 import re
+import sys
 import time
 import traceback
 import urllib
@@ -40,15 +41,28 @@ basic_auth_key = "_basic_auth"
 error_message_key = "_err_msg"
 suite_id_key = "_suite_id"
 
+
 @before_suite
 def before_suite_hook() -> None:
-    SauceTunnel.start()
-    data_store.suite[suite_id_key] = str(uuid4())
+    try:
+        SauceTunnel.start()
+        data_store.suite[suite_id_key] = str(uuid4())
+    except BaseException as e:
+        # Gauge swallows some exceptions, so they are handled here
+        print(f"An exception occured while SauceConnect initiated: {str(e)}", file=sys.stderr)
+        traceback.print_exception(e)
+        raise e
 
 
 @after_suite
 def after_suite_hook() -> None:
-    SauceTunnel.terminate()
+    try:
+        SauceTunnel.terminate()
+    except BaseException as e:
+        # Gauge swallows some exceptions, so they are handled here
+        print(f"An exception occured while SauceConnect terminated: {str(e)}", file=sys.stderr)
+        traceback.print_exception(e)
+        raise e
 
 
 @before_spec
@@ -59,7 +73,7 @@ def before_spec_hook(exe_ctx: ExecutionContext) -> None:
         data_store.spec[app_context_key] = app_ctx
     except BaseException as e:
         # Gauge swallows some exceptions, so they are handled here
-        print(f"An exception occured while instantiating the driver: {e}")
+        print(f"An exception occured while instantiating the driver: {str(e)}", file=sys.stderr)
         traceback.print_exception(e)
         raise e
 
@@ -73,7 +87,7 @@ def after_spec_hook() -> None:
             app_ctx.driver.quit()
     except BaseException as e:
         # Gauge swallows some exceptions, so they are handled here
-        print(f"An exception occured while closing the driver: {e}")
+        print(f"An exception occured while closing the driver: {str(e)}", file=sys.stderr)
         traceback.print_exception(e)
         raise e
 

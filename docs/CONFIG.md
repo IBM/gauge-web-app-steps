@@ -57,26 +57,25 @@ The following properties define a connection to the [SauceLabs](https://saucelab
 | `driver_platform_saucelabs_desktop_browser_version` | string | `latest` | The release version of the chosen browser. |
 | `driver_platform_saucelabs_mobile_device_name` | string | `None` | The name of the test device. Regular expressions are supported: `Samsung.*`, `iPhone [6-7]`. The [Platform Configurator](https://app.saucelabs.com/platform-configurator) can be used to pick a device. |
 | `driver_platform_saucelabs_executor` | string | `None` | The executor URL of SauceLabs. This URL can be found in the [Platform Configurator](https://app.saucelabs.com/platform-configurator). |
-| `driver_platform_saucelabs_tunnel_name` | string | `None` | If the SauceConnect tunnel is used, the name can be placed here. The Name can be found on the SauceLabs [Tunnel Proxies](https://app.saucelabs.com/tunnels) page. |
 | `driver_platform_saucelabs_test_title` | string | `None` | Test runs can be given a title, so they can be found more easily in the [Test Results](https://app.saucelabs.com/dashboard/tests) or [Builds](https://app.saucelabs.com/dashboard/builds/vdc). |
 | `driver_platform_saucelabs_build` | string | `None` | Test runs can be given a build ID, so they can be found more easily in the [Test Results](https://app.saucelabs.com/dashboard/tests) or [Builds](https://app.saucelabs.com/dashboard/builds/vdc). |
 | `driver_platform_saucelabs_devicecache` | boolean | `false` | Whether real devices should be allocated to a test suite and bypass the device cleaning process in between multiple specifications. A [cacheId](https://docs.saucelabs.com/dev/test-configuration-options/index.html#cacheid) will be assigned automatically. |
+| `driver_platform_saucelabs_extended_debugging` | boolean | `false` | Enable [extended debugging](https://docs.saucelabs.com/insights/debug/index.html#enabling-extended-debugging) with this flag. |
 
 The following properties should be set as system variables, rather than Gauge properties:
 
 | Property | Type | Default | Description |
 |--|--|--|--|
-| `SAUCE_STATUS_ADDRESS` | string | `None` | The standard address of the SauceConnect tunnel API, when run locally is `127.0.0.1:8080`, without `http://`. |
-| `SAUCE_TUNNEL_ACTIVE` | boolean | `false` | Whether the SauceConnect tunnel should be started before test execution. |
-| `SAUCE_TUNNEL_POOLING` | boolean | `false` | Parallel executions will need the SauceConnect tunnel to run in pool mode. |
-| `SAUCE_HOST` | `macos` \| `windows` \| `linux` | `None` | The OS type, from which the Gauge test has been started. This property should be auto-discovered in a future release. |
-| `SAUCE_PATH` | string | `sc` | Path to the sauce connector binary. |
+| `SAUCE_TUNNEL_ACTIVE` | boolean | `false` | Whether the Sauce Connect tunnel should be started before test execution. |
+| `SAUCE_PATH` | string | `sc` | Path to the [Sauce Connect binary](https://docs.saucelabs.com/secure-connections/sauce-connect-5/). |
 | `SAUCE_USERNAME` | string | `None` | SauceLabs user name |
 | `SAUCE_ACCESS_KEY` | string | `None` | SauceLabs access key. It can be found in the user settings. |
+| `SAUCE_API_ADDRESS` | string | `127.0.0.1:8080` | The standard address of the SauceConnect tunnel API, when run locally is `127.0.0.1:8080`, without `http://`. It is needed to determine the status of the connection. |
+| `SAUCE_TUNNEL_NAME` | string | `None` | If the SauceConnect tunnel is used, a name must be chosen. The name can be found on the [Tunnel Proxies](https://app.saucelabs.com/tunnels) page. |
 | `SAUCE_REGION` | string | `None` | Possible regions as of now: `eu-central`, `us-west` |
-| `SAUCE_DNS` | string | `None` | DNS of the VPN connection (seems necessary on Windows hosts). This will be passed to the `--dns` [parameter](https://docs.saucelabs.com/dev/cli/sauce-connect-proxy/#--dns) of the tunnel command. |
-| `SAUCE_NO_SSL_BUMP_DOMAINS` | string | `None` | This will be passed to the `--no-ssl-bump-domains` [parameter](https://docs.saucelabs.com/dev/cli/sauce-connect-proxy/#--no-ssl-bump-domains) of the tunnel command. Can be: `all` \| any domains. This property is needed for some real devices. |
-| `SAUCE_LOG_FILE` | string | `$GAUGE_PROJECT_ROOT/logs/sc.log` | The log file path of the tunnel output. |
+
+Other Sauce Connect properties can be found in the [Sauce Connect Proxy Configuration](https://docs.saucelabs.com/secure-connections/sauce-connect-5/operation/configuration/).
+For example, when testing on android devices on your VPN, it is usually needed to set a value for `SAUCE_TLS_PASSTHROUGH_DOMAINS = <regexp>`.
 
 ## Deprecated
 

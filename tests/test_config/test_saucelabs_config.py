@@ -42,7 +42,7 @@ class TestLocal(unittest.TestCase):
             self.assertEqual("foo-executor", result)
 
     def test_get_tunnel_name(self):
-        with patch.dict(os.environ, {"driver_platform_saucelabs_tunnel_name": "foo-tunnel"}):
+        with patch.dict(os.environ, {"SAUCE_TUNNEL_NAME": "foo-tunnel"}):
             result = saucelabs_config.get_tunnel_name()
             self.assertEqual("foo-tunnel", result)
 

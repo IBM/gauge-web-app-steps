@@ -13,6 +13,7 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 from gauge_web_app_steps.web_app_steps import (
+    suite_id_key,
     after_spec_hook, accept_alert, answer_in_prompt,
     assert_attribute_contains, assert_attribute_does_not_contain, assert_attribute_equals, assert_attribute_exists,
     assert_dialog_text, assert_element_exists, assert_element_does_not_exist,
@@ -36,6 +37,8 @@ class TestWebAppStepsIT(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
+        data_store.suite.clear()
+        data_store.suite[suite_id_key] = "suite-id"
         test_dir = os.path.abspath(os.path.dirname(__file__))
         cls.out = os.path.join(test_dir, "out")
         cls.browser = Browser.CHROME.value

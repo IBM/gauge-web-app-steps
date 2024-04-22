@@ -20,8 +20,8 @@ setup(
     packages=['gauge_web_app_steps', 'gauge_web_app_steps.config', 'gauge_web_app_steps.driver'],
     install_requires=[
         'Appium-Python-Client==4.0.0',
-        'getgauge==0.4.2',
-        'numexpr==2.9.0',
+        'getgauge>=0.4.2',
+        'numexpr==2.10.0',
         'scikit-image==0.22.0',
         'selenium==4.19.0',
         'webcolors==1.13',
