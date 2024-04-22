@@ -7,8 +7,6 @@ import os
 
 from typing import Optional
 
-from ..driver.operating_system import OperatingSystem
-
 
 def get_appium_version() -> Optional[str]:
     return os.environ.get("driver_platform_saucelabs_mobile_appium_version")
