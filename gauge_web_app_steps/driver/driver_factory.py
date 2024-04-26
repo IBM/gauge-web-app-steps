@@ -384,6 +384,8 @@ class SaucelabsDriverFactory(DriverFactory):
             "username": saucelabs_config.get_sauce_user_name(),
             "accessKey": saucelabs_config.get_sauce_access_key(),
         }
+        if saucelabs_config.is_extended_debugging_enabled():
+            sauce_options["extendedDebugging"] = True
         operating_system = config.get_operating_system()
         appium_version = saucelabs_config.get_appium_version()
         if operating_system and operating_system.is_mobile() and appium_version:
