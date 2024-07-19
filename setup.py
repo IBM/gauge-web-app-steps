@@ -19,12 +19,12 @@ setup(
     license='MIT',
     packages=['gauge_web_app_steps', 'gauge_web_app_steps.config', 'gauge_web_app_steps.driver'],
     install_requires=[
-        'Appium-Python-Client==4.0.0',
+        'Appium-Python-Client==4.0.1',
         'getgauge>=0.4.2',
-        'numexpr==2.10.0',
-        'scikit-image==0.22.0',
-        'selenium==4.19.0',
-        'webcolors==1.13',
+        'numexpr==2.10.1',
+        'scikit-image==0.24.0',
+        'selenium==4.23.0',
+        'webcolors==24.6.0',
         'webdriver-manager==4.0.1',
     ],
     zip_safe=False
