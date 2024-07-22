@@ -821,7 +821,7 @@ def assert_element_exists(by: str, by_value: str) -> None:
     marker = get_marker(substitute(by), substitute(by_value))
     visible = wait_until(EC.visibility_of_element_located(marker))
     assert visible,\
-        _err_msg(f"element {by} = {by_value} does not exists")
+        _err_msg(f"element {by} = {by_value} does not exist")
 
 
 # see also before_step_hook

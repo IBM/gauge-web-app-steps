@@ -1370,7 +1370,7 @@ Support
 
 |Desktop|Android (Chrome)|iOS (Safari)|
 |:-----:|:--------------:|:----------:|
-|   ✔   |       ?        |     ?      |
+|   ✔   |       ✔        |     ✔      |
 
 ## Assert \<by> = \<by_value> does not exist
 
@@ -1396,7 +1396,7 @@ Support
 
 |Desktop|Android (Chrome)|iOS (Safari)|
 |:-----:|:--------------:|:----------:|
-|   ✔   |       ?        |     ?      |
+|   ✔   |       ✔        |     ✔      |
 
 ## Assert \<by> = \<by_value> is enabled
 
