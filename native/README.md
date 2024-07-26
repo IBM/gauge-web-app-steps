@@ -36,3 +36,9 @@ $ brew install zstd
 ````
 
 If error persists, download a version for your platform from https://github.com/Z3Prover/z3/releases and copy it to /usr/local/lib/.
+
+#### Testing: Linker issue like "Symbol not found"
+
+Run the test without features:
+
+`cargo test --no-default-features`
