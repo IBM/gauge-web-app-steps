@@ -4,5 +4,8 @@ clean:
 test:
 	RUST_BACKTRACE=1 cargo test --no-default-features
 
+dev:
+	maturin develop
+
 build:
-	cargo build --release --no-default-features
+	maturin build
