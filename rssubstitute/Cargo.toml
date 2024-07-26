@@ -1,12 +1,18 @@
 [package]
-name = "native"
+name = "rssubstitute"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [lib]
-name = "native"
+name = "rssubstitute"
 crate-type = ["cdylib"]
+
+[dependencies]
+chrono = "0.4.38"
+evalexpr = "11.3.0"
+regex = "1.10.5"
+uuid = { version = "1.10.0", features = ["v4"] }
 
 [dependencies.pyo3]
 version = "0.21.0"
