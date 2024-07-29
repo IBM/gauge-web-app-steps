@@ -183,7 +183,7 @@ Support
 
 |Desktop|Android (Chrome)|iOS (Safari)|
 |:-----:|:--------------:|:----------:|
-|   ✔   |                |            |
+|   ✔   |       ✔        |     x      |
 
 ## Close other windows
 
@@ -313,7 +313,7 @@ Support
 
 |Desktop|Android (Chrome)|iOS (Safari)|
 |:-----:|:--------------:|:----------:|
-|   ✔   |                |            |
+|   ✔   |       ✔        |     x      |
 
 ## Switch to default content
 
@@ -611,7 +611,7 @@ Support
 
 |Desktop|Android (Chrome)|iOS (Safari)|
 |:-----:|:--------------:|:----------:|
-|   ✔   |                |            |
+|   ✔   |       ✔        |     x      |
 
 ## Type \<by> = \<by_value> \<string>
 
@@ -653,7 +653,7 @@ Support
 
 |Desktop|Android (Chrome)|iOS (Safari)|
 |:-----:|:--------------:|:----------:|
-|   ✔   |                |            |
+|   ✔   |       ✔        |     x      |
 
 ## Send keys \<keys>
 
@@ -913,7 +913,7 @@ Support
 
 |Desktop|Android (Chrome)|iOS (Safari)|
 |:-----:|:--------------:|:----------:|
-|   ✔   |      ?         |     ?      |
+|   ✔   |      ✔         |     ✔      |
 
 ## Drag and drop \<by_source> = \<by\_value_source> into \<by_dest> = \<by\_value_dest>
 
