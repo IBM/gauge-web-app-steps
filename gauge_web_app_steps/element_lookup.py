@@ -34,9 +34,13 @@ def find_elements(by_param: str, by_value_param: str) -> List[WebElement]:
 def get_text_from_element(by: str, by_value: str) -> str:
     element = find_element(by, by_value)
     if "input" == element.tag_name:
-        return element.get_attribute("value")
-    else:
-        return element.text
+        res = element.get_attribute("value")
+        if res is None:
+            # workaround for some mobile devices
+            res = _driver().execute_script("return arguments[0].value", element)
+        if res is not None:
+            return res
+    return element.text
 
 
 def find_attribute(by: str, by_value: str, attribute: str) -> str | bool:
