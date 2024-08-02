@@ -37,9 +37,9 @@ class TestImages(unittest.TestCase):
             actual_screenshot_full_path=self.actual_path,
             output_path=self.out,
             diff_formats=diff_format)
-        self.assertGreater(ssim, 0.9)
-        self.assertLess(ssim, 1)
-        self.assertFalse(self._exists_output_image(merge))
+        assert ssim > 0.9
+        assert ssim < 1
+        assert not self._exists_output_image(merge)
 
     def test_adapt_and_compare_images_merged(self):
         merge = "card1_merged.png"
@@ -50,10 +50,10 @@ class TestImages(unittest.TestCase):
             output_path=self.out,
             diff_formats="color:green",
             append_images=True)
-        self.assertGreater(ssim, 0.9)
-        self.assertLess(ssim, 1)
-        self.assertTrue(self._exists_output_image(merge))
-        self.assertFalse(self._exists_output_image("card1_green.png"))
+        assert ssim > 0.9
+        assert ssim < 1
+        assert self._exists_output_image(merge)
+        assert not self._exists_output_image("card1_green.png")
 
     def test_crop_image_file(self):
         file = self._prepare_test_image()
@@ -62,7 +62,7 @@ class TestImages(unittest.TestCase):
             size={"width": 20, "height": 20},
             pixel_ratio=2, viewport_offset=10)
         img = io.imread(file)
-        self.assertEqual((40, 40, 4), img.shape)
+        assert (40, 40, 4) == img.shape
 
     def _prepare_test_image(self):
         # ensure that output folder exists

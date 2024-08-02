@@ -20,6 +20,7 @@ from gauge_web_app_steps.web_app_steps import (
     reset_timeout, save_placeholder, save_window_handles, save_window_title, set_timeout, switch_to_frame,
     wait_for_window
 )
+import pytest
 
 
 class TestWebAppSteps(unittest.TestCase):
@@ -64,7 +65,8 @@ class TestWebAppSteps(unittest.TestCase):
     def test_assert_element_exists_error(self, patched_time_sleep):
         self.element.is_displayed.return_value = False
         self.app_context.driver.find_element.return_value = self.element
-        self.assertRaises(AssertionError, lambda: assert_element_exists("id", "foo"))
+        with pytest.raises(AssertionError):
+            assert_element_exists("id", "foo")
         self.app_context.driver.find_element.assert_called()
 
     def test_assert_element_does_not_exist(self):
@@ -78,7 +80,8 @@ class TestWebAppSteps(unittest.TestCase):
     def test_assert_element_does_not_exist_error(self, patched_time_sleep):
         self.element.is_displayed.return_value = True
         self.app_context.driver.find_element.return_value = self.element
-        self.assertRaises(AssertionError, lambda: assert_element_does_not_exist("id", "foo"))
+        with pytest.raises(AssertionError):
+            assert_element_does_not_exist("id", "foo")
         self.app_context.driver.find_element.assert_called()
 
     def test_assert_element_is_enabled(self):
@@ -91,26 +94,27 @@ class TestWebAppSteps(unittest.TestCase):
     def test_assert_element_is_enabled_error(self):
         self.element.is_enabled.return_value = False
         self.app_context.driver.find_element.return_value = self.element
-        self.assertRaises(AssertionError, lambda: assert_element_is_enabled("id", "foo"))
+        with pytest.raises(AssertionError):
+            assert_element_is_enabled("id", "foo")
 
     def test_save_placeholder(self):
         save_placeholder("placeholder-key", "placeholder_value")
         result = data_store.scenario.get("placeholder-key")
-        self.assertEqual("placeholder_value", result)
+        assert "placeholder_value" == result
 
     def test_save_window_handles(self):
         placeholder = "handle"
         self.app_context.driver.window_handles.return_value = ["foo"]
         save_window_handles(placeholder)
         result = data_store.scenario.get(placeholder).return_value
-        self.assertEqual(["foo"], result)
+        assert ["foo"] == result
 
     def test_save_window_title(self):
         placeholder = "title"
         self.app_context.driver.title.return_value = "foo"
         save_window_title(placeholder)
         result = data_store.scenario.get(placeholder).return_value
-        self.assertEqual("foo", result)
+        assert "foo" == result
 
     def test_wait_for_window(self):
         placeholder = "handle"
@@ -119,27 +123,30 @@ class TestWebAppSteps(unittest.TestCase):
         self.app_context.driver.window_handles = ["foo", placeholder]
         wait_for_window("0", placeholder)
         result = data_store.scenario.get(placeholder)
-        self.assertEqual(placeholder, result)
+        assert placeholder == result
 
     def test_wait_for_window_missing_handles(self):
         placeholder = "handle"
-        self.assertRaises(AssertionError, lambda: wait_for_window("0", placeholder))
+        with pytest.raises(AssertionError):
+            wait_for_window("0", placeholder)
 
     def test_reset_timeout(self):
         set_timeout("2")
         reset_timeout()
-        self.assertIsNone(data_store.scenario.get(timeout_key))
+        assert data_store.scenario.get(timeout_key) is None
 
     def test_set_timeout(self):
         set_timeout("2.5")
-        self.assertEqual(2.5, data_store.scenario.get(timeout_key))
+        assert 2.5 == data_store.scenario.get(timeout_key)
 
     def test_set_timeout_error(self):
-        self.assertRaises(AssertionError, lambda: set_timeout("id"))
+        with pytest.raises(AssertionError):
+            set_timeout("id")
 
     def test_switch_to_frame_by_index(self):
         self.app_context.driver.find_elements.return_value=[]
-        self.assertRaises(AssertionError, lambda: switch_to_frame("1"))
+        with pytest.raises(AssertionError):
+            switch_to_frame("1")
         self.app_context.driver.assert_has_calls([call.find_elements('tag name', 'frame'), call.find_elements('tag name', 'iframe')])
 
     def test_execute_script(self):
@@ -150,7 +157,7 @@ class TestWebAppSteps(unittest.TestCase):
         self.app_context.driver.execute_script.return_value="result"
         execute_script_save_result("script", "placeholder")
         self.app_context.driver.assert_has_calls([call.execute_script("script")])
-        self.assertEqual("result", data_store.scenario.get("placeholder"))
+        assert "result" == data_store.scenario.get("placeholder")
 
     def test_execute_script_on_element(self):
         elem = "web element"
@@ -170,7 +177,7 @@ class TestWebAppSteps(unittest.TestCase):
             call.find_element("tag name", "p"),
             call.execute_script("var elem=arguments[0]; script(elem)", elem)
         ])
-        self.assertEqual("result", data_store.scenario.get("placeholder"))
+        assert "result" == data_store.scenario.get("placeholder")
 
     def test_execute_async_script(self):
         execute_async_script("script")
@@ -180,7 +187,7 @@ class TestWebAppSteps(unittest.TestCase):
         self.app_context.driver.execute_async_script.return_value="result"
         execute_async_script_save_result("callback(result)", "placeholder", "callback")
         self.app_context.driver.assert_has_calls([call.execute_async_script("var callback=arguments[arguments.length-1]; callback(result)")])
-        self.assertEqual("result", data_store.scenario.get("placeholder"))
+        assert "result" == data_store.scenario.get("placeholder")
 
     def test_execute_async_script_on_element(self):
         elem = "web element"
@@ -200,7 +207,7 @@ class TestWebAppSteps(unittest.TestCase):
             call.find_element("tag name", "p"),
             call.execute_async_script("var elem=arguments[0]; var callback=arguments[arguments.length-1]; callback(elem.innerText)", elem)
         ])
-        self.assertEqual("result", data_store.scenario.get("placeholder"))
+        assert "result" == data_store.scenario.get("placeholder")
 
 
 if __name__ == '__main__':

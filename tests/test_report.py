@@ -25,7 +25,7 @@ class TestReport(unittest.TestCase):
             "gauge_reports_dir": "reports"
         }):
             result = self.report._spec_html_report_dir()
-            self.assertIn(os.path.join("reports", "html-report", "resources"), result)
+            assert os.path.join("reports", "html-report", "resources") in result
 
 
 if __name__ == '__main__':

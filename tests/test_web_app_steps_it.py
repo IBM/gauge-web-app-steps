@@ -139,13 +139,13 @@ class TestWebAppStepsIT(unittest.TestCase):
         type_string("5")
         save_placeholder_from_element("mynum", "tag name", "input")
         result = data_store.scenario.get("mynum")
-        self.assertEqual("5", result)
+        assert "5" == result
 
     def test_save_placeholder_from_element_attribute(self):
         self._open_page()
         save_placeholder_from_element_attribute("myref", "href", "xpath", "//li[1]/a")
         result = data_store.scenario.get("myref")
-        self.assertEqual("/abtest", result)
+        assert "/abtest" == result
 
     def test_select_list_element(self):
         self._open_page(page="https://mdn.github.io/html-examples/custom-select/")
@@ -166,7 +166,7 @@ class TestWebAppStepsIT(unittest.TestCase):
         os.environ["screenshot_whole_page_no_scroll"] = "False"
         self._open_page()
         take_screenshots_of_whole_page(self.__class__.__name__)
-        self.assertGreater(len(self._files()), 1)
+        assert len(self._files()) > 1
 
     #works only with Firefox => TODO: skip if not Firefox
     @unittest.SkipTest
@@ -181,7 +181,7 @@ class TestWebAppStepsIT(unittest.TestCase):
         Path(dst_dir).mkdir(exist_ok=True)
         shutil.copy(src, dst)
         assert_whole_page_resembles(self.__class__.__name__, "1.0")
-        self.assertEqual(len(self._files()), 1)
+        assert len(self._files()) == 1
 
     #the following tests should be executed at last because the switch windows
     def test_window_by_index(self):

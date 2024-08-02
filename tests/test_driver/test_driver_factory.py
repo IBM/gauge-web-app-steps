@@ -11,6 +11,7 @@ from unittest.mock import patch
 
 from gauge_web_app_steps.driver import Browser, OperatingSystem, SaucelabsOperatingSystem
 from gauge_web_app_steps.driver.driver_factory import LocalDriverFactory, SaucelabsDriverFactory
+import pytest
 
 
 class TestLocalDriverFactory(unittest.TestCase):
@@ -23,7 +24,8 @@ class TestLocalDriverFactory(unittest.TestCase):
             "driver_browser": browser.value
         }):
             # act & assert
-            self.assertRaises(AssertionError, lambda: LocalDriverFactory().create_driver())
+            with pytest.raises(AssertionError):
+                LocalDriverFactory().create_driver()
 
 
 class TestSaucelabsDriverFactory(unittest.TestCase):
@@ -44,8 +46,8 @@ class TestSaucelabsDriverFactory(unittest.TestCase):
             # act
             result = SaucelabsDriverFactory("test", "suite-id")._get_sauce_options()
             # assert
-            self.assertEqual(should_have_appium_version, "appiumVersion" in result,
-                f"result has appium version: {result}, OS: {operating_system}, is mobile: {operating_system.is_mobile()}")
+            assert should_have_appium_version == ("appiumVersion" in result), \
+                f"result has appium version: {result}, OS: {operating_system}, is mobile: {operating_system.is_mobile()}"
 
     @parameterized.expand([("tunnel-name", True), (None, False)])
     def test__get_sauce_options__tunnel_name(self, tunnel_name: str, should_have_tunnel_name: bool):
@@ -56,7 +58,7 @@ class TestSaucelabsDriverFactory(unittest.TestCase):
             # act
             result = SaucelabsDriverFactory("test", "suite-id")._get_sauce_options()
             # assert
-            self.assertEqual(should_have_tunnel_name, "tunnelName" in result, f"tunnel name was in the result: {result}")
+            assert should_have_tunnel_name == ("tunnelName" in result), f"tunnel name was in the result: {result}"
 
     @parameterized.expand([
         (OperatingSystem.WINDOWS, "11", SaucelabsOperatingSystem.WINDOWS_11.value),
@@ -96,7 +98,7 @@ class TestSaucelabsDriverFactory(unittest.TestCase):
     ])
     def test__get_platform_name(self, operating_system: OperatingSystem, operating_system_version: str, expected_value: str):
         result = SaucelabsDriverFactory("test", "suite-id")._get_platform_name(operating_system, operating_system_version)
-        self.assertEqual(expected_value, result)
+        assert expected_value == result
 
     @parameterized.expand([("cache-id", True), ("cache-id", False)])
     def test__get_sauce_options__cache_id(self, cache_id: str, should_have_device_caching: bool):
@@ -107,7 +109,7 @@ class TestSaucelabsDriverFactory(unittest.TestCase):
             # act
             result = SaucelabsDriverFactory("tunnel", cache_id)._get_sauce_options()
             # assert
-            self.assertEqual(should_have_device_caching, "cacheId" in result, f"cacheId was in the result: {result}")
+            assert should_have_device_caching == ("cacheId" in result), f"cacheId was in the result: {result}"
 
 if __name__ == '__main__':
     unittest.main()

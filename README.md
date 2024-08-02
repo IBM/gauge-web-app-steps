@@ -122,3 +122,16 @@ It is also possible to define a property in a step:
 ## Maintainers
 
 [Maintainers](./docs/MAINTAINERS.md)
+
+
+##Using to pytest with profiler
+It is recommend to use an virtual environment when using pytest.
+```
+$ python -m venv .env
+$ source .env/bin/activate
+$ pip install pytest
+$ pip install pytest-profiling
+```
+
+Then you can run the test with a profiler:
+`pytest tests --profile`

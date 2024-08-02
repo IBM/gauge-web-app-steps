@@ -35,8 +35,8 @@ class TestLocalDriverFactoryIT(unittest.TestCase):
             # act
             result = LocalDriverFactory().create_driver()
             # assert
-            self.assertIsNotNone(result)
-            self.assertIsInstance(result, expected_driver)
+            assert result is not None
+            assert isinstance(result, expected_driver)
             # clean up
             result.quit()
 
@@ -51,8 +51,8 @@ class TestLocalDriverFactoryIT(unittest.TestCase):
             # act
             result = LocalDriverFactory().create_driver()
             # assert
-            self.assertIsNotNone(result)
-            self.assertIsInstance(result, MobileRemote)
+            assert result is not None
+            assert isinstance(result, MobileRemote)
             # clean up
             result.quit()
 
@@ -67,8 +67,8 @@ class TestLocalDriverFactoryIT(unittest.TestCase):
             # act
             result = LocalDriverFactory().create_driver()
             # assert
-            self.assertIsNotNone(result)
-            self.assertIsInstance(result, MobileRemote)
+            assert result is not None
+            assert isinstance(result, MobileRemote)
             # clean up
             result.quit()
 
@@ -86,7 +86,7 @@ class TestRemoteDriverFactoryIT(unittest.TestCase):
             # act
             result = RemoteDriverFactory().create_driver()
             # assert
-            self.assertIsInstance(result, expected)
+            assert isinstance(result, expected)
             # clean up
             result.quit()
 
@@ -106,8 +106,8 @@ class TestSaucelabsDriverFactoryIT(unittest.TestCase):
             # act
             result = SaucelabsDriverFactory("test", "suite-id").create_driver()
             # assert
-            self.assertIsNotNone(result)
-            self.assertIsInstance(result, Remote)
+            assert result is not None
+            assert isinstance(result, Remote)
             # clean up
             result.quit()
 
