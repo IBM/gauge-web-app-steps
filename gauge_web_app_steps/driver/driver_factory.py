@@ -12,6 +12,7 @@ from appium.options.android import UiAutomator2Options
 from appium.options.common import AppiumOptions
 from appium.options.ios import XCUITestOptions
 from appium.webdriver.webdriver import WebDriver as MobileRemote
+from appium.webdriver import Remote as NativeRemote
 from selenium.webdriver.remote.webdriver import WebDriver as Remote
 from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.chrome.service import Service as ChromeService
@@ -300,30 +301,46 @@ class SaucelabsDriverFactory(DriverFactory):
         driver.set_page_load_timeout(config.get_page_load_timeout())
         return driver
 
-    def _create_mobile_driver(self) -> MobileRemote:
+    def _create_mobile_driver(self) -> MobileRemote | NativeRemote:
         operating_system = config.get_operating_system()
         browser = config.get_browser()
         capabilities = {
             'platformName': operating_system.value,
-            'browserName': browser.value,
             'appium:deviceName': saucelabs_config.get_device_name(),
             'appium:platformVersion': config.get_operating_system_version(),
             'sauce:options': self._get_sauce_options()
         }
         options = self._create_browser_options()
+        app_location = config.get_app_location()
+        if app_location:
+            capabilities['appium:app'] = app_location
+        app_package = config.get_app_package()
+        if app_package:
+            capabilities['appium:appPackage'] = "com.saucelabs.mydemoapp.android"
+            #capabilities['appium:appView']
+            #capabilities["appium:autoWebview"] = True
+            #capabilities["appium:newCommandTimeout"] = 90
+            #capabilities["appium:autoWebviewTimeout"] = 10000
+        else:
+            capabilities['browserName'] = browser.value,
         if operating_system == OperatingSystem.ANDROID:
             capabilities['appium:automationName'] = 'UiAutomator2'
-            capabilities["goog:chromeOptions"] = {
-                'w3c': True,
-                'extensions': []
-            }
+            if not app_location:
+                capabilities["goog:chromeOptions"] = {
+                    'w3c': True,
+                    'extensions': []
+                }
         elif operating_system == OperatingSystem.IOS:
             capabilities["appium:automationName"] = "XCUITest"
+            capabilities["appium:includeSafariInWebviews"] = True
             capabilities["safariAllowPopups"] = True
         capabilities_options = options.load_capabilities(capabilities)
-        driver = MobileRemote(saucelabs_config.get_executor(), options=capabilities_options)
-        driver.implicitly_wait(config.get_implicit_timeout())
-        driver.set_page_load_timeout(config.get_page_load_timeout())
+        if app_location:
+            driver = NativeRemote(saucelabs_config.get_executor(), options=capabilities_options, keep_alive=True)
+        else:
+            driver = MobileRemote(saucelabs_config.get_executor(), options=capabilities_options)
+            driver.implicitly_wait(config.get_implicit_timeout())
+            driver.set_page_load_timeout(config.get_page_load_timeout())
         return driver
 
     def _get_platform_name(self, operating_system: OperatingSystem, operating_system_version: str) -> str:
@@ -384,6 +401,8 @@ class SaucelabsDriverFactory(DriverFactory):
         sauce_options = {
             "username": saucelabs_config.get_sauce_user_name(),
             "accessKey": saucelabs_config.get_sauce_access_key(),
+            "resigningEnabled": True,
+            "networkCapture": True,
         }
         if saucelabs_config.is_extended_debugging_enabled():
             sauce_options["extendedDebugging"] = True
@@ -392,7 +411,7 @@ class SaucelabsDriverFactory(DriverFactory):
         if operating_system and operating_system.is_mobile() and appium_version:
             sauce_options["appiumVersion"] = appium_version
         tunnel_name = saucelabs_config.get_tunnel_name()
-        if tunnel_name:
+        if tunnel_name and saucelabs_config.is_sauce_tunnel_active():
             sauce_options["tunnelName"] = tunnel_name
         custom_test_title = saucelabs_config.get_test_title()
         spec_name = self.spec_name

@@ -11,6 +11,14 @@ from warnings import warn
 from ..driver import Browser, OperatingSystem, Platform
 
 
+def get_app_location() -> Optional[str]:
+    return os.environ.get("driver_app_location")
+
+
+def get_app_package() -> Optional[str]:
+    return os.environ.get("driver_app_package")
+
+
 def get_driver_cache_days(default = 365) -> int:
     return int(os.environ.get("driver_cache_days", default))
 
