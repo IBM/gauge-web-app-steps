@@ -13,6 +13,9 @@ from typing import Callable
 from datetime import datetime
 from getgauge.python import data_store
 
+#import the Rust module
+#from rssubstitute import substitute as nsubstitute
+
 
 def substitute(gauge_param: str) -> str:
     """Substitutes placeholders in a step parameter with values from environment variables
@@ -38,6 +41,8 @@ def substitute(gauge_param: str) -> str:
     substituted = _substitute_expressions('#', substituted, lambda expression: array2string(numexpr.evaluate(expression)) )
     substituted = _substitute_expressions('!', substituted, lambda expression: _evaluate_expression(expression))
     return substituted
+    #this would call our Rust code
+    #return nsubstitute(gauge_param, dict(os.environ), data_store.scenario)
 
 
 def _substitute_expressions(marker_char: str, text: str, evaluator: Callable[[str], str]) -> str:
