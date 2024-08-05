@@ -311,25 +311,24 @@ class SaucelabsDriverFactory(DriverFactory):
             'sauce:options': self._get_sauce_options()
         }
         options = self._create_browser_options()
-        app_location = config.get_app_location()
-        if app_location:
-            capabilities['appium:app'] = app_location
-        app_package = config.get_app_package()
-        if app_package:
-            capabilities['appium:appPackage'] = "com.saucelabs.mydemoapp.android"
-            #capabilities['appium:appView']
-            #capabilities["appium:autoWebview"] = True
-            #capabilities["appium:newCommandTimeout"] = 90
-            #capabilities["appium:autoWebviewTimeout"] = 10000
+        if config.is_app_test():
+            app_location = config.get_app_location()
+            if app_location:
+                capabilities['appium:app'] = app_location
+            app_package = config.get_app_package()
+            if app_package:
+                capabilities['appium:appPackage'] = app_package
+            app_activity = config.get_app_activity()
+            if app_activity:
+                capabilities['appium:appActivity'] = app_activity
         else:
-            capabilities['browserName'] = browser.value,
+            capabilities['browserName'] = browser.value
         if operating_system == OperatingSystem.ANDROID:
             capabilities['appium:automationName'] = 'UiAutomator2'
-            if not app_location:
-                capabilities["goog:chromeOptions"] = {
-                    'w3c': True,
-                    'extensions': []
-                }
+            capabilities["goog:chromeOptions"] = {
+                'w3c': True,
+                'extensions': []
+            }
         elif operating_system == OperatingSystem.IOS:
             capabilities["appium:automationName"] = "XCUITest"
             capabilities["appium:includeSafariInWebviews"] = True

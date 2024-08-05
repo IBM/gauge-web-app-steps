@@ -11,12 +11,21 @@ from warnings import warn
 from ..driver import Browser, OperatingSystem, Platform
 
 
+def is_app_test() -> bool:
+    return os.environ.get("driver_app_location") is not None\
+        or os.environ.get("driver_app_package") is not None
+
+
 def get_app_location() -> Optional[str]:
     return os.environ.get("driver_app_location")
 
 
 def get_app_package() -> Optional[str]:
     return os.environ.get("driver_app_package")
+
+
+def get_app_activity() -> Optional[str]:
+    return os.environ.get("driver_app_activity")
 
 
 def get_driver_cache_days(default = 365) -> int:
