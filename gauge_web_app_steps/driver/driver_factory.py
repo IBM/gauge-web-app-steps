@@ -303,7 +303,6 @@ class SaucelabsDriverFactory(DriverFactory):
 
     def _create_mobile_driver(self) -> MobileRemote | NativeRemote:
         operating_system = config.get_operating_system()
-        browser = config.get_browser()
         capabilities = {
             'platformName': operating_system.value,
             'appium:deviceName': saucelabs_config.get_device_name(),
@@ -323,7 +322,9 @@ class SaucelabsDriverFactory(DriverFactory):
                 capabilities['appium:appActivity'] = app_activity
             if config.is_auto_grant_permissions():
                 capabilities['autoGrantPermissions'] = True
+            capabilities['enableMultiWindows'] = True
         else:
+            browser = config.get_browser()
             capabilities['browserName'] = browser.value
         if operating_system == OperatingSystem.ANDROID:
             capabilities['appium:automationName'] = 'UiAutomator2'
