@@ -511,6 +511,9 @@ def type_string_into_element(by: str, by_value: str, a_string_param: str) -> Non
             .click(element)\
             .send_keys(a_string)\
             .perform()
+    elif config.is_app_test():
+        element.click()
+        _focused_element().send_keys(a_string)
     else:
         element.click()
         element.send_keys(a_string)
