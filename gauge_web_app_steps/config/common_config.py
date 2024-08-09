@@ -28,6 +28,10 @@ def get_app_activity() -> Optional[str]:
     return os.environ.get("driver_app_activity")
 
 
+def is_auto_grant_permissions() -> bool:
+    return os.environ.get("driver_app_auto_grant_permissions", "False").lower() in ("true", "1")
+
+
 def get_driver_cache_days(default = 365) -> int:
     return int(os.environ.get("driver_cache_days", default))
 

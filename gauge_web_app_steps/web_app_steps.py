@@ -17,6 +17,7 @@ from typing import Tuple
 from getgauge.python import data_store, step, before_spec, after_spec, screenshot, before_suite, after_suite, before_step, ExecutionContext
 from selenium.common.exceptions import JavascriptException, WebDriverException
 from selenium.webdriver import Remote
+from appium.webdriver import Remote as AppiumRemote
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as EC
@@ -284,6 +285,12 @@ def print_window_handles() -> None:
     report().log("Windows: [{}]".format(", ".join(window_handles)))
 
 
+@step("Print contexts")
+def print_window_handles() -> None:
+    contexts = driver().contexts
+    report().log("Contexts: [{}]".format(", ".join(contexts)))
+
+
 @step("Switch to window <window_param>")
 def switch_to_window(window_param: str) -> None:
     if window_param.isdigit():
@@ -330,6 +337,19 @@ def switch_to_frame(frame_name_or_index_param: str) -> None:
 def switch_to_frame_by_selector(by: str, by_value: str) -> None:
     frame = find_element(by, by_value)
     driver().switch_to.frame(frame)
+
+
+@step("Switch to context <context_regexp>")
+def switch_to_context(context_regexp_param) -> None:
+    context_regexp = substitute(context_regexp_param)
+    target_context = None
+    for c in driver().contexts:
+        if re.match(context_regexp, c):
+            target_context = c
+            break
+    if target_context is not None:
+        report().log(f"Switching to context '{target_context}'")
+        driver().switch_to.context(target_context)
 
 
 @step("Dismiss alert")
@@ -1026,7 +1046,7 @@ def print_message(message_param: str) -> None:
 # Context methods -------------------------------------------
 
 
-def driver() -> Remote:
+def driver() -> Remote | AppiumRemote:
     app_ctx: AppContext = data_store.spec[app_context_key]
     return app_ctx.driver
 

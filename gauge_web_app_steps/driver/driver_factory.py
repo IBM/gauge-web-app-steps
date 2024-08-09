@@ -321,6 +321,8 @@ class SaucelabsDriverFactory(DriverFactory):
             app_activity = config.get_app_activity()
             if app_activity:
                 capabilities['appium:appActivity'] = app_activity
+            if config.is_auto_grant_permissions():
+                capabilities['autoGrantPermissions'] = True
         else:
             capabilities['browserName'] = browser.value
         if operating_system == OperatingSystem.ANDROID:
