@@ -286,7 +286,7 @@ def print_window_handles() -> None:
 
 
 @step("Print contexts")
-def print_window_handles() -> None:
+def print_contexts() -> None:
     contexts = driver().contexts
     report().log("Contexts: [{}]".format(", ".join(contexts)))
 
