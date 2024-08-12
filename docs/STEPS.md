@@ -20,10 +20,12 @@ The following Gauge steps are implemented in this module:
   - [Register authentication \<user>: \<password> for \<regexp>](#register-authentication-user-password-for-regexp)
   - [Remove authentication for \<regexp>](#remove-authentication-for-regexp)
   - [Print window handles](#print-window-handles)
+  - [Print contexts](#print-contexts)
   - [Switch to window \<window_param>](#switch-to-window-window_param)
   - [Switch to default content](#switch-to-default-content)
   - [Switch to frame \<frame_param>](#switch-to-frame-frame_param)
   - [Switch to frame \<by> = \<by_value>](#switch-to-frame-by--by_value)
+  - [Switch to context \<regexp>](#switch-to-context-regexp)
   - [Dismiss alert](#dismiss-alert)
   - [Accept alert](#accept-alert)
   - [Answer in prompt \<answer>](#answer-in-prompt-answer)
@@ -114,9 +116,9 @@ Waits for the specified time in seconds. This can be used for debugging purposes
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |       ✔        |     ✔      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ✔        |     ✔      |       ✔        |     ✔      |
 
 ## Wait for window \<secs> and save handle as \<placeholder>
 
@@ -131,9 +133,9 @@ This is helpful in a scenario where the user wants to save the current window ha
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |       ✔        |     ✔      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ✔        |     ✔      |       ?        |     ?      |
 
 ## Fullscreen
 
@@ -143,9 +145,9 @@ Go fullscreen with the currently open test browser window.
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |                |            |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |                |            |       ?        |     ?      |
 
 ## Maximize
 
@@ -155,9 +157,9 @@ Maximize the currently open test browser window.
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |                |            |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |                |            |       ?        |     ?      |
 
 ## Window size \<width>x\<height>
 
@@ -169,9 +171,9 @@ Sets the page size of the currently open test browser window to the specified di
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |                |            |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |                |            |       ?        |     ?      |
 
 ## Close current window
 
@@ -181,9 +183,9 @@ Closes the currently open window and switches to the last opened window.
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |       ✔        |     x      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ✔        |     x      |       ?        |     ?      |
 
 ## Close other windows
 
@@ -193,9 +195,9 @@ Closes all other windows but the current one.
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |                |            |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |                |            |       ?        |     ?      |
 
 ## Refresh
 
@@ -205,9 +207,9 @@ Refresh the currently open page, as if you click the ↻ "refresh" button.
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |       ✔        |     ✔      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ✔        |     ✔      |       ?        |     ?      |
 
 ## Back
 
@@ -217,9 +219,9 @@ Navigate back one page in the browsing history, as if you click the ← "back" b
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |       ✔        |     ✔      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ✔        |     ✔      |       ?        |     ?      |
 
 ## Forward
 
@@ -229,9 +231,9 @@ Navigate forward one page in the browsing history, as if you click the → "forw
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |       ✔        |     ✔      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ✔        |     ✔      |       ?        |     ?      |
 
 ## Open \<page>
 
@@ -243,9 +245,9 @@ Opens the specified url. Make sure to specify the whole URL including, f.i., any
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |       ✔        |     ✔      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ✔        |     ✔      |       ?        |     ?      |
 
 ## Open \<page> for \<user>: \<password>
 
@@ -260,9 +262,9 @@ You do not need to worry about url encoding of special password characters, the 
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |       ?        |     ?      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ?        |     ?      |       ?        |     ?      |
 
 ## Register authentication \<user>: \<password> for \<regexp>
 
@@ -274,9 +276,9 @@ That means that subsequent steps like `* Open "https://the-internet.herokuapp.co
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|Chrome |       ?        |     x      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|Chrome |       ?        |     x      |       ?        |     ?      |
 
 ## Remove authentication for \<regexp>
 
@@ -284,9 +286,9 @@ Support
 
 If any credentials have been registered for the given URL regexp, then remove it. subsequent `Open` -steps will not use the credentials anymore.
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |       ✔        |     ✔      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ✔        |     ✔      |       ?        |     ?      |
 
 ## Print window handles
 
@@ -296,9 +298,21 @@ Prints all window handles into the console and the report.
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |       ✔        |     ✔      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ✔        |     ✔      |       ?        |     ?      |
+
+## Print contexts
+
+> \* Print contexts
+
+Prints all app/web contexts into the console and the report.
+
+Support
+
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   x   |       x        |     x      |       ✔        |     ✔      |
 
 ## Switch to window \<window_param>
 
@@ -311,9 +325,9 @@ The latest opened window has the highest index. Index starts with 0.
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |       ✔        |     x      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ✔        |     x      |       ?        |     ?      |
 
 ## Switch to default content
 
@@ -323,9 +337,9 @@ Switch the Selenium driver mode back (to the main frame of the page). Element se
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |       ✔        |     ✔      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ✔        |     ✔      |       ?        |     ?      |
 
 ## Switch to frame \<frame_param>
 
@@ -337,9 +351,9 @@ Switch to the specified frame/iFrame by "name"-tag or index. When using an index
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |       ✔        |     ✔      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ✔        |     ✔      |       ?        |     ?      |
 
 ## Switch to frame \<by> = \<by_value>
 
@@ -359,9 +373,24 @@ Switch to the specified iFrame by specified selector. Element selections in Sele
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |       ✔        |     ✔      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ✔        |     ✔      |       ?        |     ?      |
+
+## Switch to context \<regexp>
+
+> \* Switch to context ".*NATIVE.*"
+
+> \* Switch to context ".*WEB.*"
+
+Switch to the specified context by specified regular expression. Switching between contexts can be needed in hybrid web/native apps.
+
+Support
+
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   x   |       x        |     x      |       ✔        |     ✔      |
+
 
 ## Dismiss alert
 
@@ -371,9 +400,9 @@ Dismiss the alert of the current page.
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |       ✔        |            |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ✔        |            |       ?        |     ?      |
 
 ## Accept alert
 
@@ -383,9 +412,9 @@ Accept the alert of the current page.
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |       ✔        |            |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ✔        |            |       ?        |     ?      |
 
 ## Answer in prompt \<answer>
 
@@ -395,9 +424,9 @@ Enters the given text into the Javascript prompt and accepts it.
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |       ✔        |            |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ✔        |            |       ?        |     ?      |
 
 ## Take a screenshot
 
@@ -428,9 +457,9 @@ Taken the example step with the example properties above, it would produce a fil
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |       ✔        |     ✔      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ✔        |     ✔      |       ?        |     ?      |
 
 ## Take a screenshot of \<by> = \<by_value> \<file>
 
@@ -454,9 +483,9 @@ See the step above for a comprehensive explanation. The only difference here is,
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |       ✔        |     ✔      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ✔        |     ✔      |       ?        |     ?      |
 
 ## Take screenshots of whole page \<file>
 
@@ -469,6 +498,8 @@ See step "Take a screenshot" for a basic description of configurations around ta
 ## Click \<by> = \<by_value>
 
 > \* Click "id" = "element-identifier"
+
+> \* Click "accessibility id" = "element-identifier"
 
 > \* Click "xpath" = "//div/a"
 
@@ -489,9 +520,9 @@ See https://www.w3schools.com/xml/xpath_syntax.asp for a handy XPath reference.
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |       ✔        |     ✔      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ✔        |     ✔      |       ✔        |     ✔      |
 
 ## Click \<by> = \<by_value> \<key_down>
 
@@ -503,9 +534,9 @@ Like the above Step, but during the click the specified key is held down. See "S
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |                |            |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |                |            |       ?        |     ?      |
 
 ## Check \<by> = \<by_value>
 
@@ -529,9 +560,9 @@ Check an element, if not yet checked.
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |       ✔        |     ✔      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ✔        |     ✔      |       ?        |     ?      |
 
 ## Uncheck \<by> = \<by_value>
 
@@ -539,9 +570,9 @@ Opposite of the Check step with same selectors. It will remove the checked flag 
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |       ✔        |     ✔      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ✔        |     ✔      |       ?        |     ?      |
 
 ## Select \<by> = \<by_value> option \<select_key> = \<select_value>
 
@@ -555,9 +586,9 @@ Selects an option from a select element. The available selectors for \<by> are t
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |       ✔        |     ✔      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ✔        |     ✔      |       ?        |     ?      |
 
 ## Double click \<by> = \<by_value>
 
@@ -581,9 +612,9 @@ Double click on the specified element of the open page.
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |       ✔        |     ✔      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ✔        |     ✔      |       ?        |     ?      |
 
 ## Type \<string>
 
@@ -595,9 +626,9 @@ Types the specified text. No element is clicked on before. This can be used, f.i
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |       ✔        |     ✔      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ✔        |     ✔      |       ✔        |     ✔      |
 
 ## Type \<key_down> \<string>
 
@@ -609,13 +640,15 @@ Like the above step, but with the specified key held down during typing. See [Se
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |       ✔        |     x      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ✔        |     x      |       ?        |     ?      |
 
 ## Type \<by> = \<by_value> \<string>
 
 > \* Type "id" = "search-field" "amalfi lemon"
+
+> \* Type "accessibility id" = "search-field" "amalfi lemon"
 
 > \* Type "id" = "search-field" "\${type}"
 
@@ -637,9 +670,9 @@ Type the specified text into the specified element. As for the "Click" step, mul
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |       ✔        |     ✔      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ✔        |     ✔      |       ✔        |     ✔      |
 
 ## Type \<by> = \<by_value> \<key_down> \<string>
 
@@ -651,9 +684,9 @@ Like the above step, but holds the specified key down during typing. See [Send k
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |       ✔        |     x      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ✔        |     x      |       ?        |     ?      |
 
 ## Send keys \<keys>
 
@@ -664,9 +697,9 @@ Valid keys are: ['NULL', 'CANCEL', 'HELP', 'BACKSPACE', 'BACK_SPACE', 'TAB', 'CL
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |       ✔        |            |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ✔        |            |       ?        |     ?      |
 
 ## Send keys \<key_down> \<keys>
 
@@ -678,9 +711,9 @@ Like the above step, but holds the specified key down during typing. See [Send K
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |                |            |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |                |            |       ?        |     ?      |
 
 
 ## Send \<by> = \<by_value> keys \<keys>
@@ -705,9 +738,9 @@ Send keys to the specified element. See [Send keys \<keys>](#send-keys-keys) for
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |       ✔        |            |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ✔        |            |       ?        |     ?      |
 
 ## Send \<by> = \<by_value> keys \<key_down> \<keys>
 
@@ -719,9 +752,9 @@ Like the step above, but holds down the specified key during sending the other k
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |                |            |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |                |            |       ?        |     ?      |
 
 ## Clear \<by> = \<by_value>
 
@@ -731,9 +764,9 @@ Clears any input text from the specified element.
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |       ✔        |     ✔      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ✔        |     ✔      |       ?        |     ?      |
 
 ## Mouse down \<by> = \<by_value>
 
@@ -757,9 +790,9 @@ Mouse down on a selected element.
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |       ✔        |     ✔      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ✔        |     ✔      |       ?        |     ?      |
 
 ## Mouse up \<by> = \<by_value>
 
@@ -783,9 +816,9 @@ Mouse up or release from a selected element.
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |       ✔        |     ✔      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ✔        |     ✔      |       ?        |     ?      |
 
 ## Move to \<by> = \<by_value>
 
@@ -812,9 +845,9 @@ Some elements also need the mouse to hover over them to become fully visible, in
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |       ✔        |     ✔      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ✔        |     ✔      |       ?        |     ?      |
 
 ## Move to and center \<by> = \<by_value>
 
@@ -839,9 +872,9 @@ so that it is less likely, that header elements overlap the targeted element.
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |       ✔        |     ✔      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ✔        |     ✔      |       ?        |     ?      |
 
 ## Move out
 
@@ -849,9 +882,9 @@ Opposite of the [Move to \<by> = \<by_value>](#move-to-by--by_value) step. It wi
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |       ✔        |     ✔      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ✔        |     ✔      |       ?        |     ?      |
 
 ## Hover over \<by> = \<by_value>
 
@@ -875,9 +908,9 @@ Hover over the specified element.
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |       ?        |     ?      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ?        |     ?      |       ?        |     ?      |
 
 ## Show message in an error case \<error_message>
 
@@ -885,9 +918,9 @@ Support
 
 In case of a failed assert use the predefined error message, instead of the default.
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |       ✔        |     ✔      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ✔        |     ✔      |       ?        |     ?      |
 
 ## Scroll \<by> = \<by_value> into view
 
@@ -911,9 +944,9 @@ Scroll an element into the viewport.
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |      ✔         |     ✔      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |      ✔         |     ✔      |       ?        |     ?      |
 
 ## Drag and drop \<by_source> = \<by\_value_source> into \<by_dest> = \<by\_value_dest>
 
@@ -937,9 +970,9 @@ Drag and drop an element.
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |      ?         |     ?      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |      ?         |     ?      |       ?        |     ?      |
 
 ## Upload file = \<file\_path> into \<by> = \<by_value>
 
@@ -959,9 +992,9 @@ Upload a file over a form.
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |      ?         |     ?      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |      ?         |     ?      |       ?        |     ?      |
 
 ## Execute \<script>
 
@@ -971,9 +1004,9 @@ Execute a snippet of self written JavaScript.
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |       ✔        |     ✔      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ✔        |     ✔      |       ?        |     ?      |
 
 ## Execute \<script> and save result in \<placeholder>
 
@@ -984,9 +1017,9 @@ The result of the execution will be saved in a placeholder and can be used in la
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |       ✔        |     ✔      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ✔        |     ✔      |       ?        |     ?      |
 
 ## Execute \<script> with \<by> = \<by_value> as \<elem>
 
@@ -1011,9 +1044,9 @@ The element will be given the provided name, so it can be used in the JavaScript
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |       ✔        |     ✔      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ✔        |     ✔      |       ?        |     ?      |
 
 ## Execute \<script> with \<by> = \<by_value> as \<elem> and save result in \<placeholder>
 
@@ -1040,9 +1073,9 @@ The result of the execution will be saved in a placeholder and can be used in la
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |       ✔        |     ✔      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ✔        |     ✔      |       ?        |     ?      |
 
 ## Execute async \<script>
 
@@ -1052,9 +1085,9 @@ Execute a snippet of self written JavaScript asynchronously.
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |       ✔        |     ✔      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ✔        |     ✔      |       ?        |     ?      |
 
 ## Execute async \<script> and save result in \<placeholder> with callback \<callback>
 
@@ -1067,9 +1100,9 @@ The script has to invoke a callback with a freely selectable name in order to re
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |       ✔        |     ✔      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ✔        |     ✔      |       ?        |     ?      |
 
 ## Execute async \<script> with \<by> = \<by_value> as \<elem>
 
@@ -1094,9 +1127,9 @@ The element will be given the provided name, so it can be used in the JavaScript
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |       ✔        |     ✔      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ✔        |     ✔      |       ?        |     ?      |
 
 ## Execute async \<script> with \<by> = \<by_value> as \<elem> and save result in \<placeholder> with callback \<callback>
 
@@ -1123,9 +1156,9 @@ The script has to invoke a callback with a freely selectable name in order to re
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |       ✔        |     ✔      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ✔        |     ✔      |       ?        |     ?      |
 
 ## Save placeholder \<placeholder> = \<value>
 
@@ -1137,9 +1170,9 @@ Saves the placeholder name/value pair into the scenario data store. This way, it
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |        ✔       |      ✔     |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |        ✔       |      ✔     |       ?        |     ?      |
 
 ## Save placeholder \<placeholder> from \<by> = \<by_value>
 
@@ -1163,9 +1196,9 @@ Saves the placeholder with the defined key into the scenario data store. The val
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |        ✔       |      ✔     |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |        ✔       |      ✔     |       ?        |     ?      |
 
 ## Save placeholder \<placeholder> from attribute \<attribute> of \<by> = \<by_value>
 
@@ -1189,9 +1222,9 @@ Saves the placeholder with the defined key into the scenario data store. The val
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |        ✔       |      ✔     |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |        ✔       |      ✔     |       ?        |     ?      |
 
 ## Save window handles as \<placeholder>
 
@@ -1201,9 +1234,9 @@ Saves all current window handles in a placeholder with the given name "handles".
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |        ✔       |      ✔     |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |        ✔       |      ✔     |       ?        |     ?      |
 
 ## Save window title as \<placeholder>
 
@@ -1213,9 +1246,9 @@ Saves the title of the current window in a placeholder with the given name "titl
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |        ✔       |      ✔     |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |        ✔       |      ✔     |       ?        |     ?      |
 
 ## Set timeout \<seconds>
 
@@ -1234,9 +1267,9 @@ More steps will be refactored soon to support this configurable timeout.
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |        ✔       |      ✔     |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |        ✔       |      ✔     |       ?        |     ?      |
 
 ## Reset timeout
 
@@ -1246,9 +1279,9 @@ Resets the explicit timeout set by [Set timeout \<seconds>](#set-timeout-seconds
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |        ✔       |      ✔     |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |        ✔       |      ✔     |       ?        |     ?      |
 
 ## Assert window handles is \<windows_num>
 
@@ -1258,9 +1291,9 @@ Assert, that the current number of window handles equals the specified parameter
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |                |            |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |                |            |       ?        |     ?      |
 
 ## Assert title equals \<url>
 
@@ -1272,9 +1305,9 @@ Assert that the title of the web page equals exactly "The Internet".
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |       ✔        |     ✔      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ✔        |     ✔      |       ?        |     ?      |
 
 ## Assert dialog text equals \<url>
 
@@ -1286,9 +1319,9 @@ Assert that the text of a Javascript dialog equals exactly "I am a dialog".
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |       ✔        |     ✔      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ✔        |     ✔      |       ?        |     ?      |
 
 ## Assert url equals \<url>
 
@@ -1300,9 +1333,9 @@ Assert that the current url equals exactly "http://localhost/home/".
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |       ✔        |     ✔      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ✔        |     ✔      |       ?        |     ?      |
 
 ## Assert url starts with \<url>
 
@@ -1314,9 +1347,9 @@ Assert that the current url starts with the specified text.
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |       ✔        |     ✔      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ✔        |     ✔      |       ?        |     ?      |
 
 ## Assert url ends with \<url>
 
@@ -1328,9 +1361,9 @@ Assert that the current url ends with the specified text. This can be useful to 
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |       ✔        |     ✔      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ✔        |     ✔      |       ?        |     ?      |
 
 ## Assert url contains \<url>
 
@@ -1342,13 +1375,15 @@ Assert that the current url contains the specified text. The text can occur anyw
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |       ✔        |     ✔      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ✔        |     ✔      |       ?        |     ?      |
 
 ## Assert \<by> = \<by_value> exists
 
 > \* Assert "id" = "elem-id" exists
+
+> \* Assert "accessibility id" = "elem-id" exists
 
 > \* Assert "xpath" = "//div/a" exists
 
@@ -1368,9 +1403,9 @@ Assert that the specified element exists on screen.
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |       ✔        |     ✔      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ✔        |     ✔      |       ✔        |     ✔      |
 
 ## Assert \<by> = \<by_value> does not exist
 
@@ -1394,9 +1429,9 @@ Assert that the specified element does not exist or is not displayed on screen.
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |       ✔        |     ✔      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ✔        |     ✔      |       ?        |     ?      |
 
 ## Assert \<by> = \<by_value> is enabled
 
@@ -1420,9 +1455,9 @@ Assert that the specified element is enabled. This is useful for input elements 
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |       ✔        |     ✔      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ✔        |     ✔      |       ?        |     ?      |
 
 ## Assert \<by> = \<by_value> is disabled
 
@@ -1446,9 +1481,9 @@ Assert that the specified element is disabled. This is useful for input elements
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |       ✔        |     ✔      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ✔        |     ✔      |       ?        |     ?      |
 
 ## Assert \<by> = \<by_value> is selected
 
@@ -1472,9 +1507,9 @@ Assert that the specified element is selected. This is useful for input elements
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |       ✔        |     ✔      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ✔        |     ✔      |       ?        |     ?      |
 
 ## Assert \<by> = \<by_value> has selected value \<value>
 
@@ -1498,9 +1533,9 @@ Assert that the specified select element has the value selected.
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |       ✔        |     ✔      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ✔        |     ✔      |       ?        |     ?      |
 
 ## Assert \<by> = \<by_value> is not selected
 
@@ -1524,9 +1559,9 @@ Assert that the specified element is not selected. This is useful for input elem
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |       ✔        |     ✔      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ✔        |     ✔      |       ?        |     ?      |
 
 ## Assert \<by> = \<by_value> equals \<string>
 
@@ -1552,9 +1587,9 @@ Assert that the specified element has the exact text value "Lorem Ipsum".
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |       ✔        |     ✔      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ✔        |     ✔      |       ?        |     ?      |
 
 ## Assert \<by> = \<by_value> does not equal \<string>
 
@@ -1582,13 +1617,15 @@ Assert that the specified element has a text value that matches the regular expr
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |       ✔        |     ✔      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ✔        |     ✔      |       ?        |     ?      |
 
 ## Assert \<by> = \<by_value> contains \<string>
 
 > \* Assert "id" = "elem-id" contains "Ipsum"
+
+> \* Assert "accessibility id" = "elem-id" contains "Ipsum"
 
 > \* Assert "xpath" = "//div/p" contains "Ipsum"
 
@@ -1608,9 +1645,9 @@ Assert that the specified element contains the text value "Ipsum".
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |       ✔        |     ✔      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ✔        |     ✔      |       ✔        |     ✔      |
 
 ## Assert \<by> = \<by_value> does not contain \<string>
 
@@ -1634,9 +1671,9 @@ Assert that the specified element does not contain the text value "Shmipsum".
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |       ✔        |     ✔      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ✔        |     ✔      |       ?        |     ?      |
 
 ## Assert \<by> = \<by_value> css \<css_property_name> is \<css_expected_value>
 
@@ -1661,9 +1698,9 @@ ATTENTION: the browser might not return the same value, that is specified in the
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |       ✔        |     ✔      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ✔        |     ✔      |       ?        |     ?      |
 
 ## Assert \<by> = \<by_value> is focused
 
@@ -1687,9 +1724,9 @@ Assert that the specified element is focused. This is done by comparing the spec
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |      ?         |     ?      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |      ?         |     ?      |       ?        |     ?      |
 
 
 ## Assert \<by> = \<by_value> attribute \<attribute> exists
@@ -1714,9 +1751,9 @@ Assert that the specified element has an attribute with the given name.
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |      ?         |     ?      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |      ?         |     ?      |       ?        |     ?      |
 
 
 ## Assert \<by> = \<by_value> attribute \<attribute> contains \<value>
@@ -1741,9 +1778,9 @@ Assert that the specified element has an attribute with the given name, that con
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |      ?         |     ?      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |      ?         |     ?      |       ?        |     ?      |
 
 
 ## Assert \<by> = \<by_value> attribute \<attribute> equals \<value>
@@ -1768,9 +1805,9 @@ Assert that the specified element has an attribute with the given name, that equ
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |      ?         |     ?      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |      ?         |     ?      |       ?        |     ?      |
 
 
 ## Assert \<by> = \<by_value> attribute \<attribute> does not contain \<value>
@@ -1795,9 +1832,9 @@ Assert that the specified element either has no attribute with the given name, o
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |      ?         |     ?      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |      ?         |     ?      |       ?        |     ?      |
 
 
 ## Assert \<by> = \<by_value> screenshot resembles \<file> with SSIM more than \<threshold>
@@ -1830,9 +1867,9 @@ For a more comprehensive explanation of SSIM, see
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |       ✔        |            |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ✔        |            |       ?        |     ?      |
 
 ## Assert page screenshots resemble \<file> with SSIM more than \<threshold>
 
@@ -1843,9 +1880,9 @@ In principle, this works just as the step above, but for the whole page and with
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |                |            |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |                |            |       ?        |     ?      |
 
 ## Assert page screenshots resemble \<file> with SSIM more than \<threshold> for \<pages>
 
@@ -1857,9 +1894,9 @@ This step can be used for front-end frameworks which do not support scrolling by
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |                |            |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |                |            |       ?        |     ?      |
 
 ## Fail \<message>
 
@@ -1870,9 +1907,9 @@ The intention is to provide an early exit, especially for scenarios, that are 'i
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |       ✔        |     ✔      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ✔        |     ✔      |       ?        |     ?      |
 
 ## Print message \<message>
 
@@ -1882,6 +1919,6 @@ This step adds the specified message in the report and prints it in the terminal
 
 Support
 
-|Desktop|Android (Chrome)|iOS (Safari)|
-|:-----:|:--------------:|:----------:|
-|   ✔   |       ✔        |     ✔      |
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ✔        |     ✔      |       ?        |     ?      |

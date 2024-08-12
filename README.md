@@ -9,6 +9,7 @@
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/IBM/gauge-web-app-steps/badge)](https://securityscorecards.dev/viewer/?uri=github.com/IBM/gauge-web-app-steps)
 
 A Python module, that provides re-usable steps for testing web applications with the [Gauge](https://gauge.org/) framework.
+Development on native app testing has only just started.
 
 ## Description
 
