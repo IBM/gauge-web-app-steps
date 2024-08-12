@@ -15,7 +15,7 @@ from uuid import uuid4
 from itertools import filterfalse
 from typing import Tuple
 from getgauge.python import data_store, step, before_spec, after_spec, screenshot, before_suite, after_suite, before_step, ExecutionContext
-from selenium.common.exceptions import JavascriptException, WebDriverException
+from selenium.common.exceptions import JavascriptException, TimeoutException, WebDriverException
 from selenium.webdriver import Remote
 from appium.webdriver import Remote as AppiumRemote
 from selenium.webdriver.common.action_chains import ActionChains
@@ -142,7 +142,6 @@ def wait_for_window(secs_param: str, placeholder_name_param: str) -> None:
     secs = substitute(secs_param)
     placeholder_name = substitute(placeholder_name_param)
     assert placeholder_name in data_store.scenario.keys(), "Expected saved window handles. Did you use '* Save window handles'?"
-    
     time.sleep(float(secs))
     wh_now = driver().window_handles
     #previous saved window handles
@@ -230,16 +229,7 @@ def open_page(page_param: str) -> None:
             break
     if not uses_basic_auth:
         webdriver.get(page)
-    for _ in range(max_attempts):
-        # Browsers sometimes open the page in the middle, when visited before
-        time.sleep(0.3)
-        if "#" not in page:
-            try:
-                driver().execute_script("window.scrollTo(0, 0);")
-                break
-            except JavascriptException:
-                # In case of a page redirect the window object can become invalid.
-                pass
+    _init_opened_page(page)
 
 
 @step("Open <page> for <user>: <password>")
@@ -254,10 +244,7 @@ def open_page_for_user_and_password(page_param: str, user_param: str, password_p
     password = urllib.parse.quote_plus(substitute(password_param))
     url = "{}{}:{}@{}".format(prefix, user, password, page)
     driver().get(url)
-    # Chrome sometimes opens the page in the middle, when visited before
-    time.sleep(0.3)
-    if "#" not in page:
-        driver().execute_script("window.scrollTo(0, 0);")
+    _init_opened_page(page)
 
 
 @step("Register authentication <user>: <password> for <regexp>")
@@ -326,7 +313,7 @@ def switch_to_frame(frame_name_or_index_param: str) -> None:
         frames = find_elements("tag name", "frame")
         if len(frames) == 0:
             frames = find_elements("tag name", "iframe")
-        assert len(frames)  > 0, "no frames or iframes found in current page."
+        assert len(frames) > 0, "no frames or iframes found in current page."
         assert len(frames) >= index, f"frame index {index} is higher than number of frames in current page: {len(frames)}"
         driver().switch_to.frame(frames[index])
     else:
@@ -454,6 +441,7 @@ def click_element(by: str, by_value: str) -> None:
 @step("Double click <by> = <by_value>")
 def double_click_element(by: str, by_value: str) -> None:
     element = find_element(by, by_value)
+    wait_until(EC.element_to_be_clickable(element))
     ActionChains(driver()).double_click(element).perform()
 
 
@@ -809,33 +797,37 @@ def assert_dialog_text(expected_text: str) -> None:
 @step("Assert url equals <url>")
 def assert_url(expected_url_param: str) -> None:
     expected_url = substitute(expected_url_param)
-    current_url = driver().current_url
-    assert expected_url == current_url,\
-        _err_msg(f"expected url: {expected_url}, actual {current_url}")
+    wait_until(
+        lambda driver: driver.current_url == expected_url,
+        _err_msg(f"url does not equal {expected_url}")
+    )
 
 
 @step("Assert url starts with <url>")
 def assert_url_starts_with(expected_url_param: str) -> None:
     expected_url = substitute(expected_url_param)
-    current_url = driver().current_url
-    assert current_url.startswith(expected_url),\
-        _err_msg(f"url {current_url} does not start with {expected_url}")
+    wait_until(
+        lambda driver: driver.current_url.startswith(expected_url),
+        _err_msg(f"url does not start with {expected_url}")
+    )
 
 
 @step("Assert url ends with <url>")
 def assert_url_ends_with(expected_url_param: str) -> None:
     expected_url = substitute(expected_url_param)
-    current_url = driver().current_url
-    assert current_url.endswith(expected_url),\
-        _err_msg(f"url {current_url} does not end with {expected_url}")
+    wait_until(
+        lambda driver: driver.current_url.endswith(expected_url),
+        _err_msg(f"url does not end with {expected_url}")
+    )
 
 
 @step("Assert url contains <url>")
 def assert_url_contains(expected_url_param: str) -> None:
     expected_url = substitute(expected_url_param)
-    current_url = driver().current_url
-    assert expected_url in current_url,\
-        _err_msg(f"url {current_url} does not contain {expected_url}")
+    wait_until(
+        lambda driver: expected_url in driver.current_url,
+        _err_msg(f"url does not contain {expected_url}")
+    )
 
 
 # see also before_step_hook
@@ -1060,6 +1052,19 @@ def report() -> Report:
 
 
 # Private methods -------------------------------------------
+
+def _init_opened_page(page):
+    for _ in range(max_attempts):
+        # Browsers sometimes open the page in the middle, when visited before
+        time.sleep(0.3)
+        if "#" not in page:
+            try:
+                driver().execute_script("window.scrollTo(0, 0);")
+                break
+            except JavascriptException:
+                # In case of a page redirect the window object can become invalid.
+                pass
+
 
 def _device_pixel_ratio() -> int:
     return int(driver().execute_script("return window.devicePixelRatio"))
