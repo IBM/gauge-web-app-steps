@@ -310,7 +310,8 @@ class SaucelabsDriverFactory(DriverFactory):
             'sauce:options': self._get_sauce_options()
         }
         options = self._create_browser_options()
-        if config.is_app_test():
+        app_test = config.is_app_test()
+        if app_test:
             app_location = config.get_app_location()
             if app_location:
                 capabilities['appium:app'] = app_location
@@ -324,27 +325,35 @@ class SaucelabsDriverFactory(DriverFactory):
         else:
             browser = config.get_browser()
             capabilities['browserName'] = browser.value
+        auto_grant_permissions = config.is_auto_grant_permissions() and app_test
+        custom_args = config.get_custom_args()
         if operating_system == OperatingSystem.ANDROID:
             capabilities['appium:automationName'] = 'UiAutomator2'
-            if config.is_auto_grant_permissions():
-                capabilities['autoGrantPermissions'] = True
             capabilities["goog:chromeOptions"] = {
                 'w3c': True,
                 'extensions': []
             }
+            if custom_args:
+                capabilities['goog:chromeOptions']['args'] = custom_args
+            if auto_grant_permissions:
+                capabilities['appium:autoGrantPermissions'] = True
         elif operating_system == OperatingSystem.IOS:
-            if config.is_auto_grant_permissions():
-                capabilities['autoAcceptAlerts'] = True
             capabilities["appium:automationName"] = "XCUITest"
             capabilities["appium:includeSafariInWebviews"] = True
             capabilities["safariAllowPopups"] = True
+            if custom_args:
+                # not sure, if this works with safari. Documentation is scarce
+                capabilities['safariOptions'] = {}
+                capabilities['safariOptions']['args'] = custom_args
+            if auto_grant_permissions:
+                capabilities['appium:autoAcceptAlerts'] = True
         capabilities_options = options.load_capabilities(capabilities)
-        if app_location:
+        if app_test:
             driver = NativeRemote(saucelabs_config.get_executor(), options=capabilities_options, keep_alive=True)
         else:
             driver = MobileRemote(saucelabs_config.get_executor(), options=capabilities_options)
-            driver.implicitly_wait(config.get_implicit_timeout())
-            driver.set_page_load_timeout(config.get_page_load_timeout())
+        driver.set_page_load_timeout(config.get_page_load_timeout())
+        driver.implicitly_wait(config.get_implicit_timeout())
         return driver
 
     def _get_platform_name(self, operating_system: OperatingSystem, operating_system_version: str) -> str:
