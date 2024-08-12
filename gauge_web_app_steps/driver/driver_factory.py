@@ -414,9 +414,10 @@ class SaucelabsDriverFactory(DriverFactory):
         sauce_options = {
             "username": saucelabs_config.get_sauce_user_name(),
             "accessKey": saucelabs_config.get_sauce_access_key(),
-            "resigningEnabled": True,
             "networkCapture": True,
         }
+        if config.is_app_test():
+            sauce_options["resigningEnabled"] = True
         if saucelabs_config.is_extended_debugging_enabled():
             sauce_options["extendedDebugging"] = True
         operating_system = config.get_operating_system()
