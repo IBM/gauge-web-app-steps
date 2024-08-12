@@ -320,19 +320,21 @@ class SaucelabsDriverFactory(DriverFactory):
             app_activity = config.get_app_activity()
             if app_activity:
                 capabilities['appium:appActivity'] = app_activity
-            if config.is_auto_grant_permissions():
-                capabilities['autoGrantPermissions'] = True
             capabilities['enableMultiWindows'] = True
         else:
             browser = config.get_browser()
             capabilities['browserName'] = browser.value
         if operating_system == OperatingSystem.ANDROID:
             capabilities['appium:automationName'] = 'UiAutomator2'
+            if config.is_auto_grant_permissions():
+                capabilities['autoGrantPermissions'] = True
             capabilities["goog:chromeOptions"] = {
                 'w3c': True,
                 'extensions': []
             }
         elif operating_system == OperatingSystem.IOS:
+            if config.is_auto_grant_permissions():
+                capabilities['autoAcceptAlerts'] = True
             capabilities["appium:automationName"] = "XCUITest"
             capabilities["appium:includeSafariInWebviews"] = True
             capabilities["safariAllowPopups"] = True
