@@ -7,7 +7,7 @@ from typing import Any, Callable, List, TypeVar
 from getgauge.python import data_store
 from selenium.webdriver import Remote
 from selenium.webdriver.common.by import By
-from selenium.common.exceptions import WebDriverException
+from selenium.common.exceptions import TimeoutException, WebDriverException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.remote.webelement import WebElement
 
@@ -34,8 +34,14 @@ def find_elements(by_param: str, by_value_param: str) -> List[WebElement]:
     return wait_until(lambda driver: driver.find_elements(*marker))
 
 
-def get_text_from_element(by_param: str, by_value_param: str) -> str:
-    element = find_element(by_param, by_value_param)
+def get_text_from_element(by_param: str, by_value_param: str, return_none=False) -> str | None:
+    try:
+        element = find_element(by_param, by_value_param)
+    except TimeoutException as e:
+        if return_none:
+            return None
+        else:
+            raise e
     if "input" == element.tag_name:
         res = element.get_attribute("value")
         if res is None:
@@ -46,7 +52,7 @@ def get_text_from_element(by_param: str, by_value_param: str) -> str:
     return element.text
 
 
-def find_attribute(by_param: str, by_value_param: str, attribute: str) -> str | bool:
+def find_attribute(by_param: str, by_value_param: str, attribute: str, return_none: False) -> str | bool | None:
     """
     This will return the string value of the attribute.
     Empty attributes will return 'true', never an empty string.
@@ -57,7 +63,13 @@ def find_attribute(by_param: str, by_value_param: str, attribute: str) -> str | 
         element = driver.find_element(*marker)
         value = element.get_dom_attribute(attribute)
         return value if value is not None else False
-    return wait_until(_element_attribute)
+    try:
+        return wait_until(_element_attribute)
+    except TimeoutException as e:
+        if return_none:
+            return None
+        else:
+            raise e
 
 
 def wait_until(condition: Callable[[Remote], T], message: str = "") -> T:
