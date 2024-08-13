@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: MIT
 #
 
-from typing import Any, Callable, List
+from typing import Any, Callable, List, TypeVar
 from getgauge.python import data_store
 from selenium.webdriver import Remote
 from selenium.webdriver.common.by import By
@@ -15,6 +15,9 @@ from .app_context import app_context_key, timeout_key
 from .bymapper import ByMapper
 from .config import common_config as config
 from .substitute import substitute
+
+
+T = TypeVar('T')
 
 
 def find_element(by_param: str, by_value_param: str) -> WebElement:
@@ -57,9 +60,9 @@ def find_attribute(by_param: str, by_value_param: str, attribute: str) -> str | 
     return wait_until(_element_attribute)
 
 
-def wait_until(condition: Callable[[Remote], Any], message: str = "") -> Any:
+def wait_until(condition: Callable[[Remote], T], message: str = "") -> T:
     timeout = data_store.scenario.get(timeout_key, config.get_implicit_timeout())
-    return WebDriverWait(_driver(), timeout=timeout, ignored_exceptions=[WebDriverException])\
+    return WebDriverWait(_driver(), timeout=timeout, poll_frequency=0.25, ignored_exceptions=[WebDriverException])\
         .until(condition, message)
 
 
