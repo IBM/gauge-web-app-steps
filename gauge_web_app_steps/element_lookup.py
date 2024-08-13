@@ -20,29 +20,37 @@ from .substitute import substitute
 T = TypeVar('T')
 
 
-def find_element(by_param: str, by_value_param: str) -> WebElement:
+def find_element(by_param: str, by_value_param: str, immediately=False) -> WebElement | None:
     by = substitute(by_param)
     by_value = substitute(by_value_param)
     marker = get_marker(by, by_value)
-    return wait_until(lambda driver: driver.find_element(*marker))
-
-
-def find_elements(by_param: str, by_value_param: str) -> List[WebElement]:
-    by = substitute(by_param)
-    by_value = substitute(by_value_param)
-    marker = get_marker(by, by_value)
-    return wait_until(lambda driver: driver.find_elements(*marker))
-
-
-def get_text_from_element(by_param: str, by_value_param: str, return_none=False) -> str | None:
-    try:
-        element = find_element(by_param, by_value_param)
-    except TimeoutException as e:
-        if return_none:
+    if immediately:
+        try:
+            return _driver().find_element(*marker)
+        except WebDriverException:
             return None
-        else:
-            raise e
-    if "input" == element.tag_name:
+    else:
+        return wait_until(lambda driver: driver.find_element(*marker))
+
+
+def find_elements(by_param: str, by_value_param: str, immediately=False) -> List[WebElement] | None:
+    by = substitute(by_param)
+    by_value = substitute(by_value_param)
+    marker = get_marker(by, by_value)
+    if immediately:
+        try:
+             _driver().find_elements(*marker)
+        except WebDriverException:
+            return None
+    else:
+        return wait_until(lambda driver: driver.find_elements(*marker))
+
+
+def get_text_from_element(by_param: str, by_value_param: str, immediately=False) -> str | None:
+    element = find_element(by_param, by_value_param, immediately)
+    if element is None:
+        return None
+    elif "input" == element.tag_name:
         res = element.get_attribute("value")
         if res is None:
             # workaround for some mobile devices
@@ -52,24 +60,25 @@ def get_text_from_element(by_param: str, by_value_param: str, return_none=False)
     return element.text
 
 
-def find_attribute(by_param: str, by_value_param: str, attribute: str, return_none: False) -> str | bool | None:
-    """
-    This will return the string value of the attribute.
-    Empty attributes will return 'true', never an empty string.
-    If the attribute does not exist, it will return `False`.
-    """
+def find_attribute(by_param: str, by_value_param: str, attribute: str, immediately=False) -> str | bool | None:
+    marker = get_marker(substitute(by_param), substitute(by_value_param))
     def _element_attribute(driver: Remote) -> Any:
-        marker = get_marker(substitute(by_param), substitute(by_value_param))
+        """
+        This will return the string value of the attribute.
+        Empty attributes will return 'true', never an empty string.
+        If the attribute does not exist, it will return `False`.
+        """
         element = driver.find_element(*marker)
         value = element.get_dom_attribute(attribute)
         return value if value is not None else False
-    try:
-        return wait_until(_element_attribute)
-    except TimeoutException as e:
-        if return_none:
+    if immediately:
+        try:
+            res = _element_attribute(_driver())
+            return res if res else None
+        except WebDriverException:
             return None
-        else:
-            raise e
+    else:
+        return wait_until(_element_attribute)
 
 
 def wait_until(condition: Callable[[Remote], T], message: str = "") -> T:
