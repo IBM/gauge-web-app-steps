@@ -826,6 +826,7 @@ def assert_dialog_text(expected_text_param: str) -> None:
         wait_until(lambda driver: driver.switch_to.alert.text == expected_text)
     except TimeoutException:
         dialog_text = driver().switch_to.alert.text
+        # if no alert is present, a NoAlertPresentException is raised, which is fine
         raise AssertionError(_err_msg(f"expected dialog text: {expected_text}, actual {dialog_text}"))
 
 
@@ -893,48 +894,52 @@ def assert_element_does_not_exist(by_param: str, by_value_param: str) -> None:
 
 @step("Assert <by> = <by_value> is enabled")
 def assert_element_is_enabled(by: str, by_value: str) -> None:
-    element = find_element(by, by_value)
     try:
-        wait_until(lambda driver: element.is_enabled())
+        wait_until(lambda _: find_element(by, by_value).is_enabled())
     except TimeoutException:
         raise AssertionError(_err_msg(f"element {by} = {by_value} is disabled"))
 
 
 @step("Assert <by> = <by_value> is disabled")
 def assert_element_is_disabled(by: str, by_value: str) -> None:
-    element = find_element(by, by_value)
     try:
-        wait_until(lambda driver: not element.is_enabled())
+        wait_until(lambda _: not find_element(by, by_value).is_enabled())
     except TimeoutException:
         raise AssertionError(_err_msg(f"element {by} = {by_value} is enabled"))
 
 
 @step("Assert <by> = <by_value> is selected")
 def assert_element_is_selected(by: str, by_value: str) -> None:
-    element = find_element(by, by_value)
     try:
-        wait_until(lambda driver: element.is_selected())
+        wait_until(lambda _: find_element(by, by_value).is_selected())
     except TimeoutException:
+        element = find_element(by, by_value, immediately=True)
+        if element is None:
+            raise AssertionError(_err_msg(f"no element {by} = {by_value} found"))
         raise AssertionError(_err_msg(f"element {by} = {by_value} is not selected"))
 
 
 @step("Assert <by> = <by_value> has selected value <value>")
 def assert_selected_option(by: str, by_value: str, expected_param: str) -> None:
     expected = substitute(expected_param)
-    element = find_element(by, by_value)
     try:
-        wait_until(lambda driver: Selector.get_selected_value(element) == expected)
+        wait_until(lambda _: Selector.get_selected_value(find_element(by, by_value)) == expected)
     except TimeoutException:
+        element = find_element(by, by_value, immediately=True)
+        if element is None:
+            raise AssertionError(_err_msg(f"no element {by} = {by_value} found"))
         actual = Selector.get_selected_value(element)
         raise AssertionError(_err_msg(f"expected value: {expected}, actual {actual}"))
 
 
 @step("Assert <by> = <by_value> is not selected")
 def assert_element_is_not_selected(by: str, by_value: str) -> None:
-    element = find_element(by, by_value)
     try:
-        wait_until(lambda driver: not element.is_selected())
+        wait_until(lambda _: not find_element(by, by_value).is_selected())
     except TimeoutException:
+        element = find_element(by, by_value, immediately=True)
+        if element is None:
+            raise AssertionError(_err_msg(f"no element {by} = {by_value} found"))
         raise AssertionError(_err_msg(f"element {by} = {by_value} is selected"))
 
 
@@ -944,7 +949,7 @@ def assert_text_equals(by: str, by_value: str, expected_text_param: str) -> None
     try:
         wait_until(lambda driver: get_text_from_element(by, by_value) == expected_text)
     except TimeoutException:
-        text = get_text_from_element(by, by_value, return_none=True)
+        text = get_text_from_element(by, by_value, immediately=True)
         raise AssertionError(_err_msg(f"element {by} = {by_value} expected text {expected_text}, actual {text}"))
 
 
@@ -954,7 +959,7 @@ def assert_text_does_not_equal(by: str, by_value: str, expected_text_param: str)
     try:
         wait_until(lambda driver: get_text_from_element(by, by_value) != expected_text)
     except TimeoutException:
-        text = get_text_from_element(by, by_value, return_none=True)
+        text = get_text_from_element(by, by_value, immediately=True)
         raise AssertionError(_err_msg(f"element {by} = {by_value} has unexpected text {text}"))
 
 
@@ -964,7 +969,7 @@ def assert_regexp_in_element(by: str, by_value: str, regexp_param: str) -> None:
     try:
         wait_until(lambda driver: re.match(regexp, get_text_from_element(by, by_value)))
     except TimeoutException:
-        text = get_text_from_element(by, by_value, return_none=True)
+        text = get_text_from_element(by, by_value, immediately=True)
         raise AssertionError(_err_msg(f"element {by} = {by_value}: regexp {regexp} does not match {text}"))
 
 
@@ -974,7 +979,7 @@ def assert_text_contains(by: str, by_value: str, contains_text_param: str) -> No
     try:
         wait_until(contains_text in get_text_from_element(by, by_value))
     except TimeoutException:
-        text = get_text_from_element(by, by_value, return_none=True)
+        text = get_text_from_element(by, by_value, immediately=True)
         raise AssertionError(_err_msg(f"element {by} = {by_value} expected actual {text} to contain {contains_text}"))
 
 
@@ -984,7 +989,7 @@ def assert_text_does_not_contain(by: str, by_value: str, contains_text_param: st
     try:
         wait_until(lambda driver: contains_text not in get_text_from_element(by, by_value))
     except TimeoutException:
-        text = get_text_from_element(by, by_value, return_none=True)
+        text = get_text_from_element(by, by_value, immediately=True)
         raise AssertionError(_err_msg(f"element {by} = {by_value} expected actual {text} to not contain {contains_text}"))
 
 
@@ -1028,7 +1033,7 @@ def assert_attribute_contains(by: str, by_value: str, attribute_param: str, valu
     try:
         wait_until(attribute_contains_value)
     except TimeoutException:
-        found_value = find_attribute(by, by_value, attribute, return_none=True)
+        found_value = find_attribute(by, by_value, attribute, immediately=True)
         if found_value is None:
             msg = _err_msg(f"element {by} = {by_value} has no attribute {attribute}")
         elif found_value == True:
@@ -1045,7 +1050,7 @@ def assert_attribute_equals(by: str, by_value: str, attribute_param: str, value_
     try:
         wait_until(lambda driver: value == find_attribute(by, by_value, attribute))
     except TimeoutException:
-        found_value = find_attribute(by, by_value, attribute, return_none=True)
+        found_value = find_attribute(by, by_value, attribute, immediately=True)
         if found_value is None:
             msg = _err_msg(f"element {by} = {by_value} has no attribute {attribute}")
         elif found_value == True:
@@ -1065,7 +1070,7 @@ def assert_attribute_does_not_contain(by: str, by_value: str, attribute_param: s
     try:
         wait_until(attribute_does_not_contain_value)
     except TimeoutException:
-        found_value = find_attribute(by, by_value, attribute, return_none=True)
+        found_value = find_attribute(by, by_value, attribute, immediately=True)
         raise AssertionError(_err_msg(f"attribute {attribute} in element {by} = {by_value} contains {value} - found: {found_value}"))
 
 
