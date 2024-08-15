@@ -28,6 +28,7 @@ class TestLocalDriverFactoryIT(unittest.TestCase):
         # arrange
         Path(f"{TEST_OUT_DIR}/logs").mkdir(exist_ok=True)
         with patch.dict(os.environ, {
+            "driver_manager_selenium4": "true",
             "driver_operating_system": OperatingSystem.MACOS.value,
             "driver_browser": browser.value,
             "GAUGE_PROJECT_ROOT": TEST_OUT_DIR,

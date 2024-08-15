@@ -37,13 +37,13 @@ def find_elements(by_param: str, by_value_param: str, immediately=False) -> List
     by = substitute(by_param)
     by_value = substitute(by_value_param)
     marker = get_marker(by, by_value)
-    if immediately:
-        try:
-             _driver().find_elements(*marker)
-        except WebDriverException:
-            return None
-    else:
-        return wait_until(lambda driver: driver.find_elements(*marker))
+    try:
+        if immediately:
+            return _driver().find_elements(*marker)
+        else:
+            return wait_until(lambda driver: driver.find_elements(*marker))
+    except WebDriverException:
+        return []
 
 
 def get_text_from_element(by_param: str, by_value_param: str, immediately=False) -> str | None:
