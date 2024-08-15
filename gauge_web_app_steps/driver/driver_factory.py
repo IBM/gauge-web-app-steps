@@ -350,9 +350,11 @@ class SaucelabsDriverFactory(DriverFactory):
         capabilities_options = options.load_capabilities(capabilities)
         if app_test:
             driver = NativeRemote(saucelabs_config.get_executor(), options=capabilities_options, keep_alive=True)
+            if operating_system == OperatingSystem.IOS:
+                driver.set_page_load_timeout(config.get_page_load_timeout())
         else:
             driver = MobileRemote(saucelabs_config.get_executor(), options=capabilities_options)
-        driver.set_page_load_timeout(config.get_page_load_timeout())
+            driver.set_page_load_timeout(config.get_page_load_timeout())
         driver.implicitly_wait(config.get_implicit_timeout())
         return driver
 
