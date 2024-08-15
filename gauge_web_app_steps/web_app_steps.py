@@ -947,7 +947,7 @@ def assert_element_is_not_selected(by: str, by_value: str) -> None:
 def assert_text_equals(by: str, by_value: str, expected_text_param: str) -> None:
     expected_text = substitute(expected_text_param)
     try:
-        wait_until(lambda driver: get_text_from_element(by, by_value) == expected_text)
+        wait_until(lambda _: get_text_from_element(by, by_value) == expected_text)
     except TimeoutException:
         text = get_text_from_element(by, by_value, immediately=True)
         raise AssertionError(_err_msg(f"element {by} = {by_value} expected text {expected_text}, actual {text}"))
@@ -957,7 +957,7 @@ def assert_text_equals(by: str, by_value: str, expected_text_param: str) -> None
 def assert_text_does_not_equal(by: str, by_value: str, expected_text_param: str) -> None:
     expected_text = substitute(expected_text_param)
     try:
-        wait_until(lambda driver: get_text_from_element(by, by_value) != expected_text)
+        wait_until(lambda _: get_text_from_element(by, by_value) != expected_text)
     except TimeoutException:
         text = get_text_from_element(by, by_value, immediately=True)
         raise AssertionError(_err_msg(f"element {by} = {by_value} has unexpected text {text}"))
@@ -967,7 +967,7 @@ def assert_text_does_not_equal(by: str, by_value: str, expected_text_param: str)
 def assert_regexp_in_element(by: str, by_value: str, regexp_param: str) -> None:
     regexp = substitute(regexp_param)
     try:
-        wait_until(lambda driver: re.match(regexp, get_text_from_element(by, by_value)))
+        wait_until(lambda _: re.match(regexp, get_text_from_element(by, by_value)))
     except TimeoutException:
         text = get_text_from_element(by, by_value, immediately=True)
         raise AssertionError(_err_msg(f"element {by} = {by_value}: regexp {regexp} does not match {text}"))
@@ -977,7 +977,7 @@ def assert_regexp_in_element(by: str, by_value: str, regexp_param: str) -> None:
 def assert_text_contains(by: str, by_value: str, contains_text_param: str) -> None:
     contains_text = substitute(contains_text_param)
     try:
-        wait_until(contains_text in get_text_from_element(by, by_value))
+        wait_until(lambda _: contains_text in get_text_from_element(by, by_value))
     except TimeoutException:
         text = get_text_from_element(by, by_value, immediately=True)
         raise AssertionError(_err_msg(f"element {by} = {by_value} expected actual {text} to contain {contains_text}"))
@@ -987,7 +987,7 @@ def assert_text_contains(by: str, by_value: str, contains_text_param: str) -> No
 def assert_text_does_not_contain(by: str, by_value: str, contains_text_param: str) -> None:
     contains_text = substitute(contains_text_param)
     try:
-        wait_until(lambda driver: contains_text not in get_text_from_element(by, by_value))
+        wait_until(lambda _: contains_text not in get_text_from_element(by, by_value))
     except TimeoutException:
         text = get_text_from_element(by, by_value, immediately=True)
         raise AssertionError(_err_msg(f"element {by} = {by_value} expected actual {text} to not contain {contains_text}"))
@@ -997,19 +997,18 @@ def assert_text_does_not_contain(by: str, by_value: str, contains_text_param: st
 def assert_css_property(by: str, by_value: str, css_property_name_param: str, css_expected_value_param: str) -> None:
     css_property_name = substitute(css_property_name_param)
     css_expected_value = substitute(css_expected_value_param)
-    element = find_element(by, by_value)
     try:
-        wait_until(lambda driver: css_expected_value == element.value_of_css_property(css_property_name))
+        wait_until(lambda _: css_expected_value == find_element(by, by_value).value_of_css_property(css_property_name))
     except TimeoutException:
-        css_actual_value = element.value_of_css_property(css_property_name)
+        element = find_element(by, by_value, immediately=True)
+        css_actual_value = element.value_of_css_property(css_property_name) if element is not None else "None"
         raise AssertionError(_err_msg(f"element {by} = {by_value}: css property {css_property_name} expected: {css_expected_value}, actual: {css_actual_value}"))
 
 
 @step("Assert <by> = <by_value> is focused")
 def assert_element_is_focused(by: str, by_value: str) -> None:
-    element = find_element(by, by_value)
     try:
-        wait_until(lambda driver: element == _focused_element())
+        wait_until(lambda _: find_element(by, by_value) == _focused_element())
     except TimeoutException:
         raise AssertionError(_err_msg(f"element {by} = {by_value} is not in focus"))
 
@@ -1018,7 +1017,7 @@ def assert_element_is_focused(by: str, by_value: str) -> None:
 def assert_attribute_exists(by: str, by_value: str, attribute_param: str) -> None:
     attribute = substitute(attribute_param)
     try:
-        wait_until(lambda driver: find_attribute(by, by_value, attribute))
+        wait_until(lambda _: find_attribute(by, by_value, attribute))
     except TimeoutException:
         raise AssertionError(_err_msg(f"element {by} = {by_value} has no attribute {attribute}"))
 
@@ -1027,7 +1026,7 @@ def assert_attribute_exists(by: str, by_value: str, attribute_param: str) -> Non
 def assert_attribute_contains(by: str, by_value: str, attribute_param: str, value_param: str) -> None:
     attribute = substitute(attribute_param)
     value = substitute(value_param)
-    def attribute_contains_value(driver: Remote) -> bool:
+    def attribute_contains_value(_: Remote) -> bool:
         found = find_attribute(by, by_value, attribute)
         return isinstance(found, str) and value in found
     try:
@@ -1048,7 +1047,7 @@ def assert_attribute_equals(by: str, by_value: str, attribute_param: str, value_
     attribute = substitute(attribute_param)
     value = substitute(value_param)
     try:
-        wait_until(lambda driver: value == find_attribute(by, by_value, attribute))
+        wait_until(lambda _: value == find_attribute(by, by_value, attribute))
     except TimeoutException:
         found_value = find_attribute(by, by_value, attribute, immediately=True)
         if found_value is None:
@@ -1064,7 +1063,7 @@ def assert_attribute_equals(by: str, by_value: str, attribute_param: str, value_
 def assert_attribute_does_not_contain(by: str, by_value: str, attribute_param: str, value_param: str) -> None:
     attribute = substitute(attribute_param)
     value = substitute(value_param)
-    def attribute_does_not_contain_value(driver: Remote) -> bool:
+    def attribute_does_not_contain_value(_: Remote) -> bool:
         found = find_attribute(by, by_value, attribute)
         return isinstance(found, str) and value not in found
     try:
