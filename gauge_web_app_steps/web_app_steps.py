@@ -1035,7 +1035,7 @@ def assert_attribute_contains(by: str, by_value: str, attribute_param: str, valu
         found_value = find_attribute(by, by_value, attribute, immediately=True)
         if found_value is None:
             msg = _err_msg(f"element {by} = {by_value} has no attribute {attribute}")
-        elif found_value == True:
+        elif found_value is True:
             msg = _err_msg(f"attribute {attribute} in element {by} = {by_value} is empty")
         else:
             msg = _err_msg(f"attribute {attribute} in element {by} = {by_value} does not contain {value} - found: {found_value}")
@@ -1052,7 +1052,7 @@ def assert_attribute_equals(by: str, by_value: str, attribute_param: str, value_
         found_value = find_attribute(by, by_value, attribute, immediately=True)
         if found_value is None:
             msg = _err_msg(f"element {by} = {by_value} has no attribute {attribute}")
-        elif found_value == True:
+        elif found_value is True:
             msg = _err_msg(f"attribute {attribute} in element {by} = {by_value} is empty")
         else:
             msg = _err_msg(f"attribute {attribute} in element {by} = {by_value} does not equal {value} - found: {found_value}")

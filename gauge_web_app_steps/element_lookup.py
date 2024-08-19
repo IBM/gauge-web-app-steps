@@ -7,7 +7,7 @@ from typing import Any, Callable, List, TypeVar
 from getgauge.python import data_store
 from selenium.webdriver import Remote
 from selenium.webdriver.common.by import By
-from selenium.common.exceptions import TimeoutException, WebDriverException
+from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.remote.webelement import WebElement
 
