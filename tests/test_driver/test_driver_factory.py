@@ -97,16 +97,18 @@ class TestSaucelabsDriverFactory(unittest.TestCase):
                 "username": "sauce-user",
                 "accessKey": "sauce-access-key",
                 "name": "tunnel",
+                'networkCapture': True,
             }, result)
 
     def test__get_sauce_options__maximal(self):
         with patch.dict('os.environ'):
             os.environ["SAUCE_USERNAME"] = "sauce-user"
             os.environ["SAUCE_ACCESS_KEY"] = "sauce-access-key"
+            os.environ["SAUCE_TUNNEL_ACTIVE"] = "true"
+            os.environ["SAUCE_TUNNEL_NAME"] = "tunnel-name"
             os.environ["driver_platform_saucelabs_extended_debugging"] = "true"
             os.environ["driver_operating_system"] = "android"
             os.environ["driver_platform_saucelabs_mobile_appium_version"] = "appium-version"
-            os.environ["SAUCE_TUNNEL_NAME"] = "tunnel-name"
             os.environ["driver_platform_saucelabs_test_title"] = "test-title"
             os.environ["driver_platform_saucelabs_build"] = "build"
             os.environ["driver_platform_saucelabs_devicecache"] = "true"
@@ -119,6 +121,7 @@ class TestSaucelabsDriverFactory(unittest.TestCase):
                 'cacheId': "suite-id",
                 'extendedDebugging': True,
                 'name': 'spec-name - test-title',
+                'networkCapture': True,
                 'tunnelName': 'tunnel-name',
                 'username': 'sauce-user',
              }, result)

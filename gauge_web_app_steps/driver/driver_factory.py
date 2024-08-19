@@ -12,6 +12,7 @@ from appium.options.android import UiAutomator2Options
 from appium.options.common import AppiumOptions
 from appium.options.ios import XCUITestOptions
 from appium.webdriver.webdriver import WebDriver as MobileRemote
+from appium.webdriver import Remote as NativeRemote
 from selenium.webdriver.remote.webdriver import WebDriver as Remote
 from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.chrome.service import Service as ChromeService
@@ -198,7 +199,7 @@ class LocalDriverFactory(DriverFactory):
         return os.path.join(project_root, "logs", "geckodriver.log")
 
     def _create_android_capabilities(self) -> dict:
-        desired_capabilities = {
+        capabilities = {
             "deviceName": local_config.get_mobile_device_name(),
             "platformName": OperatingSystem.ANDROID.value,
             "platformVersion": config.get_operating_system_version(),
@@ -211,14 +212,14 @@ class LocalDriverFactory(DriverFactory):
         }
         if local_config.get_mobile_real_device():
             # a real device needs a UDID instead of a name
-            desired_capabilities["udid"] = local_config.get_mobile_device_udid()
+            capabilities["udid"] = local_config.get_mobile_device_udid()
         custom_args = config.get_custom_args()
         if custom_args:
-            desired_capabilities['goog:chromeOptions']['args'] = custom_args
-        return desired_capabilities
+            capabilities['goog:chromeOptions']['args'] = custom_args
+        return capabilities
 
     def _create_ios_capabilities(self) -> dict:
-        desired_capabilities = {
+        capabilities = {
             "automationName": "XCUITest",
             "deviceName": local_config.get_mobile_device_name(),
             "platformName": OperatingSystem.IOS.value,
@@ -228,9 +229,9 @@ class LocalDriverFactory(DriverFactory):
         custom_args = config.get_custom_args()
         if custom_args:
             # not sure, if this works with safari. Documentation is scarce
-            desired_capabilities['safariOptions'] = {}
-            desired_capabilities['safariOptions']['args'] = custom_args
-        return desired_capabilities
+            capabilities['safariOptions'] = {}
+            capabilities['safariOptions']['args'] = custom_args
+        return capabilities
 
 
 class RemoteDriverFactory(DriverFactory):
@@ -300,29 +301,59 @@ class SaucelabsDriverFactory(DriverFactory):
         driver.set_page_load_timeout(config.get_page_load_timeout())
         return driver
 
-    def _create_mobile_driver(self) -> MobileRemote:
+    def _create_mobile_driver(self) -> MobileRemote | NativeRemote:
         operating_system = config.get_operating_system()
-        browser = config.get_browser()
-        desired_capabilities = {
+        capabilities = {
             'platformName': operating_system.value,
-            'browserName': browser.value,
             'appium:deviceName': saucelabs_config.get_device_name(),
             'appium:platformVersion': config.get_operating_system_version(),
             'sauce:options': self._get_sauce_options()
         }
         options = self._create_browser_options()
+        app_test = config.is_app_test()
+        if app_test:
+            app_location = config.get_app_location()
+            if app_location:
+                capabilities['appium:app'] = app_location
+            app_package = config.get_app_package()
+            if app_package:
+                capabilities['appium:appPackage'] = app_package
+            app_activity = config.get_app_activity()
+            if app_activity:
+                capabilities['appium:appActivity'] = app_activity
+            capabilities['enableMultiWindows'] = True
+        else:
+            browser = config.get_browser()
+            capabilities['browserName'] = browser.value
+        auto_grant_permissions = config.is_auto_grant_permissions() and app_test
+        custom_args = config.get_custom_args()
         if operating_system == OperatingSystem.ANDROID:
-            desired_capabilities['appium:automationName'] = 'UiAutomator2'
-            desired_capabilities["goog:chromeOptions"] = {
+            capabilities['appium:automationName'] = 'UiAutomator2'
+            capabilities["goog:chromeOptions"] = {
                 'w3c': True,
                 'extensions': []
             }
+            if custom_args:
+                capabilities['goog:chromeOptions']['args'] = custom_args
+            if auto_grant_permissions:
+                capabilities['appium:autoGrantPermissions'] = True
         elif operating_system == OperatingSystem.IOS:
-            desired_capabilities["appium:automationName"] = "XCUITest"
-        capabilities_options = options.load_capabilities(desired_capabilities)
-        driver = MobileRemote(saucelabs_config.get_executor(), options=capabilities_options)
-        driver.implicitly_wait(config.get_implicit_timeout())
+            capabilities["appium:automationName"] = "XCUITest"
+            capabilities["appium:includeSafariInWebviews"] = True
+            capabilities["safariAllowPopups"] = True
+            if custom_args:
+                # not sure, if this works with safari. Documentation is scarce
+                capabilities['safariOptions'] = {}
+                capabilities['safariOptions']['args'] = custom_args
+            if auto_grant_permissions:
+                capabilities['appium:autoAcceptAlerts'] = True
+        capabilities_options = options.load_capabilities(capabilities)
+        if app_test:
+            driver = NativeRemote(saucelabs_config.get_executor(), options=capabilities_options, keep_alive=True)
+        else:
+            driver = MobileRemote(saucelabs_config.get_executor(), options=capabilities_options)
         driver.set_page_load_timeout(config.get_page_load_timeout())
+        driver.implicitly_wait(config.get_implicit_timeout())
         return driver
 
     def _get_platform_name(self, operating_system: OperatingSystem, operating_system_version: str) -> str:
@@ -383,7 +414,10 @@ class SaucelabsDriverFactory(DriverFactory):
         sauce_options = {
             "username": saucelabs_config.get_sauce_user_name(),
             "accessKey": saucelabs_config.get_sauce_access_key(),
+            "networkCapture": True,
         }
+        if config.is_app_test():
+            sauce_options["resigningEnabled"] = True
         if saucelabs_config.is_extended_debugging_enabled():
             sauce_options["extendedDebugging"] = True
         operating_system = config.get_operating_system()
@@ -391,7 +425,7 @@ class SaucelabsDriverFactory(DriverFactory):
         if operating_system and operating_system.is_mobile() and appium_version:
             sauce_options["appiumVersion"] = appium_version
         tunnel_name = saucelabs_config.get_tunnel_name()
-        if tunnel_name:
+        if tunnel_name and saucelabs_config.is_sauce_tunnel_active():
             sauce_options["tunnelName"] = tunnel_name
         custom_test_title = saucelabs_config.get_test_title()
         spec_name = self.spec_name

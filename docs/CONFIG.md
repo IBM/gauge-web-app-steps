@@ -14,7 +14,6 @@ The following properties are supported:
 
 | Property | Type | Default | Description |
 |--|--|--|--|
-| `driver_cache_days` | int | 365 | number of days, before the driver manager will invalidate the cache and make a renewal request. |
 | `debug_log` | boolean | `false`| Logs more information. |
 | `diff_formats` | `gradient` \| `full` \| `color:xyz` | `full` | For screenshot comparisons. `xyz`: any CSS3 color name. |
 | `screenshot_whole_page_no_scroll` | boolean | `false` | Firefox offers to take a screenshot of the whole page, even if the page is wider and higher than the current viewport. This is not standard behaviour. |
@@ -24,21 +23,27 @@ The following properties are supported:
 | `actual_screenshot_dir` | string | `actual_screenshots` | Determines the directory, in which the screenshots of the current test run should be stored, which will be compared to expected screenshots. |
 | `expected_screenshot_dir` | string | `expected_screenshots` | Determines the directory, in which the expected screenshots will be found, which are the source for comparisons. |
 | `failure_screenshot_dir` | string | `reports/html-report/images` | Determines the directory, in which screenshots will be stored, that are taken when an error happens. |
-| `driver_browser` | `chrome` \| `firefox` \| `safari` \| `edge` \| `internet explorer` \| `opera` | `firefox` | The browser, in which tests should run. |
+| `driver_page_load_timeout` | int | `30` | Timeout in seconds to wait until a web page has been loaded. |
 | `driver_implicit_timeout` | int | `5` | Seconds to wait for any web elements to appear, disappear, or transform into an expected state. |
 | `driver_operating_system` | `win` \| `macos` \| `linux` \| `android` \| `ios` | `macos` | Determines on which OS the tests should run. |
 | `driver_operating_system_version` | string | `None` \| `Windows 11` \| `macOS 13` | Some drivers need the OS version, but it is not needed for local tests. |
-| `driver_page_load_timeout` | int | `30` | Timeout in seconds to wait until a web page has been loaded. |
 | `driver_platform` | `local` \| `saucelabs` | `local` | Whether the driver should connect to a remote device cloud provider. At the moment, [SauceLabs](https://saucelabs.com/) is the only supported service provider. |
+
+## Browser Tests
+
+| Property | Type | Default | Description |
+|--|--|--|--|
+| `driver_browser` | `chrome` \| `firefox` \| `safari` \| `edge` \| `internet explorer` \| `opera` | `firefox` | The browser, in which tests should run. |
 | `driver_platform_local_headless`| boolean | `false` | When `driver_platform` = `local`, then tests can be run in headless mode. |
-| `driver_custom_args` | string | `None` | Optional custom arguments, that are appended to the browser options, f.i. `incognito` for chrome browsers. Multiple arguments can be comma-separated. |
-| `driver_binary_copy` | boolean | `false` | The driver binary will be copied to a unique temporary file for each parallel process. This is a workaround for parallel selenium driver executions. Use it if you experience errors in parallel test runs. |
-| `driver_manager_selenium4` | boolean | `false` | Use the build-in driver manager of Selenium 4 (currently beta) instead of the standard third party 'webdriver-manager'. This might help solve issues with parallel test executions, when `driver_binary_copy` does not work. Does not work with Opera. |
+| `driver_custom_args` | string | `None` | Optional custom driver arguments, that are appended to the browser options, f.i. `incognito` for chrome browsers. Multiple arguments can be comma-separated. |
+| `driver_manager_selenium4` | boolean | `false` | Recommended value: `true`. Only for local tests. Use the build-in driver manager of Selenium 4 (this will be the default, soon) instead of the standard third party 'webdriver-manager'. This might help solve issues with parallel test executions, when `driver_binary_copy` does not work. Does not work with Opera. |
+| `driver_cache_days` | int | 365 | Only for local tests. Only for `driver_manager_selenium4 = false`: number of days, before the driver manager will invalidate the cache and make a renewal request. |
+| `driver_binary_copy` | boolean | `false` | Only for local tests. Only for `driver_manager_selenium4 = false`. The driver binary will be copied to a unique temporary file for each parallel process. This is a workaround for parallel selenium driver executions. Use it if you experience errors in parallel test runs. |
 
 ## Appium
 
 The following properties define a connection to an [Appium server](https://appium.io/docs/en/2.0/).
-With Appium, mobile browsers can be used for testing.
+With Appium, mobile browsers and native apps can be used for testing.
 
 | Property | Type | Default | Description |
 |--|--|--|--|
@@ -46,6 +51,14 @@ With Appium, mobile browsers can be used for testing.
 | `driver_platform_local_mobile_device_name` | string | `None` | The device name of the Appium test device. |
 | `driver_platform_local_mobile_device_udid` | string | `None` | The UID of the Appium test device. |
 | `driver_platform_local_mobile_real_device` | boolean | `false` | Whether the test device is a simulator or a real device. |
+
+## App Testing
+| Property | Type | Default | Description |
+|--|--|--|--|
+| `driver_app_location` | string | `None` | Only for app testing: the location of the app. This will be translated to the `appium:app` capability. |
+| `driver_app_package` | string | `None` | Only for app testing: the package of the app. This will be translated to the `appium:appPackage` capability. |
+| `driver_app_activity` | string | `None` | Only for **android** app testing: the activity of the app. This will be translated to the `appium:appActivity` capability. |
+| `driver_app_auto_grant_permissions` | boolean | `false` | Only for app testing: Automatically grant all app permissions. This translates to `appium:autoGrantPermissions` for android and `appium:autoAcceptAlerts` for iOS capabilities. |
 
 ## Saucelabs
 

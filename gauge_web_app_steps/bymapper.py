@@ -3,12 +3,14 @@
 # SPDX-License-Identifier: MIT
 #
 
+from appium.webdriver.webelement import AppiumBy
 from selenium.webdriver.common.by import By
 
 
 class ByMapper:
 
     _MAPPING = {
+        "accessibility id": AppiumBy.ACCESSIBILITY_ID,
         "id": By.ID,
         "xpath": By.XPATH,
         "link text": By.LINK_TEXT,
