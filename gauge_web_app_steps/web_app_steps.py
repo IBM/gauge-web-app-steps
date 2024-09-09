@@ -15,7 +15,7 @@ from uuid import uuid4
 from itertools import filterfalse
 from typing import Tuple
 from getgauge.python import data_store, step, before_spec, after_spec, screenshot, before_suite, after_suite, before_step, ExecutionContext
-from selenium.common.exceptions import JavascriptException, WebDriverException
+from selenium.common.exceptions import JavascriptException, NoSuchWindowException, TimeoutException, WebDriverException
 from selenium.webdriver import Remote
 from appium.webdriver import Remote as AppiumRemote
 from selenium.webdriver.common.action_chains import ActionChains
@@ -96,15 +96,13 @@ def after_spec_hook() -> None:
 @before_step
 def before_step_hook(exe_ctx:  ExecutionContext) -> None:
     step_text = exe_ctx.step.text
-    _warn_using_deprecated_step(step_text, (r'Assert (".*?") = (".*?") is displayed', "Assert <by> = <by_value> exists",))
-    _warn_using_deprecated_step(step_text, (r'Assert (".*?") = (".*?") is invisible', "Assert <by> = <by_value> does not exist",))
-
-
-def _warn_using_deprecated_step(step_text: str, mapping: Tuple[str]) -> None:
-    match = re.fullmatch(mapping[0], step_text)
-    if match is not None:
-        new_step = mapping[1].replace("<by>", match.group(1)).replace("<by_value>", match.group(2))
-        report().log(f"The step '{step_text}' is deprecated, please use '{new_step}'")
+    def warn_using_deprecated_step(step_text: str, mapping: Tuple[str]) -> None:
+        match = re.fullmatch(mapping[0], step_text)
+        if match is not None:
+            new_step = mapping[1].replace("<by>", match.group(1)).replace("<by_value>", match.group(2))
+            report().log(f"The step '{step_text}' is deprecated, please use '{new_step}'")
+    warn_using_deprecated_step(step_text, (r'Assert (".*?") = (".*?") is displayed', "Assert <by> = <by_value> exists",))
+    warn_using_deprecated_step(step_text, (r'Assert (".*?") = (".*?") is invisible', "Assert <by> = <by_value> does not exist",))
 
 
 @screenshot
@@ -142,7 +140,6 @@ def wait_for_window(secs_param: str, placeholder_name_param: str) -> None:
     secs = substitute(secs_param)
     placeholder_name = substitute(placeholder_name_param)
     assert placeholder_name in data_store.scenario.keys(), "Expected saved window handles. Did you use '* Save window handles'?"
-    
     time.sleep(float(secs))
     wh_now = driver().window_handles
     #previous saved window handles
@@ -155,11 +152,13 @@ def wait_for_window(secs_param: str, placeholder_name_param: str) -> None:
 @step("Fullscreen")
 def fullscreen() -> None:
     driver().fullscreen_window()
+    _page_ready()
 
 
 @step("Maximize")
 def maximize() -> None:
     driver().maximize_window()
+    _page_ready()
 
 
 @step("Window size <width>x<height>")
@@ -175,6 +174,7 @@ def window_size(width_param: str, height_param: str) -> None:
     report().log_debug("outer width: {}, inner width: {}, width: {}, outer height: {}, inner height: {}, height: {}"\
         .format(outer_width, inner_width, width, outer_height, inner_height, height))
     driver().set_window_size(outer_width - inner_width + width, outer_height - inner_height + height)
+    _page_ready()
 
 
 @step("Close current window")
@@ -184,6 +184,7 @@ def close_current_window() -> None:
     last_handle = len(window_handles) - 1
     if last_handle >= 0:
         driver().switch_to.window(window_handles[last_handle])
+    _page_ready()
 
 
 @step("Close other windows")
@@ -194,21 +195,25 @@ def close_other_windows() -> None:
             driver().switch_to.window(handle)
             driver().close()
     driver().switch_to.window(current_handle)
+    _page_ready()
 
 
 @step("Refresh")
 def refresh() -> None:
     driver().refresh()
+    _page_ready()
 
 
 @step("Back")
 def back() -> None:
     driver().back()
+    _page_ready()
 
 
 @step("Forward")
 def forward() -> None:
     driver().forward()
+    _page_ready()
 
 
 @step("Open <page>")
@@ -230,16 +235,7 @@ def open_page(page_param: str) -> None:
             break
     if not uses_basic_auth:
         webdriver.get(page)
-    for _ in range(max_attempts):
-        # Browsers sometimes open the page in the middle, when visited before
-        time.sleep(0.3)
-        if "#" not in page:
-            try:
-                driver().execute_script("window.scrollTo(0, 0);")
-                break
-            except JavascriptException:
-                # In case of a page redirect the window object can become invalid.
-                pass
+    _init_opened_page(page)
 
 
 @step("Open <page> for <user>: <password>")
@@ -254,15 +250,12 @@ def open_page_for_user_and_password(page_param: str, user_param: str, password_p
     password = urllib.parse.quote_plus(substitute(password_param))
     url = "{}{}:{}@{}".format(prefix, user, password, page)
     driver().get(url)
-    # Chrome sometimes opens the page in the middle, when visited before
-    time.sleep(0.3)
-    if "#" not in page:
-        driver().execute_script("window.scrollTo(0, 0);")
+    _init_opened_page(page)
 
 
 @step("Register authentication <user>: <password> for <regexp>")
 def register_basic_auth_for_regexp(user_param: str, password_param: str, regexp_param: str):
-    # Basic auth with CDP is not supported by all browser yet
+    # Basic auth with CDP is not supported by all browsers yet
     username = substitute(user_param)
     password = substitute(password_param)
     regexp = substitute(regexp_param)
@@ -293,24 +286,34 @@ def print_contexts() -> None:
 
 @step("Switch to window <window_param>")
 def switch_to_window(window_param: str) -> None:
-    if window_param.isdigit():
-        window_num = int(substitute(window_param))
-        window = driver().window_handles[window_num]
-        driver().switch_to.window(window)
-        report().log(f"Switched to window with index {window_num}")
+    target_window = substitute(window_param)
+    if target_window.isdigit():
+        window_num = int(target_window)
+        wait_until(lambda driver: len(driver.window_handles) > window_num, f"number of window handles is less than {window_num + 1}")
+        window_name = driver().window_handles[window_num]
+        driver().switch_to.window(window_name)
+        report().log(f"Switched to window with index {window_num} and name {window_name}")
+        _page_ready()
     else:
         original_window = driver().current_window_handle
-        handles = driver().window_handles
-        for handle in handles:
-            driver().switch_to.window(handle)
-            if driver().title == window_param:
-                original_window = None
-                break
-        #switch back to default when we did not find the desired window
-        if original_window is not None:
+        def find_and_switch_window(driver: Remote) -> bool:
+            try:
+                driver.switch_to.window(target_window)
+                return True
+            except NoSuchWindowException:
+                for handle in driver.window_handles:
+                    driver.switch_to.window(handle)
+                    if driver.title == target_window:
+                        return True
+                return False
+        try:
+            wait_until(find_and_switch_window)
+            _page_ready()
+            report().log(f"Switched to window with name {target_window}")
+        except TimeoutException:
+            #switch back to default when we did not find the desired window
             driver().switch_to.window(original_window)
-        else:
-            report().log(f"Switched to window with name {window_param}")
+            raise AssertionError(f"did not find window {target_window}")
 
 
 @step("Switch to default content")
@@ -326,7 +329,7 @@ def switch_to_frame(frame_name_or_index_param: str) -> None:
         frames = find_elements("tag name", "frame")
         if len(frames) == 0:
             frames = find_elements("tag name", "iframe")
-        assert len(frames)  > 0, "no frames or iframes found in current page."
+        assert len(frames) > 0, "no frames or iframes found in current page."
         assert len(frames) >= index, f"frame index {index} is higher than number of frames in current page: {len(frames)}"
         driver().switch_to.frame(frames[index])
     else:
@@ -342,32 +345,32 @@ def switch_to_frame_by_selector(by: str, by_value: str) -> None:
 @step("Switch to context <context_regexp>")
 def switch_to_context(context_regexp_param) -> None:
     context_regexp = substitute(context_regexp_param)
-    target_context = None
-    for c in driver().contexts:
-        if re.match(context_regexp, c):
-            target_context = c
-            break
-    if target_context is not None:
-        report().log(f"Switching to context '{target_context}'")
-        driver().switch_to.context(target_context)
+    def find_context(driver: AppiumRemote) -> str | bool:
+        for c in driver.contexts:
+            if re.match(context_regexp, c):
+                return c
+        return False
+    target_context = wait_until(find_context, f"no context found that matches {context_regexp}")
+    report().log(f"Switching to context '{target_context}'")
+    driver().switch_to.context(target_context)
 
 
 @step("Dismiss alert")
 def dismiss_alert() -> None:
-    driver().switch_to.alert.dismiss()
+    wait_until(EC.alert_is_present()).dismiss()
     driver().switch_to.default_content()
 
 
 @step("Accept alert")
 def accept_alert() -> None:
-    driver().switch_to.alert.accept()
+    wait_until(EC.alert_is_present()).accept()
     driver().switch_to.default_content()
 
 
 @step("Answer in prompt <text>")
 def answer_in_prompt(text: str) -> None:
     prompt_text = substitute(text)
-    alert = driver().switch_to.alert
+    alert = wait_until(EC.alert_is_present())
     alert.send_keys(prompt_text)
     alert.accept()
     driver().switch_to.default_content()
@@ -448,12 +451,15 @@ def select_option(by: str, by_value: str, select_key_param: str, select_value_pa
 
 @step("Click <by> = <by_value>")
 def click_element(by: str, by_value: str) -> None:
-    find_element(by, by_value).click()
+    element = find_element(by, by_value)
+    _ready_for_interaction(element)
+    element.click()
 
 
 @step("Double click <by> = <by_value>")
 def double_click_element(by: str, by_value: str) -> None:
     element = find_element(by, by_value)
+    _ready_for_interaction(element)
     ActionChains(driver()).double_click(element).perform()
 
 
@@ -461,6 +467,7 @@ def double_click_element(by: str, by_value: str) -> None:
 def click_element_with_key_down(by: str, by_value: str, key_down_param: str) -> None:
     keys_down = KeyMapper.map_keys(substitute(key_down_param))
     element = find_element(by, by_value)
+    _ready_for_interaction(element)
     ac = ActionChains(driver())
     for key in keys_down:
         ac.key_down(key)
@@ -474,6 +481,7 @@ def click_element_with_key_down(by: str, by_value: str, key_down_param: str) -> 
 def right_click_element(by: str, by_value: str) -> None:
     actionChains = ActionChains(driver())
     element = find_element(by, by_value)
+    _ready_for_interaction(element)
     actionChains.context_click(element).perform()
 
 
@@ -485,7 +493,9 @@ def type_string(a_string_param: str) -> None:
             .send_keys(a_string)\
             .perform()
     else:
-        _focused_element().send_keys(a_string)
+        element = _focused_element()
+        _ready_for_interaction(element)
+        element.send_keys(a_string)
 
 
 @step("Type <key_down> <string>")
@@ -505,6 +515,7 @@ def type_string_with_key_down(key_down_param: str, a_string_param: str) -> None:
 def type_string_into_element(by: str, by_value: str, a_string_param: str) -> None:
     a_string = substitute(a_string_param)
     element = find_element(by, by_value)
+    _ready_for_interaction(element)
     element.clear()
     if not _is_mobile_operating_system():
         ActionChains(driver())\
@@ -524,6 +535,7 @@ def type_string_into_element_with_key_down(by: str, by_value: str, key_down_para
     keys_down = KeyMapper.map_keys(substitute(key_down_param))
     a_string = substitute(a_string_param)
     element = find_element(by, by_value)
+    _ready_for_interaction(element)
     element.clear()
     ac = ActionChains(driver())\
         .click(element)
@@ -560,6 +572,7 @@ def send_keys_with_key_down(key_down_param: str, keys_param: str) -> None:
 def send_keys_to_element(by: str, by_value: str, keys_param: str) -> None:
     send_keys = KeyMapper.map_keys(substitute(keys_param))
     element = find_element(by, by_value)
+    wait_until(EC.element_to_be_clickable(element))
     ActionChains(driver())\
         .click(element)\
         .send_keys(send_keys)\
@@ -571,6 +584,7 @@ def send_keys_to_element_with_key_down(by: str, by_value: str, key_down_param: s
     keys_down = KeyMapper.map_keys(substitute(key_down_param))
     send_keys = KeyMapper.map_keys(substitute(keys_param))
     element = find_element(by, by_value)
+    _ready_for_interaction(element)
     ac = ActionChains(driver())\
         .click(element)
     for key in keys_down:
@@ -584,22 +598,25 @@ def send_keys_to_element_with_key_down(by: str, by_value: str, key_down_param: s
 @step("Clear <by> = <by_value>")
 def clear_element(by: str, by_value: str) -> None:
     element = find_element(by, by_value)
+    _ready_for_interaction(element)
     element.clear()
 
 
 @step("Mouse down <by> = <by_value>")
 def mouse_down(by: str, by_value: str) -> None:
     element = find_element(by, by_value)
+    _ready_for_interaction(element)
     ActionChains(driver()).move_to_element(element).click_and_hold(element).perform()
 
 
 @step("Mouse up <by> = <by_value>")
 def mouse_up(by: str, by_value: str) -> None:
     element = find_element(by, by_value)
+    _ready_for_interaction(element)
     ActionChains(driver()).move_to_element(element).release(element).perform()
 
 
-@step("Move to <by> = <by_value>")
+@step(["Move to <by> = <by_value>", "Scroll <by> = <by_value> into view"])
 def move_into_view(by: str, by_value: str) -> None:
     element = find_element(by, by_value)
     # the following script is needed for some browsers
@@ -629,23 +646,21 @@ def hover_over(by: str, by_value: str) -> None:
     ActionChains(driver()).move_to_element(element).perform()
 
 
-@step("Scroll <by> = <by_value> into view")
-def scrollElementIntoView(by: str, by_value: str) -> None:
-    find_element(by, by_value)\
-        .location_once_scrolled_into_view
-
-
 @step("Drag and drop <by_source> = <by_value_source> into <by_dest> = <by_value_dest>")
 def dragAndDropElement(by_source: str, by_value_source: str, by_dest: str, by_value_dest: str) -> None:
     sourceElement = find_element(by_source, by_value_source)
     destinationElement = find_element(by_dest, by_value_dest)
+    _ready_for_interaction(sourceElement)
+    _ready_for_interaction(destinationElement)
     ActionChains(driver()).drag_and_drop(sourceElement, destinationElement).perform()
 
 
 @step("Upload file = <file_path> into <by> = <by_value>")
 def uploadFile(file_path_param: str, by: str, by_value: str) -> None:
     file_path = substitute(file_path_param)
-    find_element(by, by_value).send_keys(file_path)
+    element = find_element(by, by_value)
+    _ready_for_interaction(element)
+    element.send_keys(file_path)
 
 
 @step("Execute <script>")
@@ -787,64 +802,82 @@ def show_error_message_in_case(error_msg_param: str) -> None:
 def assert_window_handle_num(window_num_param: str) -> None:
     window_num = substitute(window_num_param)
     expected = int(window_num)
-    actual = len(driver().window_handles)
-    assert expected == actual,\
-        _err_msg(f"expected {expected} window handles, got {actual}")
+    try:
+        wait_until(lambda driver: expected == len(driver.window_handles))
+    except TimeoutException:
+        actual = len(driver().window_handles)
+        raise AssertionError(_err_msg(f"expected {expected} window handles, got {actual}"))
 
 
 @step("Assert title equals <title>")
-def assert_title(expected_title: str) -> None:
-    current_title = driver().title
-    assert expected_title == current_title,\
-        _err_msg(f"expected title: {expected_title}, actual {current_title}")
+def assert_title(expected_title_param: str) -> None:
+    expected_title = substitute(expected_title_param)
+    try:
+        wait_until(lambda driver: driver.title == expected_title)
+    except TimeoutException:
+        current_title = driver().title
+        raise AssertionError(_err_msg(f"expected title: {expected_title}, actual {current_title}"))
 
 
 @step("Assert dialog text equals <text>")
-def assert_dialog_text(expected_text: str) -> None:
-    dialog_text = driver().switch_to.alert.text
-    assert expected_text == dialog_text,\
-        _err_msg(f"expected dialog text: {expected_text}, actual {dialog_text}")
+def assert_dialog_text(expected_text_param: str) -> None:
+    expected_text = substitute(expected_text_param)
+    try:
+        wait_until(lambda driver: driver.switch_to.alert.text == expected_text)
+    except TimeoutException:
+        dialog_text = driver().switch_to.alert.text
+        # if no alert is present, a NoAlertPresentException is raised, which is fine
+        raise AssertionError(_err_msg(f"expected dialog text: {expected_text}, actual {dialog_text}"))
 
 
 @step("Assert url equals <url>")
 def assert_url(expected_url_param: str) -> None:
     expected_url = substitute(expected_url_param)
-    current_url = driver().current_url
-    assert expected_url == current_url,\
-        _err_msg(f"expected url: {expected_url}, actual {current_url}")
+    try:
+        wait_until(lambda driver: driver.current_url == expected_url)
+    except TimeoutException:
+        current_url = driver().current_url
+        raise AssertionError(_err_msg(f"url does not equal {expected_url}, got {current_url}"))
 
 
 @step("Assert url starts with <url>")
 def assert_url_starts_with(expected_url_param: str) -> None:
     expected_url = substitute(expected_url_param)
-    current_url = driver().current_url
-    assert current_url.startswith(expected_url),\
-        _err_msg(f"url {current_url} does not start with {expected_url}")
+    try:
+        wait_until(lambda driver: driver.current_url.startswith(expected_url))
+    except TimeoutException:
+        current_url = driver().current_url
+        raise AssertionError(_err_msg(f"url does not start with {expected_url}, got {current_url}"))
 
 
 @step("Assert url ends with <url>")
 def assert_url_ends_with(expected_url_param: str) -> None:
     expected_url = substitute(expected_url_param)
-    current_url = driver().current_url
-    assert current_url.endswith(expected_url),\
-        _err_msg(f"url {current_url} does not end with {expected_url}")
+    try:
+        wait_until(lambda driver: driver.current_url.endswith(expected_url))
+    except TimeoutException:
+        current_url = driver().current_url
+        raise AssertionError(_err_msg(f"url does not end with {expected_url}, got {current_url}"))
 
 
 @step("Assert url contains <url>")
 def assert_url_contains(expected_url_param: str) -> None:
     expected_url = substitute(expected_url_param)
-    current_url = driver().current_url
-    assert expected_url in current_url,\
-        _err_msg(f"url {current_url} does not contain {expected_url}")
+    try:
+        wait_until(lambda driver: expected_url in driver.current_url)
+    except TimeoutException:
+        current_url = driver().current_url
+        raise AssertionError(_err_msg(f"url does not contain {expected_url}, got {current_url}"))
 
 
 # see also before_step_hook
 @step(["Assert <by> = <by_value> exists", "Assert <by> = <by_value> is displayed"])
 def assert_element_exists(by: str, by_value: str) -> None:
     marker = get_marker(substitute(by), substitute(by_value))
-    visible = wait_until(EC.visibility_of_element_located(marker))
-    assert visible,\
-        _err_msg(f"element {by} = {by_value} does not exist")
+    try:
+        wait_until(EC.visibility_of_element_located(marker))
+    except TimeoutException:
+        raise AssertionError(_err_msg(f"element {by} = {by_value} does not exist"))
 
 
 # see also before_step_hook
@@ -853,137 +886,191 @@ def assert_element_does_not_exist(by_param: str, by_value_param: str) -> None:
     by = substitute(by_param)
     by_value = substitute(by_value_param)
     marker = get_marker(by, by_value)
-    invisible = wait_until(EC.invisibility_of_element(marker))
-    assert invisible, \
-        _err_msg(f"element {by} = {by_value} exists")
+    try:
+        wait_until(EC.invisibility_of_element(marker))
+    except TimeoutException:
+        raise AssertionError(_err_msg(f"element {by} = {by_value} exists"))
 
 
 @step("Assert <by> = <by_value> is enabled")
 def assert_element_is_enabled(by: str, by_value: str) -> None:
-    element = find_element(by, by_value)
-    assert element.is_enabled(),\
-        _err_msg(f"element {by} = {by_value} is disabled")
+    try:
+        wait_until(lambda _: find_element(by, by_value).is_enabled())
+    except TimeoutException:
+        raise AssertionError(_err_msg(f"element {by} = {by_value} is disabled"))
 
 
 @step("Assert <by> = <by_value> is disabled")
 def assert_element_is_disabled(by: str, by_value: str) -> None:
-    element = find_element(by, by_value)
-    assert not element.is_enabled(), \
-        _err_msg(f"element {by} = {by_value} is enabled")
+    try:
+        wait_until(lambda _: not find_element(by, by_value).is_enabled())
+    except TimeoutException:
+        raise AssertionError(_err_msg(f"element {by} = {by_value} is enabled"))
 
 
 @step("Assert <by> = <by_value> is selected")
 def assert_element_is_selected(by: str, by_value: str) -> None:
-    element = find_element(by, by_value)
-    assert element.is_selected(),\
-        _err_msg(f"element {by} = {by_value} is not selected")
+    try:
+        wait_until(lambda _: find_element(by, by_value).is_selected())
+    except TimeoutException:
+        element = find_element(by, by_value, immediately=True)
+        if element is None:
+            raise AssertionError(_err_msg(f"no element {by} = {by_value} found"))
+        raise AssertionError(_err_msg(f"element {by} = {by_value} is not selected"))
 
 
 @step("Assert <by> = <by_value> has selected value <value>")
 def assert_selected_option(by: str, by_value: str, expected_param: str) -> None:
-    element = find_element(by, by_value)
-    actual = Selector.get_selected_value(element)
     expected = substitute(expected_param)
-    assert expected == actual,\
-        _err_msg(f"expected value: {expected}, actual {actual}")
+    try:
+        wait_until(lambda _: Selector.get_selected_value(find_element(by, by_value)) == expected)
+    except TimeoutException:
+        element = find_element(by, by_value, immediately=True)
+        if element is None:
+            raise AssertionError(_err_msg(f"no element {by} = {by_value} found"))
+        actual = Selector.get_selected_value(element)
+        raise AssertionError(_err_msg(f"expected value: {expected}, actual {actual}"))
 
 
 @step("Assert <by> = <by_value> is not selected")
 def assert_element_is_not_selected(by: str, by_value: str) -> None:
-    element = find_element(by, by_value)
-    assert not element.is_selected(), \
-        _err_msg(f"element {by} = {by_value} is selected")
+    try:
+        wait_until(lambda _: not find_element(by, by_value).is_selected())
+    except TimeoutException:
+        element = find_element(by, by_value, immediately=True)
+        if element is None:
+            raise AssertionError(_err_msg(f"no element {by} = {by_value} found"))
+        raise AssertionError(_err_msg(f"element {by} = {by_value} is selected"))
 
 
 @step("Assert <by> = <by_value> equals <string>")
 def assert_text_equals(by: str, by_value: str, expected_text_param: str) -> None:
     expected_text = substitute(expected_text_param)
-    text = get_text_from_element(by, by_value)
-    assert text == expected_text,\
-        _err_msg(f"element {by} = {by_value} expected text {expected_text}, actual {text}")
+    try:
+        wait_until(lambda _: get_text_from_element(by, by_value) == expected_text)
+    except TimeoutException:
+        text = get_text_from_element(by, by_value, immediately=True)
+        raise AssertionError(_err_msg(f"element {by} = {by_value} expected text {expected_text}, actual {text}"))
 
 
 @step("Assert <by> = <by_value> does not equal <string>")
 def assert_text_does_not_equal(by: str, by_value: str, expected_text_param: str) -> None:
     expected_text = substitute(expected_text_param)
-    text = get_text_from_element(by, by_value)
-    assert text != expected_text,\
-        _err_msg(f"element {by} = {by_value} expected actual {text} not to be equal to {expected_text}")
+    try:
+        wait_until(lambda _: get_text_from_element(by, by_value) != expected_text)
+    except TimeoutException:
+        text = get_text_from_element(by, by_value, immediately=True)
+        raise AssertionError(_err_msg(f"element {by} = {by_value} has unexpected text {text}"))
 
 
 @step("Assert <by> = <by_value> regexp <regexp>")
 def assert_regexp_in_element(by: str, by_value: str, regexp_param: str) -> None:
     regexp = substitute(regexp_param)
-    text = get_text_from_element(by, by_value)
-    assert re.match(regexp, text),\
-        _err_msg(f"element {by} = {by_value}: regexp {regexp} does not match {text}")
+    try:
+        wait_until(lambda _: re.match(regexp, get_text_from_element(by, by_value)))
+    except TimeoutException:
+        text = get_text_from_element(by, by_value, immediately=True)
+        raise AssertionError(_err_msg(f"element {by} = {by_value}: regexp {regexp} does not match {text}"))
 
 
 @step("Assert <by> = <by_value> contains <string>")
 def assert_text_contains(by: str, by_value: str, contains_text_param: str) -> None:
     contains_text = substitute(contains_text_param)
-    text = get_text_from_element(by, by_value)
-    assert contains_text in text,\
-        _err_msg(f"element {by} = {by_value} expected actual {text} to contain {contains_text}")
+    try:
+        wait_until(lambda _: contains_text in get_text_from_element(by, by_value))
+    except TimeoutException:
+        text = get_text_from_element(by, by_value, immediately=True)
+        raise AssertionError(_err_msg(f"element {by} = {by_value} expected actual {text} to contain {contains_text}"))
 
 
 @step("Assert <by> = <by_value> does not contain <string>")
 def assert_text_does_not_contain(by: str, by_value: str, contains_text_param: str) -> None:
     contains_text = substitute(contains_text_param)
-    text = get_text_from_element(by, by_value)
-    assert contains_text not in text,\
-        _err_msg(f"element {by} = {by_value} expected actual {text} to not contain {contains_text}")
+    try:
+        wait_until(lambda _: contains_text not in get_text_from_element(by, by_value))
+    except TimeoutException:
+        text = get_text_from_element(by, by_value, immediately=True)
+        raise AssertionError(_err_msg(f"element {by} = {by_value} expected actual {text} to not contain {contains_text}"))
 
 
 @step("Assert <by> = <by_value> css <css_property_name> is <css_expected_value>")
 def assert_css_property(by: str, by_value: str, css_property_name_param: str, css_expected_value_param: str) -> None:
-    element = find_element(by, by_value)
     css_property_name = substitute(css_property_name_param)
     css_expected_value = substitute(css_expected_value_param)
-    css_actual_value = element.value_of_css_property(css_property_name)
-    assert css_actual_value == css_expected_value,\
-        _err_msg(f"element {by} = {by_value}: css property {css_property_name} expected: {css_expected_value}, actual: {css_actual_value}")
+    try:
+        wait_until(lambda _: css_expected_value == find_element(by, by_value).value_of_css_property(css_property_name))
+    except TimeoutException:
+        element = find_element(by, by_value, immediately=True)
+        css_actual_value = element.value_of_css_property(css_property_name) if element is not None else "None"
+        raise AssertionError(_err_msg(f"element {by} = {by_value}: css property {css_property_name} expected: {css_expected_value}, actual: {css_actual_value}"))
 
 
 @step("Assert <by> = <by_value> is focused")
 def assert_element_is_focused(by: str, by_value: str) -> None:
-    element = find_element(by, by_value)
-    assert element == _focused_element(),\
-        _err_msg(f"element {by} = {by_value} is not in focus")
+    try:
+        wait_until(lambda _: find_element(by, by_value) == _focused_element())
+    except TimeoutException:
+        raise AssertionError(_err_msg(f"element {by} = {by_value} is not in focus"))
 
 
 @step("Assert <by> = <by_value> attribute <attribute> exists")
 def assert_attribute_exists(by: str, by_value: str, attribute_param: str) -> None:
     attribute = substitute(attribute_param)
-    found_value =  find_attribute(by, by_value, attribute)
-    assert found_value, _err_msg(f"element {by} = {by_value} has no attribute {attribute}")
+    try:
+        wait_until(lambda _: find_attribute(by, by_value, attribute))
+    except TimeoutException:
+        raise AssertionError(_err_msg(f"element {by} = {by_value} has no attribute {attribute}"))
 
 
 @step("Assert <by> = <by_value> attribute <attribute> contains <value>")
 def assert_attribute_contains(by: str, by_value: str, attribute_param: str, value_param: str) -> None:
     attribute = substitute(attribute_param)
     value = substitute(value_param)
-    found_value = find_attribute(by, by_value, attribute)
-    assert found_value, _err_msg(f"element {by} = {by_value} has no attribute {attribute}")
-    assert value in found_value, _err_msg(f"attribute {attribute} in element {by} = {by_value} does not contain {value} - found: {found_value}")
+    def attribute_contains_value(_: Remote) -> bool:
+        found = find_attribute(by, by_value, attribute)
+        return isinstance(found, str) and value in found
+    try:
+        wait_until(attribute_contains_value)
+    except TimeoutException:
+        found_value = find_attribute(by, by_value, attribute, immediately=True)
+        if found_value is None:
+            msg = _err_msg(f"element {by} = {by_value} has no attribute {attribute}")
+        elif found_value is True:
+            msg = _err_msg(f"attribute {attribute} in element {by} = {by_value} is empty")
+        else:
+            msg = _err_msg(f"attribute {attribute} in element {by} = {by_value} does not contain {value} - found: {found_value}")
+        raise AssertionError(msg)
 
 
 @step("Assert <by> = <by_value> attribute <attribute> equals <value>")
 def assert_attribute_equals(by: str, by_value: str, attribute_param: str, value_param: str) -> None:
     attribute = substitute(attribute_param)
     value = substitute(value_param)
-    found_value = find_attribute(by, by_value, attribute)
-    assert found_value, _err_msg(f"element {by} = {by_value} has no attribute {attribute}")
-    assert value == found_value, _err_msg(f"attribute {attribute} in element {by} = {by_value} does not equal {value} - found: {found_value}")
+    try:
+        wait_until(lambda _: value == find_attribute(by, by_value, attribute))
+    except TimeoutException:
+        found_value = find_attribute(by, by_value, attribute, immediately=True)
+        if found_value is None:
+            msg = _err_msg(f"element {by} = {by_value} has no attribute {attribute}")
+        elif found_value is True:
+            msg = _err_msg(f"attribute {attribute} in element {by} = {by_value} is empty")
+        else:
+            msg = _err_msg(f"attribute {attribute} in element {by} = {by_value} does not equal {value} - found: {found_value}")
+        raise AssertionError(msg)
 
 
 @step("Assert <by> = <by_value> attribute <attribute> does not contain <value>")
 def assert_attribute_does_not_contain(by: str, by_value: str, attribute_param: str, value_param: str) -> None:
     attribute = substitute(attribute_param)
     value = substitute(value_param)
-    found_value = find_attribute(by, by_value, attribute)
-    if found_value:
-        assert value not in found_value, _err_msg(f"attribute {attribute} in element {by} = {by_value} contains {value} - found: {found_value}")
+    def attribute_does_not_contain_value(_: Remote) -> bool:
+        found = find_attribute(by, by_value, attribute)
+        return isinstance(found, str) and value not in found
+    try:
+        wait_until(attribute_does_not_contain_value)
+    except TimeoutException:
+        found_value = find_attribute(by, by_value, attribute, immediately=True)
+        raise AssertionError(_err_msg(f"attribute {attribute} in element {by} = {by_value} contains {value} - found: {found_value}"))
 
 
 @step("Assert <by> = <by_value> screenshot resembles <file> with SSIM more than <threshold>")
@@ -1030,7 +1117,6 @@ def assert_pages_resemble(image_file_name_param: str, threshold_param: str, page
             failed_asserts.append("screenshot {} does not exist".format(expected_screenshot_full_path))
         else:
             append_structured_similarity(failed_asserts, expected_screenshot_full_path, actual_screenshot_full_path, threshold)
-
     assert len(failed_asserts) == 0,\
             _err_msg("Assertions failed:\n\t{}".format("\n\t".join(failed_asserts)))
 
@@ -1060,6 +1146,38 @@ def report() -> Report:
 
 
 # Private methods -------------------------------------------
+
+def _init_opened_page(page) -> None:
+    for _ in range(max_attempts):
+        # Browsers sometimes open the page in the middle, when visited before
+        _page_ready()
+        if "#" not in page:
+            try:
+                driver().execute_script("window.scrollTo(0, 0);")
+                break
+            except JavascriptException:
+                # In case of a page redirect the window object can become invalid.
+                pass
+
+
+def _page_ready() -> None:
+    if config.is_app_test():
+        # cannot execute script in native apps
+        return
+    try:
+        wait_until(lambda driver: "complete" == driver.execute_script("return document.readyState"))
+    except TimeoutException:
+        # Some dynamic pages will never be ready
+        pass
+
+
+def _ready_for_interaction(element: WebElement) -> None:
+    try:
+        wait_until(EC.element_to_be_clickable(element))
+    except TimeoutException:
+        # best chance. But false negatives possible.
+        pass
+
 
 def _device_pixel_ratio() -> int:
     return int(driver().execute_script("return window.devicePixelRatio"))
