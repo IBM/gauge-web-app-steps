@@ -52,6 +52,7 @@ The following Gauge steps are implemented in this module:
   - [Move to \<by> = \<by_value>](#move-to-by--by_value)
   - [Move to and center \<by> = \<by_value>](#move-to-and-center-by--by_value)
   - [Move out](#move-out)
+  - [Move over \<by> = \<by_value>](#move-over-by--by_value)
   - [Hover over \<by> = \<by_value>](#hover-over-by--by_value)
   - [Show message in an error case \<error_message>](#show-message-in-an-error-case-error_message)
   - [Scroll \<by> = \<by_value> into view](#scroll-by--by_value-into-view)
@@ -886,6 +887,32 @@ Support
 |:-----:|:--------------:|:----------:|:--------------:|:----------:|
 |   ✔   |       ✔        |     ✔      |       ?        |     ?      |
 
+## Move over \<by> = \<by_value>
+
+> \* Move over "id" = "search-field"
+
+> \* Move over "xpath" = "//input[@type='text']"
+
+> \* Move over "link text" = "search link"
+
+> \* Move over "partial link text" = "search"
+
+> \* Move over "name" = "search-field-name"
+
+> \* Move over "tag name" = "input"
+
+> \* Move over "class name" = "search-class"
+
+> \* Move over "css selector" = "input.searchclass"
+
+Move the mouse over the specified element.
+
+Support
+
+|Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
+|:-----:|:--------------:|:----------:|:--------------:|:----------:|
+|   ✔   |       ?        |     ?      |       ?        |     ?      |
+
 ## Hover over \<by> = \<by_value>
 
 > \* Hover over "id" = "search-field"
@@ -904,7 +931,7 @@ Support
 
 > \* Hover over "css selector" = "input.searchclass"
 
-Hover over the specified element.
+Hover over the specified element. This step is a synonym for the [Move over \<by> = \<by_value>](#move-over-by--by_value) step.
 
 Support
 
