@@ -626,6 +626,22 @@ def move_into_view(by: str, by_value: str) -> None:
     except WebDriverException as e:
         # in some mobile browsers it fails
         report().log_debug(f"received exception while moving to {element}: {e}")
+    previous_offset = (-1, -1,)
+    def element_does_not_move(driver: Remote):
+        potentially_moving_element = find_element(by, by_value)
+        viewport_offset = driver.execute_script("return arguments[0].getBoundingClientRect();", potentially_moving_element)
+        print(f"Got offset: {viewport_offset}")
+        current_offset = (viewport_offset['top'], viewport_offset['left'])
+        nonlocal previous_offset
+        if previous_offset == current_offset:
+            return True
+        previous_offset = current_offset
+        return False
+    try:
+        wait_until(element_does_not_move)
+    except WebDriverException:
+        # Best effort approach
+        report().debug(f"element {element} still moving after scrolling into view")
 
 
 @step("Move to and center <by> = <by_value>")
