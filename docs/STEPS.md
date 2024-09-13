@@ -886,25 +886,25 @@ Support
 |:-----:|:--------------:|:----------:|:--------------:|:----------:|
 |   ✔   |       ✔        |     ✔      |       ?        |     ?      |
 
-## Hover over \<by> = \<by_value>
+## Move over \<by> = \<by_value>
 
-> \* Hover over "id" = "search-field"
+> \* Move over "id" = "search-field"
 
-> \* Hover over "xpath" = "//input[@type='text']"
+> \* Move over "xpath" = "//input[@type='text']"
 
-> \* Hover over "link text" = "search link"
+> \* Move over "link text" = "search link"
 
-> \* Hover over "partial link text" = "search"
+> \* Move over "partial link text" = "search"
 
-> \* Hover over "name" = "search-field-name"
+> \* Move over "name" = "search-field-name"
 
-> \* Hover over "tag name" = "input"
+> \* Move over "tag name" = "input"
 
-> \* Hover over "class name" = "search-class"
+> \* Move over "class name" = "search-class"
 
-> \* Hover over "css selector" = "input.searchclass"
+> \* Move over "css selector" = "input.searchclass"
 
-Hover over the specified element.
+Move the mouse over the specified element.
 
 Support
 

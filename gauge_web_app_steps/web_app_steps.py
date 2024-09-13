@@ -640,7 +640,7 @@ def move_out_of_view() -> None:
     ActionChains(driver()).move_to_element_with_offset(element, 0, 0).perform()
 
 
-@step("Hover over <by> = <by_value>")
+@step(["Move over <by> = <by_value>", "Hover over <by> = <by_value>"])
 def hover_over(by: str, by_value: str) -> None:
     element = find_element(by, by_value)
     ActionChains(driver()).move_to_element(element).perform()
