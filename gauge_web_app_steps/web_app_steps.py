@@ -12,7 +12,6 @@ import traceback
 import urllib
 from uuid import uuid4
 
-from dataclasses import dataclass
 from itertools import filterfalse
 from typing import Tuple
 from getgauge.python import data_store, step, before_spec, after_spec, screenshot, before_suite, after_suite, before_step, ExecutionContext
@@ -21,7 +20,6 @@ from selenium.webdriver import Remote
 from appium.webdriver import Remote as AppiumRemote
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.remote.webelement import WebElement
-from appium.webdriver.webelement import WebElement as AppiumElement
 from selenium.webdriver.support import expected_conditions as EC
 
 from .app_context import AppContext, app_context_key, timeout_key
@@ -628,14 +626,14 @@ def move_into_view(by: str, by_value: str) -> None:
     except WebDriverException as e:
         # in some mobile browsers it fails
         report().log_debug(f"received exception while moving to {element}: {e}")
-    _wait_for_idle_element(by, by_value)
+    wait_for_idle_element(by, by_value)
 
 
 @step("Move to and center <by> = <by_value>")
 def move_into_view_and_center(by: str, by_value: str) -> None:
     element = find_element(by, by_value)
     driver().execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'nearest'});", element)
-    _wait_for_idle_element(by, by_value)
+    wait_for_idle_element(by, by_value)
 
 
 @step("Move out")
@@ -1181,43 +1179,6 @@ def _ready_for_interaction(element: WebElement) -> None:
     except TimeoutException:
         # best chance. But false negatives possible.
         pass
-
-
-@dataclass
-class ViewportOffset:
-    """The position of the element's top left corner in the viewport."""
-    top: int
-    left: int
-
-
-def _offset(element: WebElement) -> ViewportOffset:
-    if isinstance(element, AppiumElement) and config.is_app_test():
-        elem: AppiumElement = element
-        location_in_view = elem.location_in_view
-        return ViewportOffset(round(location_in_view['y']), round(location_in_view['x']))
-    else:
-        viewport_offset = driver().execute_script("return arguments[0].getBoundingClientRect();", element)
-        return ViewportOffset(round(viewport_offset['top']), round(viewport_offset['left']))
-
-
-def _wait_for_idle_element(by: str, by_value: str):
-    element = find_element(by, by_value)
-    previous_offset = _offset(element)
-    def element_stable(_: Remote):
-        time.sleep(0.2)
-        potentially_moving_element = find_element(by, by_value)
-        current_offset = _offset(potentially_moving_element)
-        print(f"Got offset: {current_offset}")
-        nonlocal previous_offset
-        if previous_offset == current_offset:
-            return True
-        previous_offset = current_offset
-        return False
-    try:
-        wait_until(element_stable)
-    except TimeoutException:
-        # Best effort approach
-        report().debug(f"element {element} keeps moving after scrolling into view")
 
 
 def _device_pixel_ratio() -> int:

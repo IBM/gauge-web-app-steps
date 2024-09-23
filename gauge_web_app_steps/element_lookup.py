@@ -3,17 +3,22 @@
 # SPDX-License-Identifier: MIT
 #
 
+import time
+
+from appium.webdriver.webelement import WebElement as AppiumElement
+from dataclasses import dataclass
 from typing import Any, Callable, List, TypeVar
 from getgauge.python import data_store
 from selenium.webdriver import Remote
 from selenium.webdriver.common.by import By
-from selenium.common.exceptions import WebDriverException
+from selenium.common.exceptions import TimeoutException, WebDriverException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.remote.webelement import WebElement
 
-from .app_context import app_context_key, timeout_key
+from .app_context import AppContext, app_context_key, timeout_key
 from .bymapper import ByMapper
 from .config import common_config as config
+from .report import Report
 from .substitute import substitute
 
 
@@ -81,6 +86,33 @@ def find_attribute(by_param: str, by_value_param: str, attribute: str, immediate
         return wait_until(_element_attribute)
 
 
+@dataclass
+class ViewportOffset:
+    """The position of the element's top left corner in the viewport."""
+    top: int
+    left: int
+
+
+def wait_for_idle_element(by: str, by_value: str):
+    element = find_element(by, by_value)
+    previous_offset = _offset(element)
+    def element_stable(_: Remote):
+        time.sleep(0.2)
+        potentially_moving_element = find_element(by, by_value)
+        current_offset = _offset(potentially_moving_element)
+        print(f"Got offset: {current_offset}")
+        nonlocal previous_offset
+        if previous_offset == current_offset:
+            return True
+        previous_offset = current_offset
+        return False
+    try:
+        wait_until(element_stable)
+    except TimeoutException:
+        # Best effort approach
+        _report().debug(f"element {element} keeps moving after scrolling into view")
+
+
 def wait_until(condition: Callable[[Remote], T], message: str = "") -> T:
     timeout = data_store.scenario.get(timeout_key, config.get_implicit_timeout())
     return WebDriverWait(_driver(), timeout=timeout, poll_frequency=0.25, ignored_exceptions=[WebDriverException])\
@@ -95,5 +127,21 @@ def get_marker(by_string: str, by_value: str) -> tuple[str, str]:
     return mapped_by, by_value
 
 
+def _offset(element: WebElement) -> ViewportOffset:
+    if isinstance(element, AppiumElement) and config.is_app_test():
+        elem: AppiumElement = element
+        location_in_view = elem.location_in_view
+        return ViewportOffset(round(location_in_view['y']), round(location_in_view['x']))
+    else:
+        viewport_offset = _driver().execute_script("return arguments[0].getBoundingClientRect();", element)
+        return ViewportOffset(round(viewport_offset['top']), round(viewport_offset['left']))
+
+
 def _driver() -> Remote:
-    return data_store.spec[app_context_key].driver
+    app_ctx: AppContext = data_store.spec[app_context_key]
+    return app_ctx.driver
+
+
+def _report() -> Report:
+    app_ctx: AppContext = data_store.spec[app_context_key]
+    return app_ctx.report
