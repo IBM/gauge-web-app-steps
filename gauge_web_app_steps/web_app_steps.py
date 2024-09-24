@@ -25,7 +25,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from .app_context import AppContext, app_context_key, timeout_key
 from .config import common_config as config
 from .driver.browsers import Browser
-from .element_lookup import find_element, find_elements, find_attribute, get_text_from_element, get_marker, wait_until
+from .element_lookup import find_element, find_elements, find_attribute, get_text_from_element, get_marker, wait_until, wait_for_idle_element
 from .keymapper import KeyMapper
 from .report import Report
 from .sauce_tunnel import SauceTunnel
