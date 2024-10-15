@@ -25,7 +25,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from .app_context import AppContext, app_context_key, timeout_key
 from .config import common_config as config
 from .driver.browsers import Browser
-from .element_lookup import find_element, find_elements, find_attribute, get_text_from_element, get_marker, wait_until
+from .element_lookup import find_element, find_elements, find_attribute, get_text_from_element, get_marker, wait_until, wait_for_idle_element
 from .keymapper import KeyMapper
 from .report import Report
 from .sauce_tunnel import SauceTunnel
@@ -626,12 +626,14 @@ def move_into_view(by: str, by_value: str) -> None:
     except WebDriverException as e:
         # in some mobile browsers it fails
         report().log_debug(f"received exception while moving to {element}: {e}")
+    wait_for_idle_element(by, by_value)
 
 
 @step("Move to and center <by> = <by_value>")
 def move_into_view_and_center(by: str, by_value: str) -> None:
     element = find_element(by, by_value)
     driver().execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'nearest'});", element)
+    wait_for_idle_element(by, by_value)
 
 
 @step("Move out")
