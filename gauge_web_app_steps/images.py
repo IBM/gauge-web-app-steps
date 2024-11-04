@@ -162,7 +162,7 @@ class Images(object):
         )
         # skimage uses different internal representations for an image.
         # https://scikit-image.org/docs/dev/user_guide/data_types.html
-        # The rescale function return an image with a different data type, so we convert it back.
+        # The rescale function returns an image with a different data type, so we convert it back.
         return img_as_ubyte(img_rescaled)
 
     def _compute_rescale_ratio(
