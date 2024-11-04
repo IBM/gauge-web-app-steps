@@ -96,8 +96,11 @@ class Images(object):
         """
         img_expected = skimg_io.imread(expected_screenshot_full_path)
         img_actual_raw = skimg_io.imread(actual_screenshot_full_path)
-        channel_axis = self._channel_axis(img_actual_raw)
-        img_actual = self._rescale_image(img_actual_raw, img_expected, channel_axis)
+        img_actual = self._align_alpha_channel_of_actual_image(img_expected, img_actual_raw)
+        channel_axis = self._channel_axis(img_actual)
+        self.report.log_debug(f"actual channel_axis: {channel_axis}")
+        self.report.log_debug(f"expected channel_axis: {self._channel_axis(img_expected)}")
+        img_actual = self._rescale_image(img_actual, img_expected, channel_axis)
         img_actual = self._pad_image(img_actual, img_expected)
         if img_actual is not img_actual_raw:
             self.report.log_debug("Overwriting actual image after rescaling and padding")
@@ -113,6 +116,29 @@ class Images(object):
                                   diff_images, img_list)
         self.report.log_debug("SSIM: {}\n".format(ssim))
         return ssim
+
+    def _align_alpha_channel_of_actual_image(self, img_expected: np.ndarray, img_actual: np.ndarray) -> np.ndarray:
+        expected_has_alpha = self._img_has_alpha(img_expected)
+        actual_has_alpha = self._img_has_alpha(img_actual)
+        if expected_has_alpha and not actual_has_alpha:
+            self.report.log_debug("Adding alpha channel to actual image")
+            rgba = np.insert(
+                    img_actual,
+                    3, # index in the color array [r,g,b,a]. index 3 -> a.
+                    255, # value to insert at the index above: 255 is fully opaque
+                    axis=2, # 0: height, 1: width, 2: color
+            )
+            return rgba
+        elif not expected_has_alpha and actual_has_alpha:
+            self.report.log_debug("Removing alpha channel from actual image")
+            return skimg_color.rgba2rgb(img_actual)
+        else:
+            return img_actual
+
+    def _img_has_alpha(self, img: np.ndarray):
+        height, width, color = img.shape
+        # 4 bytes of color information indicates RGBa, 3 would be without.
+        return color == 4
 
     def _channel_axis(self, img):
         channel_axis = img.ndim - 1
@@ -171,7 +197,7 @@ class Images(object):
         self.report.log("screenshot needs padding to match expected image size. padding bottom: {}, padding right: {}" \
             .format(pad_bottom, pad_right))
         pad_top, pad_left, pad_colors = 0, 0, 0
-        red = (255, 0, 0, 255)
+        red = (255, 0, 0, 255) if self._img_has_alpha(img) else (255, 0, 0)
         padded = np.pad(
                 img,
                 ((pad_top, pad_bottom), (pad_left, pad_right), (pad_colors, pad_colors)),
@@ -224,7 +250,9 @@ class Images(object):
         The name of the color should be HTML compliant.
         """
         color = list(webcolors.name_to_rgb(color_name, 'html4'))
+        self.report.log_debug("Expected: tranform to RGB float")
         img_expected_rgb = self._transform_to_rgb_float(img_expected)
+        self.report.log_debug("Actual: tranform to RGB float")
         img_actual_rgb = self._transform_to_rgb_float(img_actual)
         img_diff = skimg_color.deltaE_cie76(img_expected_rgb, img_actual_rgb)  # Euclidean delta
         img_diff = skimg_color.gray2rgb(img_diff)
@@ -241,9 +269,11 @@ class Images(object):
         Each channel will range between 0.0 and 1.0.
         """
         black = [0, 0, 0]
-        if img.shape[2] == 4:  # has alpha
+        if self._img_has_alpha(img):
+            self.report.log("Image has Alpha")
             return skimg_color.rgba2rgb(img, background=black)
         else:
+            self.report.log("Image has no Alpha")
             return skimg_util.img_as_float(img)
 
     def _save_diff_image(
