@@ -101,7 +101,7 @@ class Images(object):
         self.report.log_debug(f"actual channel_axis: {channel_axis}")
         self.report.log_debug(f"expected channel_axis: {self._channel_axis(img_expected)}")
         img_actual = self._rescale_image(img_actual, img_expected, channel_axis)
-        img_actual = self._pad_image(img_actual, img_expected)
+        img_actual, img_expected = self._pad_images(img_actual, img_expected)
         if img_actual is not img_actual_raw:
             self.report.log_debug("Overwriting actual image after rescaling and padding")
             skimg_io.imsave(actual_screenshot_full_path, img_actual)
@@ -131,7 +131,8 @@ class Images(object):
             return rgba
         elif not expected_has_alpha and actual_has_alpha:
             self.report.log_debug("Removing alpha channel from actual image")
-            return skimg_color.rgba2rgb(img_actual)
+            img_rgb = skimg_color.rgba2rgb(img_actual)
+            return img_as_ubyte(img_rgb)
         else:
             return img_actual
 
@@ -182,7 +183,7 @@ class Images(object):
         width_ratio = 1.0 * reference_width / actual_width
         return height_ratio if height_ratio < width_ratio else width_ratio
 
-    def _pad_image(
+    def _pad_images(
             self,
             img,
             img_ref
@@ -190,21 +191,31 @@ class Images(object):
         pad_bottom = len(img_ref) - len(img)
         pad_right = len(img_ref[0]) - len(img[0])
         if pad_bottom == pad_right == 0:
-            return img
-        assert pad_bottom >= 0 and pad_right >= 0, \
-            "The actual picture overlaps the expected picture.\n" \
-            + "expected size: {}x{}, actual size: {}x{}".format(len(img_ref[0]), len(img_ref), len(img[0]), len(img))
-        self.report.log("screenshot needs padding to match expected image size. padding bottom: {}, padding right: {}" \
-            .format(pad_bottom, pad_right))
+            return img, img_ref
+        padded_ref_image = img_ref
+        padded_image = img
+        if pad_bottom < 0 or pad_right < 0:
+            ref_pad_bottom = -min(pad_bottom, 0)
+            ref_pad_right = -min(pad_right, 0)
+            self.report.log_debug(f"reference screenshot needs padding to match actual image size. padding bottom: {ref_pad_bottom}, padding right: {ref_pad_right}")
+            padded_ref_image = self._pad_image(img_ref, ref_pad_bottom, ref_pad_right)
+        if pad_bottom > 0 or pad_right > 0:
+            act_pad_bottom = max(pad_bottom, 0)
+            act_pad_right = max(pad_right, 0)
+            self.report.log(f"screenshot needs padding to match expected image size. padding bottom: {act_pad_bottom}, padding right: {act_pad_right}")
+            padded_image = self._pad_image(img, act_pad_bottom, act_pad_right)
+        return padded_image, padded_ref_image
+
+    def _pad_image(self, img: np.ndarray, pad_bottom: int, pad_right: int) -> np.ndarray:
         pad_top, pad_left, pad_colors = 0, 0, 0
         red = (255, 0, 0, 255) if self._img_has_alpha(img) else (255, 0, 0)
-        padded = np.pad(
-                img,
-                ((pad_top, pad_bottom), (pad_left, pad_right), (pad_colors, pad_colors)),
-                "constant",
+        # This will fail with numpy>1.22
+        return np.pad(
+                array=img,
+                pad_width=((pad_top, pad_bottom), (pad_left, pad_right), (pad_colors, pad_colors)),
+                mode="constant",
                 constant_values=[(red, red), (red, red), (0, 0)]
         )
-        return padded
 
     def _compute_ssim_and_diff(
             self,

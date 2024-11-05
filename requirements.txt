@@ -1,6 +1,8 @@
 Appium-Python-Client==4.0.1
 getgauge>=0.4.2
 numexpr==2.10.1
+# newer numpy versions have changed the way images are padded.
+numpy==1.22.0
 scikit-image==0.24.0
 selenium==4.23.0
 webcolors==24.6.0
