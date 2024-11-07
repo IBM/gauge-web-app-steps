@@ -187,7 +187,7 @@ class Images(object):
             self,
             img,
             img_ref
-    ):
+    ) -> tuple[np.ndarray, np.ndarray]:
         pad_bottom = len(img_ref) - len(img)
         pad_right = len(img_ref[0]) - len(img[0])
         if pad_bottom == pad_right == 0:

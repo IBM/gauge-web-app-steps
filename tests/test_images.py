@@ -3,10 +3,12 @@
 # SPDX-License-Identifier: MIT
 #
 
+import numpy as np
 import os
 import shutil
 import unittest
-from skimage import io
+from numpy import uint8
+from skimage import img_as_ubyte, io
 from unittest.mock import MagicMock
 from parameterized import parameterized
 
@@ -83,7 +85,7 @@ class TestImages(unittest.TestCase):
         self.assertGreater(ssim, 0.9)
         self.assertLess(ssim, 1)
         self.assertTrue(os.path.exists(mergefile))
-        diff_file = os.path.join(self.diffs_dir, f"actual_rgba_green.png")
+        diff_file = os.path.join(self.diffs_dir, "actual_rgba_green.png")
         self.assertFalse(os.path.exists(diff_file))
 
     def test_crop_image_file(self):
@@ -94,6 +96,32 @@ class TestImages(unittest.TestCase):
             pixel_ratio=2, viewport_offset=10)
         img = io.imread(file)
         self.assertEqual((40, 40, 4), img.shape)
+
+    def test__pad_images__pad_actual(self):
+        img_actual = self._create_img(3, 3)
+        img_expected = self._create_img(4, 4)
+        img_actual_padded, img_expected_padded = self.test_instance._pad_images(img_actual, img_expected)
+        self.assertTrue(img_expected is img_expected_padded)
+        self.assertTupleEqual((4, 4, 4), img_actual_padded.shape)
+        padded_color = img_actual_padded[3][3]
+        expected_color = [255, 0, 0, 255]
+        self.assertListEqual(expected_color, padded_color.tolist())
+
+    def test__pad_images__pad_expected(self):
+        img_actual = self._create_img(4, 4)
+        img_expected = self._create_img(3, 3)
+        img_actual_padded, img_expected_padded = self.test_instance._pad_images(img_actual, img_expected)
+        self.assertTrue(img_actual is img_actual_padded)
+        self.assertTupleEqual((4, 4, 4), img_expected_padded.shape)
+        padded_color = img_expected_padded[3][3]
+        expected_color = [255, 0, 0, 255]
+        self.assertListEqual(expected_color, padded_color.tolist())
+
+    def _create_img(self, width: int, height: int) -> np.ndarray:
+        color = [215, 215, 215, 255]
+        width = [color for _ in range(width)]
+        img = np.array([width for _ in range(height)], dtype=uint8)
+        return img_as_ubyte(img)
 
     def _prepare_crop_image(self):
         # copy a test resource there for further operations

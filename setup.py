@@ -21,9 +21,9 @@ setup(
     install_requires=[
         'Appium-Python-Client==4.0.1',
         'getgauge>=0.4.2',
-        'numexpr==2.10.1',
-        'numpy==1.22.0'
-        'scikit-image==0.24.0',
+        'numexpr==2.10.0',
+        'numpy==1.22.0',
+        'scikit-image==0.22.0',
         'selenium==4.23.0',
         'webcolors==24.6.0',
         'webdriver-manager==4.0.1',
