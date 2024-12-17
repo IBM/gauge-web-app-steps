@@ -11,3 +11,6 @@ gauge_web_app_steps.egg-info/
 *.log
 tests/out/
 *.orig
+/bin
+/lib
+/pyvenv.cfg
