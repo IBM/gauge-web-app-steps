@@ -10,6 +10,7 @@ import webcolors
 
 from webcolors import HTML4
 from warnings import warn
+from skimage import img_as_ubyte
 from skimage import color as skimg_color
 from skimage import exposure as skimg_exposure
 from skimage import io as skimg_io
@@ -132,7 +133,7 @@ class Images(object):
         elif not expected_has_alpha and actual_has_alpha:
             self.report.log_debug("Removing alpha channel from actual image")
             img_rgb = skimg_color.rgba2rgb(img_actual)
-            return img_rgb.astype(np.ubyte)
+            return img_as_ubyte(img_rgb)
         else:
             return img_actual
 
@@ -164,7 +165,7 @@ class Images(object):
         # skimage uses different internal representations for an image.
         # https://scikit-image.org/docs/dev/user_guide/data_types.html
         # The rescale function returns an image with a different data type, so we convert it back.
-        return img_rescaled.astype(np.ubyte)
+        return img_as_ubyte(img_rescaled)
 
     def _compute_rescale_ratio(
             self,
@@ -209,12 +210,12 @@ class Images(object):
     def _pad_image(self, img: np.ndarray, pad_bottom: int, pad_right: int) -> np.ndarray:
         height, width, color = img.shape
         red = [255, 0, 0, 255] if self._img_has_alpha(img) else [255, 0, 0]
-        red = np.array(red, dtype=np.ubyte)
-        right_pad_img = np.zeros((height, pad_right, color), np.ubyte) + red
-        padded = np.concatenate((img, right_pad_img), axis=1, dtype=np.ubyte)
-        bottom_pad_img = np.zeros((pad_bottom, width + pad_right, color), np.uint8) + red
-        padded = np.concatenate((padded, bottom_pad_img), axis=0, dtype=np.ubyte)
-        return padded
+        red = np.array(red)
+        right_pad_img = np.zeros((height, pad_right, color), dtype=np.ubyte) + red
+        padded = np.concatenate((img, right_pad_img), axis=1)
+        bottom_pad_img = np.zeros((pad_bottom, width + pad_right, color), dtype=np.ubyte) + red
+        padded = np.concatenate((padded, bottom_pad_img), axis=0)
+        return img_as_ubyte(padded)
 
     def _compute_ssim_and_diff(
             self,
@@ -318,7 +319,8 @@ class Images(object):
         if len(img_list) > 1:
             diff_path = self._create_target_filename(path, "merged")
             reshaped = [self._transform_to_rgb_float(i) for i in img_list]
-            merged = np.concatenate(reshaped, axis=1, dtype=np.ubyte)
+            merged = np.concatenate(reshaped, axis=1)
+            merged = img_as_ubyte(merged)
             skimg_io.imsave(diff_path, merged, check_contrast=False)
             self.report.log_image(diff_path, f"Created merged diff for {expected_screenshot_full_path}")
 
