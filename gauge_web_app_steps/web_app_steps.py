@@ -14,7 +14,7 @@ from uuid import uuid4
 
 from itertools import filterfalse
 from typing import Tuple
-from getgauge.python import data_store, step, before_spec, after_spec, screenshot, before_suite, after_suite, before_step, ExecutionContext
+from getgauge.python import data_store, step, before_spec, after_spec, custom_screenshot_writer, before_suite, after_suite, before_step, ExecutionContext
 from selenium.common.exceptions import JavascriptException, NoSuchWindowException, TimeoutException, WebDriverException
 from selenium.webdriver import Remote
 from appium.webdriver import Remote as AppiumRemote
@@ -84,7 +84,7 @@ def after_spec_hook() -> None:
     try:
         app_ctx: AppContext = data_store.spec.get(app_context_key)
         if app_ctx is not None and app_ctx.driver is not None:
-            print("closing driver")
+            app_ctx.report.log_debug("closing driver")
             app_ctx.driver.quit()
     except BaseException as e:
         # Gauge swallows some exceptions, so they are handled here
@@ -105,25 +105,18 @@ def before_step_hook(exe_ctx:  ExecutionContext) -> None:
     warn_using_deprecated_step(step_text, (r'Assert (".*?") = (".*?") is invisible', "Assert <by> = <by_value> does not exist",))
 
 
-@screenshot
-def take_screenshot_on_failure() -> bytes:
-    """
-    Currently there is some bug, that does not allow the screenshot to be displayed right next
-    to the Error message as intended by the gauge framework (corrupt file format in base64).
-    That is why the picture is saved and linked into the report with the Messages.write_message way.
-    """
+@custom_screenshot_writer
+def take_screenshot_on_failure() -> str:
     if driver() is None:
         # Error before driver initialization
-        return b''
+        return None
     try:
         screenshot_file_path = create_failure_screenshot()
         report().log_image(screenshot_file_path, "Step Failure Screenshot")
-        with open(screenshot_file_path, "rb") as sf:
-            file_bin = sf.read()
-        return base64.b64encode(file_bin)  # is not displayed correctly
+        return screenshot_file_path
     except Exception as e:
         report().log(str(e))
-        return b''
+        return None
 
 
 # Steps -------------------------------------------

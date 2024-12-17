@@ -8,8 +8,8 @@ import re
 import numpy as np
 import webcolors
 
+from webcolors import HTML4
 from warnings import warn
-from skimage import img_as_ubyte
 from skimage import color as skimg_color
 from skimage import exposure as skimg_exposure
 from skimage import io as skimg_io
@@ -52,7 +52,7 @@ class Images(object):
         """
         img = skimg_io.imread(screenshot_file_path)
         img = self._crop_image(img, location, size, pixel_ratio, viewport_offset)
-        skimg_io.imsave(screenshot_file_path, img)
+        skimg_io.imsave(screenshot_file_path, img, check_contrast=False)
         self.report.log_image_info("screenshot {}".format(screenshot_file_path), img)
 
     def _crop_image(
@@ -104,7 +104,7 @@ class Images(object):
         img_actual, img_expected = self._pad_images(img_actual, img_expected)
         if img_actual is not img_actual_raw:
             self.report.log_debug("Overwriting actual image after rescaling and padding")
-            skimg_io.imsave(actual_screenshot_full_path, img_actual)
+            skimg_io.imsave(actual_screenshot_full_path, img_actual, check_contrast=False)
         self.report.log_image_info("actual", img_actual)
         self.report.log_image_info("expected", img_expected)
         img_list = []
@@ -132,7 +132,7 @@ class Images(object):
         elif not expected_has_alpha and actual_has_alpha:
             self.report.log_debug("Removing alpha channel from actual image")
             img_rgb = skimg_color.rgba2rgb(img_actual)
-            return img_as_ubyte(img_rgb)
+            return img_rgb.astype(np.ubyte)
         else:
             return img_actual
 
@@ -164,7 +164,7 @@ class Images(object):
         # skimage uses different internal representations for an image.
         # https://scikit-image.org/docs/dev/user_guide/data_types.html
         # The rescale function returns an image with a different data type, so we convert it back.
-        return img_as_ubyte(img_rescaled)
+        return img_rescaled.astype(np.ubyte)
 
     def _compute_rescale_ratio(
             self,
@@ -207,15 +207,14 @@ class Images(object):
         return padded_image, padded_ref_image
 
     def _pad_image(self, img: np.ndarray, pad_bottom: int, pad_right: int) -> np.ndarray:
-        pad_top, pad_left, pad_colors = 0, 0, 0
-        red = (255, 0, 0, 255) if self._img_has_alpha(img) else (255, 0, 0)
-        # This will fail with numpy>1.22
-        return np.pad(
-                array=img,
-                pad_width=((pad_top, pad_bottom), (pad_left, pad_right), (pad_colors, pad_colors)),
-                mode="constant",
-                constant_values=[(red, red), (red, red), (0, 0)]
-        )
+        height, width, color = img.shape
+        red = [255, 0, 0, 255] if self._img_has_alpha(img) else [255, 0, 0]
+        red = np.array(red, dtype=np.ubyte)
+        right_pad_img = np.zeros((height, pad_right, color), np.ubyte) + red
+        padded = np.concatenate((img, right_pad_img), axis=1, dtype=np.ubyte)
+        bottom_pad_img = np.zeros((pad_bottom, width + pad_right, color), np.uint8) + red
+        padded = np.concatenate((padded, bottom_pad_img), axis=0, dtype=np.ubyte)
+        return padded
 
     def _compute_ssim_and_diff(
             self,
@@ -260,7 +259,7 @@ class Images(object):
         The diff will show any color differences by highlighting with the given color and reducing other colors.
         The name of the color should be HTML compliant.
         """
-        color = list(webcolors.name_to_rgb(color_name, 'html4'))
+        color = list(webcolors.name_to_rgb(color_name, HTML4))
         self.report.log_debug("Expected: tranform to RGB float")
         img_expected_rgb = self._transform_to_rgb_float(img_expected)
         self.report.log_debug("Actual: tranform to RGB float")
@@ -281,7 +280,7 @@ class Images(object):
         """
         black = [0, 0, 0]
         if self._img_has_alpha(img):
-            self.report.log("Image has Alpha")
+            self.report.log_debug("Image has Alpha")
             return skimg_color.rgba2rgb(img, background=black)
         else:
             self.report.log("Image has no Alpha")
@@ -303,7 +302,7 @@ class Images(object):
             else:
                 # save diff images immediately
                 diff_path = self._create_target_filename(path, diff_format)
-                skimg_io.imsave(diff_path, diff_img)
+                skimg_io.imsave(diff_path, diff_img, check_contrast=False)
                 self.report.log_image(diff_path, f"Created {diff_format} diff for {expected_screenshot_full_path}")
         self._create_horizontal_aligned_diff(expected_screenshot_full_path, path, img_list)
 
@@ -319,9 +318,8 @@ class Images(object):
         if len(img_list) > 1:
             diff_path = self._create_target_filename(path, "merged")
             reshaped = [self._transform_to_rgb_float(i) for i in img_list]
-            merged = np.concatenate(reshaped, axis=1)
-            merged = img_as_ubyte(merged)
-            skimg_io.imsave(diff_path, merged)
+            merged = np.concatenate(reshaped, axis=1, dtype=np.ubyte)
+            skimg_io.imsave(diff_path, merged, check_contrast=False)
             self.report.log_image(diff_path, f"Created merged diff for {expected_screenshot_full_path}")
 
     def _determine_target_path(
