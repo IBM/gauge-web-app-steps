@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: MIT
 #
 
-from appium.webdriver.webelement import AppiumBy
+from appium.webdriver.common.appiumby import AppiumBy
 from selenium.webdriver.common.by import By
 
 
