@@ -210,12 +210,12 @@ class Images(object):
     def _pad_image(self, img: np.ndarray, pad_bottom: int, pad_right: int) -> np.ndarray:
         height, width, color = img.shape
         red = [255, 0, 0, 255] if self._img_has_alpha(img) else [255, 0, 0]
-        red = np.array(red)
-        right_pad_img = np.zeros((height, pad_right, color), dtype=np.ubyte) + red
-        padded = np.concatenate((img, right_pad_img), axis=1)
-        bottom_pad_img = np.zeros((pad_bottom, width + pad_right, color), dtype=np.ubyte) + red
-        padded = np.concatenate((padded, bottom_pad_img), axis=0)
-        return img_as_ubyte(padded)
+        red = np.array(red, dtype=np.uint8)
+        right_pad_img = np.zeros((height, pad_right, color), dtype=np.uint8) + red
+        padded = np.concatenate((img, right_pad_img), axis=1, dtype=np.uint8)
+        bottom_pad_img = np.zeros((pad_bottom, width + pad_right, color), dtype=np.uint8) + red
+        padded = np.concatenate((padded, bottom_pad_img), axis=0, dtype=np.uint8)
+        return padded
 
     def _compute_ssim_and_diff(
             self,
