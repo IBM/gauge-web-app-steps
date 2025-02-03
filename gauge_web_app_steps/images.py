@@ -142,7 +142,7 @@ class Images(object):
         # 4 bytes of color information indicates RGBa, 3 would be without.
         return color == 4
 
-    def _channel_axis(self, img):
+    def _channel_axis(self, img: np.ndarray):
         channel_axis = img.ndim - 1
         return channel_axis  # 2 dimensions: b/w, 3: color
 
@@ -198,7 +198,7 @@ class Images(object):
         if pad_bottom < 0 or pad_right < 0:
             ref_pad_bottom = -min(pad_bottom, 0)
             ref_pad_right = -min(pad_right, 0)
-            self.report.log_debug(f"reference screenshot needs padding to match actual image size. padding bottom: {ref_pad_bottom}, padding right: {ref_pad_right}")
+            self.report.log(f"reference screenshot needs padding to match actual image size. padding bottom: {ref_pad_bottom}, padding right: {ref_pad_right}")
             padded_ref_image = self._pad_image(img_ref, ref_pad_bottom, ref_pad_right)
         if pad_bottom > 0 or pad_right > 0:
             act_pad_bottom = max(pad_bottom, 0)
@@ -228,17 +228,17 @@ class Images(object):
         self.report.log_debug(f"using {diff_formats} to compare images")
         diff_images = {}
         if "gradient" in diff_formats and "full" in diff_formats:
-            ssim, gradient, full = compare_ssim(img_actual, img_expected, channel_axis=channel_axis, gradient=True, full=True)
-            diff_images["gradient"] = gradient.astype(np.uint8)
-            diff_images["full"] = full.astype(np.uint8)
+            ssim, gradient, full = compare_ssim(img_actual, img_expected, channel_axis=channel_axis, gradient=True, full=True, data_range=255)
+            diff_images["gradient"] = self._ssim_img_to_ubyte(gradient)
+            diff_images["full"] = self._ssim_img_to_ubyte(full)
         elif "gradient" in diff_formats:
-            ssim, gradient = compare_ssim(img_actual, img_expected, channel_axis=channel_axis, gradient=True)
-            diff_images["gradient"] = gradient.astype(np.uint8)
+            ssim, gradient = compare_ssim(img_actual, img_expected, channel_axis=channel_axis, gradient=True, data_range=255)
+            diff_images["gradient"] = self._ssim_img_to_ubyte(gradient)
         elif "full" in diff_formats:
-            ssim, full = compare_ssim(img_actual, img_expected, channel_axis=channel_axis, full=True)
-            diff_images["full"] = full.astype(np.uint8)
+            ssim, full = compare_ssim(img_actual, img_expected, channel_axis=channel_axis, full=True, data_range=255)
+            diff_images["full"] = self._ssim_img_to_ubyte(full)
         if ssim is None:
-            ssim = compare_ssim(img_actual, img_expected, channel_axis=channel_axis)
+            ssim = compare_ssim(img_actual, img_expected, channel_axis=channel_axis, data_range=255)
         if ssim < 1.0 and "red" in diff_formats:
             warn("The diff_format 'red' is deprecated. please use a key value pair: 'color=red'", DeprecationWarning)
             red = self._diff_images_color(img_expected, img_actual, "red")
@@ -248,6 +248,12 @@ class Images(object):
             colored = self._diff_images_color(img_expected, img_actual, color_name)
             diff_images[color_name] = colored
         return ssim, diff_images
+
+    def _ssim_img_to_ubyte(self, img: np.ndarray) -> np.ndarray:
+        """ the returned image of *compare_ssim* has a weird format and must be converted back to uint8. """
+        img = img * 0.5
+        img = img.clip(min=-1.0, max=1.0)
+        return img_as_ubyte(img)
 
     def _diff_images_color(
             self,
@@ -271,7 +277,7 @@ class Images(object):
         img_diff = img_expected_rgb + img_diff
         # Normalize the max pixel value, simultaneously graying out the parts of the original image.
         # then transform to 8bit colors
-        img_diff = skimg_exposure.rescale_intensity(img_diff, in_range=(0., 4.), out_range=(0, 255))
+        img_diff = skimg_exposure.rescale_intensity(img_diff, in_range=(0., 2.), out_range=(0, 255))
         return img_diff.astype(np.uint8)
 
     def _transform_to_rgb_float(self, img):
@@ -284,7 +290,7 @@ class Images(object):
             self.report.log_debug("Image has Alpha")
             return skimg_color.rgba2rgb(img, background=black)
         else:
-            self.report.log("Image has no Alpha")
+            self.report.log_debug("Image has no Alpha")
             return skimg_util.img_as_float(img)
 
     def _save_diff_image(

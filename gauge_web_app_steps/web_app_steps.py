@@ -112,7 +112,7 @@ def take_screenshot_on_failure() -> str:
         return None
     try:
         screenshot_file_path = create_failure_screenshot()
-        report().log_image(screenshot_file_path, "Step Failure Screenshot")
+        #report().log_image(screenshot_file_path, "Step Failure Screenshot")
         return screenshot_file_path
     except Exception as e:
         report().log(str(e))
