@@ -1,7 +1,7 @@
 # gauge-web-app-steps
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENCE)
-[![Python 3.10](https://img.shields.io/badge/Python-3.10-blue.svg?logo=python&logoColor=white)](https://www.python.org/downloads/release/python-31012/)
+[![Python 3.13](https://img.shields.io/badge/Python-3.13-blue.svg?logo=python&logoColor=white)](https://www.python.org/downloads/release/python-3130/)
 [![Selenium](https://img.shields.io/badge/-Selenium-blue?logo=selenium&logoColor=white)](https://github.com/SeleniumHQ)
 [![Appium](https://img.shields.io/badge/-Appium-blue)](https://github.com/appium)
 [![Gauge](https://img.shields.io/badge/Framework-Gauge-blue)](https://github.com/getgauge)
@@ -25,27 +25,40 @@ Find the documentation on all Gauge steps of this project in the overview:
 
 This is a library for the Gauge framework, so Gauge+Python must be installed first.
 
-* Install Python >= 3.10 on your platform and make it available in the \$PATH
+* Install Python >= 3.13 on your platform and make it available in the \$PATH
 * Install [Gauge](https://docs.gauge.org/getting_started/installing-gauge.html?language=python&ide=vscode) and [create a test project with Python](https://docs.gauge.org/getting_started/create-test-project.html?os=macos&language=python&ide=vscode)
 
 It is useful to understand the basic workings of Gauge first. The [documentation](https://docs.gauge.org/?os=macos&language=python&ide=vscode) is excellent.
 
 * Install [this module](#installation)
 * Find out the path to this module after installation:
-  ```shell
-  echo $( python -m site --user-site )/gauge_web_app_steps
-  ```
+  It should be in `<project>/<venv>/lib/python/site-packages/gauge-web-app-steps`
 * Add that path to the property `STEP_IMPL_DIR` inside the test project file `env/default/python.properties`. Paths to multiple modules are comma separated.\
   Example on a Mac:
   ```
-  STEP_IMPL_DIR = /Users/<user>/Library/Python/3.10/lib/python/site-packages/gauge_web_app_steps, step_impl
+  STEP_IMPL_DIR = /Users/<user>/gauge-project/venv/lib/python/site-packages/gauge_web_app_steps, step_impl
   ```
 * Reload Visual Studio Code
 * Write a new scenario in `specs/example.spec`. VSC offers **auto-completion**
 
 ## Installation
 
-This module can be installed from source:
+First, create a virtual environment in your Gauge project directory.
+
+```shell
+cd <project>
+python -m venv <venvname>
+source <venvname>/bin/activate
+```
+
+The Gauge module loader does not like dots `.` in directories, so a link must be created in the virtual environment for the python packages:
+
+```shell
+cd <project>/<venvname>
+ln -sf python3.13 python
+```
+
+Afterwards, this module can be installed from source:
 
 ```shell
 cd path/to/gauge-web-app-steps
@@ -63,7 +76,6 @@ pip install gauge-web-app-steps --user --upgrade
 When coding on this project, unit tests can be executed like this:
 
 ```shell
-
 TEST_SKIP_IT=1 python -m unittest discover -v -s tests/ -p 'test_*.py'
 ```
 

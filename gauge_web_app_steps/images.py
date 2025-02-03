@@ -8,6 +8,7 @@ import re
 import numpy as np
 import webcolors
 
+from webcolors import HTML4
 from warnings import warn
 from skimage import img_as_ubyte
 from skimage import color as skimg_color
@@ -52,7 +53,7 @@ class Images(object):
         """
         img = skimg_io.imread(screenshot_file_path)
         img = self._crop_image(img, location, size, pixel_ratio, viewport_offset)
-        skimg_io.imsave(screenshot_file_path, img)
+        skimg_io.imsave(screenshot_file_path, img, check_contrast=False)
         self.report.log_image_info("screenshot {}".format(screenshot_file_path), img)
 
     def _crop_image(
@@ -104,7 +105,7 @@ class Images(object):
         img_actual, img_expected = self._pad_images(img_actual, img_expected)
         if img_actual is not img_actual_raw:
             self.report.log_debug("Overwriting actual image after rescaling and padding")
-            skimg_io.imsave(actual_screenshot_full_path, img_actual)
+            skimg_io.imsave(actual_screenshot_full_path, img_actual, check_contrast=False)
         self.report.log_image_info("actual", img_actual)
         self.report.log_image_info("expected", img_expected)
         img_list = []
@@ -141,7 +142,7 @@ class Images(object):
         # 4 bytes of color information indicates RGBa, 3 would be without.
         return color == 4
 
-    def _channel_axis(self, img):
+    def _channel_axis(self, img: np.ndarray):
         channel_axis = img.ndim - 1
         return channel_axis  # 2 dimensions: b/w, 3: color
 
@@ -197,7 +198,7 @@ class Images(object):
         if pad_bottom < 0 or pad_right < 0:
             ref_pad_bottom = -min(pad_bottom, 0)
             ref_pad_right = -min(pad_right, 0)
-            self.report.log_debug(f"reference screenshot needs padding to match actual image size. padding bottom: {ref_pad_bottom}, padding right: {ref_pad_right}")
+            self.report.log(f"reference screenshot needs padding to match actual image size. padding bottom: {ref_pad_bottom}, padding right: {ref_pad_right}")
             padded_ref_image = self._pad_image(img_ref, ref_pad_bottom, ref_pad_right)
         if pad_bottom > 0 or pad_right > 0:
             act_pad_bottom = max(pad_bottom, 0)
@@ -207,15 +208,14 @@ class Images(object):
         return padded_image, padded_ref_image
 
     def _pad_image(self, img: np.ndarray, pad_bottom: int, pad_right: int) -> np.ndarray:
-        pad_top, pad_left, pad_colors = 0, 0, 0
-        red = (255, 0, 0, 255) if self._img_has_alpha(img) else (255, 0, 0)
-        # This will fail with numpy>1.22
-        return np.pad(
-                array=img,
-                pad_width=((pad_top, pad_bottom), (pad_left, pad_right), (pad_colors, pad_colors)),
-                mode="constant",
-                constant_values=[(red, red), (red, red), (0, 0)]
-        )
+        height, width, color = img.shape
+        red = [255, 0, 0, 255] if self._img_has_alpha(img) else [255, 0, 0]
+        red = np.array(red, dtype=np.uint8)
+        right_pad_img = np.zeros((height, pad_right, color), dtype=np.uint8) + red
+        padded = np.concatenate((img, right_pad_img), axis=1, dtype=np.uint8)
+        bottom_pad_img = np.zeros((pad_bottom, width + pad_right, color), dtype=np.uint8) + red
+        padded = np.concatenate((padded, bottom_pad_img), axis=0, dtype=np.uint8)
+        return padded
 
     def _compute_ssim_and_diff(
             self,
@@ -228,17 +228,17 @@ class Images(object):
         self.report.log_debug(f"using {diff_formats} to compare images")
         diff_images = {}
         if "gradient" in diff_formats and "full" in diff_formats:
-            ssim, gradient, full = compare_ssim(img_actual, img_expected, channel_axis=channel_axis, gradient=True, full=True)
-            diff_images["gradient"] = gradient.astype(np.uint8)
-            diff_images["full"] = full.astype(np.uint8)
+            ssim, gradient, full = compare_ssim(img_actual, img_expected, channel_axis=channel_axis, gradient=True, full=True, data_range=255)
+            diff_images["gradient"] = self._ssim_img_to_ubyte(gradient)
+            diff_images["full"] = self._ssim_img_to_ubyte(full)
         elif "gradient" in diff_formats:
-            ssim, gradient = compare_ssim(img_actual, img_expected, channel_axis=channel_axis, gradient=True)
-            diff_images["gradient"] = gradient.astype(np.uint8)
+            ssim, gradient = compare_ssim(img_actual, img_expected, channel_axis=channel_axis, gradient=True, data_range=255)
+            diff_images["gradient"] = self._ssim_img_to_ubyte(gradient)
         elif "full" in diff_formats:
-            ssim, full = compare_ssim(img_actual, img_expected, channel_axis=channel_axis, full=True)
-            diff_images["full"] = full.astype(np.uint8)
+            ssim, full = compare_ssim(img_actual, img_expected, channel_axis=channel_axis, full=True, data_range=255)
+            diff_images["full"] = self._ssim_img_to_ubyte(full)
         if ssim is None:
-            ssim = compare_ssim(img_actual, img_expected, channel_axis=channel_axis)
+            ssim = compare_ssim(img_actual, img_expected, channel_axis=channel_axis, data_range=255)
         if ssim < 1.0 and "red" in diff_formats:
             warn("The diff_format 'red' is deprecated. please use a key value pair: 'color=red'", DeprecationWarning)
             red = self._diff_images_color(img_expected, img_actual, "red")
@@ -248,6 +248,12 @@ class Images(object):
             colored = self._diff_images_color(img_expected, img_actual, color_name)
             diff_images[color_name] = colored
         return ssim, diff_images
+
+    def _ssim_img_to_ubyte(self, img: np.ndarray) -> np.ndarray:
+        """ the returned image of *compare_ssim* has a weird format and must be converted back to uint8. """
+        img = img * 0.5
+        img = img.clip(min=-1.0, max=1.0)
+        return img_as_ubyte(img)
 
     def _diff_images_color(
             self,
@@ -260,7 +266,7 @@ class Images(object):
         The diff will show any color differences by highlighting with the given color and reducing other colors.
         The name of the color should be HTML compliant.
         """
-        color = list(webcolors.name_to_rgb(color_name, 'html4'))
+        color = list(webcolors.name_to_rgb(color_name, HTML4))
         self.report.log_debug("Expected: tranform to RGB float")
         img_expected_rgb = self._transform_to_rgb_float(img_expected)
         self.report.log_debug("Actual: tranform to RGB float")
@@ -271,7 +277,7 @@ class Images(object):
         img_diff = img_expected_rgb + img_diff
         # Normalize the max pixel value, simultaneously graying out the parts of the original image.
         # then transform to 8bit colors
-        img_diff = skimg_exposure.rescale_intensity(img_diff, in_range=(0., 4.), out_range=(0, 255))
+        img_diff = skimg_exposure.rescale_intensity(img_diff, in_range=(0., 2.), out_range=(0, 255))
         return img_diff.astype(np.uint8)
 
     def _transform_to_rgb_float(self, img):
@@ -281,10 +287,10 @@ class Images(object):
         """
         black = [0, 0, 0]
         if self._img_has_alpha(img):
-            self.report.log("Image has Alpha")
+            self.report.log_debug("Image has Alpha")
             return skimg_color.rgba2rgb(img, background=black)
         else:
-            self.report.log("Image has no Alpha")
+            self.report.log_debug("Image has no Alpha")
             return skimg_util.img_as_float(img)
 
     def _save_diff_image(
@@ -303,7 +309,7 @@ class Images(object):
             else:
                 # save diff images immediately
                 diff_path = self._create_target_filename(path, diff_format)
-                skimg_io.imsave(diff_path, diff_img)
+                skimg_io.imsave(diff_path, diff_img, check_contrast=False)
                 self.report.log_image(diff_path, f"Created {diff_format} diff for {expected_screenshot_full_path}")
         self._create_horizontal_aligned_diff(expected_screenshot_full_path, path, img_list)
 
@@ -321,7 +327,7 @@ class Images(object):
             reshaped = [self._transform_to_rgb_float(i) for i in img_list]
             merged = np.concatenate(reshaped, axis=1)
             merged = img_as_ubyte(merged)
-            skimg_io.imsave(diff_path, merged)
+            skimg_io.imsave(diff_path, merged, check_contrast=False)
             self.report.log_image(diff_path, f"Created merged diff for {expected_screenshot_full_path}")
 
     def _determine_target_path(

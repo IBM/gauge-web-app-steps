@@ -110,7 +110,7 @@ def wait_for_idle_element(by: str, by_value: str):
         wait_until(element_stable)
     except TimeoutException:
         # Best effort approach
-        _report().debug(f"element {element} keeps moving after scrolling into view")
+        _report().log_debug(f"element {element} keeps moving after scrolling into view")
 
 
 def wait_until(condition: Callable[[Remote], T], message: str = "") -> T:
