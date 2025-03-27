@@ -98,7 +98,8 @@ def _scroll() -> int:
     """
     current_offset: int = _driver().execute_script("return window.pageYOffset")
     _driver().execute_script("window.scrollBy(0, window.innerHeight)")
-    time.sleep(0.3)
+    wait_time = config.get_scroll_wait_time()
+    time.sleep(wait_time)
     after_scroll_offset: int = _driver().execute_script("return window.pageYOffset")
     return after_scroll_offset > current_offset
 

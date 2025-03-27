@@ -25,6 +25,7 @@ The following properties are supported:
 | `failure_screenshot_dir` | string | `reports/html-report/images` | Determines the directory, in which screenshots will be stored, that are taken when an error happens. |
 | `driver_page_load_timeout` | int | `30` | Timeout in seconds to wait until a web page has been loaded. |
 | `driver_implicit_timeout` | int | `5` | Seconds to wait for any web elements to appear, disappear, or transform into an expected state. |
+| `driver_scroll_wait_time` | int | `0.6` | Seconds to wait after a page scroll. This also applies for wait intervals between screenshots of the whole page. |
 | `driver_operating_system` | `win` \| `macos` \| `linux` \| `android` \| `ios` | `macos` | Determines on which OS the tests should run. |
 | `driver_operating_system_version` | string | `None` \| `Windows 11` \| `macOS 13` | Some drivers need the OS version, but it is not needed for local tests. |
 | `driver_platform` | `local` \| `saucelabs` | `local` | Whether the driver should connect to a remote device cloud provider. At the moment, [SauceLabs](https://saucelabs.com/) is the only supported service provider. |
