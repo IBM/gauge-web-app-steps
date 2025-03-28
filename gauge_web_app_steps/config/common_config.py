@@ -77,12 +77,12 @@ def get_browser(default=Browser.FIREFOX) -> Browser:
     return Browser(config_browser)
 
 
-def get_implicit_timeout(default=5) -> int:
-    return int(os.environ.get("driver_implicit_timeout", default))
+def get_implicit_timeout(default=5) -> float:
+    return float(os.environ.get("driver_implicit_timeout", default))
 
 
-def get_scroll_wait_time(default=0.6) -> int:
-    return int(os.environ.get("driver_scroll_wait_time", default))
+def get_scroll_wait_time(default=0.7) -> float:
+    return float(os.environ.get("driver_scroll_wait_time", default))
 
 
 def get_operating_system(default=OperatingSystem.MACOS) -> OperatingSystem:

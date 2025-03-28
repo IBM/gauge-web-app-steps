@@ -1107,7 +1107,8 @@ def assert_pages_resemble(image_file_name_param: str, threshold_param: str, page
         expected_screenshot_full_path = create_expected_screenshot_file_path(image_file_name, page)
         page += 1
         send_keys("PAGE_DOWN")
-        time.sleep(0.6)
+        wait_time = config.get_scroll_wait_time()
+        time.sleep(wait_time)
         if not os.path.isfile(expected_screenshot_full_path):
             failed_asserts.append("screenshot {} does not exist".format(expected_screenshot_full_path))
         else:
