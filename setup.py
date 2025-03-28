@@ -9,7 +9,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='gauge-web-app-steps',
-    version='0.65',
+    version='0.66',
     description='Provides basic steps for a Gauge project, that runs tests with Selenium and Appium',
     long_description=long_description,
     long_description_content_type='text/markdown',
