@@ -32,10 +32,6 @@ def is_auto_grant_permissions() -> bool:
     return os.environ.get("driver_app_auto_grant_permissions", "False").lower() in ("true", "1")
 
 
-def get_driver_cache_days(default = 365) -> int:
-    return int(os.environ.get("driver_cache_days", default))
-
-
 def is_debug_log() -> bool:
     return os.environ.get("debug_log", "False").lower() in ("true", "1")
 
@@ -118,9 +114,6 @@ def get_custom_args() -> list:
     return [arg.strip() for arg in args_prop.split(",") if arg.strip()]
 
 
-def is_driver_binary_copy() -> bool:
-    return os.environ.get("driver_binary_copy", "false").lower() in ("true", "1")
-
-
-def is_selenium4_driver_manager() -> bool:
-    return os.environ.get("driver_manager_selenium4", "false").lower() in ("true", "1")
+def get_driver_executable_path() -> str | None:
+    exec_path = os.environ.get("driver_executable_path")
+    return exec_path.strip() if exec_path else None

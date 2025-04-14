@@ -13,7 +13,7 @@ Development on native app testing has only just started.
 
 ## Description
 
-This is an extensible and flexible test-automation library for [Gauge](https://gauge.org). It enables users with and without programming knowledge to create end-to-end test scenarios in [Markdown](https://www.markdownguide.org/) syntax. Developers can still easily extend their test scenarios with custom code. Selenium and Appium are used to simulate user interaction with the browser. A wide range of platforms and browsers are supported. Tests can also be executed on devices and emulators in the [SauceLabs](https://saucelabs.com) cloud.
+This is an extensible and flexible test-automation library for [Gauge](https://gauge.org). It enables users with and without programming knowledge to create end-to-end test scenarios in [Markdown](https://www.markdownguide.org/) syntax. Developers can still easily extend their test scenarios with custom code. Selenium and Appium are used to simulate user interaction with the browser or app. A wide range of platforms and browsers are supported. Tests can also be executed on devices and emulators in the [SauceLabs](https://saucelabs.com) cloud.
 
 ## Gauge Step Overview
 
@@ -30,15 +30,15 @@ This is a library for the Gauge framework, so Gauge+Python must be installed fir
 
 It is useful to understand the basic workings of Gauge first. The [documentation](https://docs.gauge.org/?os=macos&language=python&ide=vscode) is excellent.
 
-* Install [this module](#installation)
-* Find out the path to this module after installation:
-  It should be in `<project>/<venv>/lib/python/site-packages/gauge-web-app-steps`
+* Install the [gauge-web-app-steps](#installation) module
+* Find out the path to this module after installation:\
+  It should be in `<project>/virtualenvironment/lib/python/site-packages/gauge-web-app-steps`
 * Add that path to the property `STEP_IMPL_DIR` inside the test project file `env/default/python.properties`. Paths to multiple modules are comma separated.\
   Example on a Mac:
   ```
-  STEP_IMPL_DIR = /Users/<user>/gauge-project/venv/lib/python/site-packages/gauge_web_app_steps, step_impl
+  STEP_IMPL_DIR = /<gauge-project-path>/virtualenvironment/lib/python/site-packages/gauge_web_app_steps, step_impl
   ```
-* Reload Visual Studio Code
+* Restart Visual Studio Code
 * Write a new scenario in `specs/example.spec`. VSC offers **auto-completion**
 
 ## Installation
@@ -47,28 +47,28 @@ First, create a virtual environment in your Gauge project directory.
 
 ```shell
 cd <project>
-python -m venv <venvname>
-source <venvname>/bin/activate
+python -m venv virtualenvironment
+source virtualenvironment/bin/activate
 ```
 
 The Gauge module loader does not like dots `.` in directories, so a link must be created in the virtual environment for the python packages:
 
 ```shell
-cd <project>/<venvname>
+cd <project>/virtualenvironment
 ln -sf python3.13 python
 ```
 
-Afterwards, this module can be installed from source:
+Afterwards, the latest version can be downloaded and installed from [PyPi](https://pypi.org/project/gauge-web-app-steps/):
+
+```shell
+pip install gauge-web-app-steps --upgrade
+```
+
+Alternatively, it can also be installed from source:
 
 ```shell
 cd path/to/gauge-web-app-steps
-pip install --user .
-```
-
-Or the latest package can be downloaded and installed from [PyPi](https://pypi.org/project/gauge-web-app-steps/):
-
-```shell
-pip install gauge-web-app-steps --user --upgrade
+pip install .
 ```
 
 ## Development

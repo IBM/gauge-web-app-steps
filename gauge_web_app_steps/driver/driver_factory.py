@@ -4,8 +4,6 @@
 #
 
 from __future__ import annotations
-import shutil
-import tempfile
 import os
 from abc import ABC, abstractmethod
 from appium.options.android import UiAutomator2Options
@@ -30,13 +28,6 @@ from selenium.webdriver.ie.webdriver import WebDriver as Ie
 from selenium.webdriver.safari.options import Options as SafariOptions
 from selenium.webdriver.safari.service import Service as SafariService
 from selenium.webdriver.safari.webdriver import WebDriver as Safari
-from webdriver_manager.chrome import ChromeDriverManager as ChromeManager
-from webdriver_manager.core.driver_cache import DriverCacheManager as DriverCache
-from webdriver_manager.core.manager import DriverManager
-from webdriver_manager.firefox import GeckoDriverManager as GeckoManager
-from webdriver_manager.microsoft import EdgeChromiumDriverManager as EdgeManager
-from webdriver_manager.microsoft import IEDriverManager as IeManager
-from webdriver_manager.opera import OperaDriverManager as OperaManager
 
 from ..config import common_config as config
 from ..config import local_config
@@ -103,26 +94,7 @@ class LocalDriverFactory(DriverFactory):
         operating_system = config.get_operating_system()
         assert browser.is_supported(operating_system), f"Browser {browser} not supported by {operating_system}."
         browser_options = self._create_options()
-        if config.is_selenium4_driver_manager():
-            executable_path = None
-        else:
-            cache = DriverCache(valid_range=config.get_driver_cache_days())
-            manager: DriverManager = {
-                Browser.CHROME: lambda: ChromeManager(cache_manager=cache),
-                Browser.EDGE: lambda: EdgeManager(cache_manager=cache),
-                Browser.FIREFOX: lambda: GeckoManager(cache_manager=cache),
-                Browser.INTERNET_EXPLORER: lambda: IeManager(cache_manager=cache),
-                Browser.OPERA: lambda: OperaManager(cache_manager=cache),
-                Browser.SAFARI: lambda: None
-            }[browser]()
-            if manager is not None:
-                driver_path=manager.install()
-                executable_path = driver_path
-                if config.is_driver_binary_copy():
-                    driver_name = os.path.basename(f"{driver_path}_")
-                    tmp_file = tempfile.NamedTemporaryFile(prefix=driver_name) # auto-deletes after program exit
-                    executable_path = tmp_file.name
-                    shutil.copy(driver_path, executable_path)
+        executable_path = config.get_driver_executable_path()
         service = {
             Browser.CHROME: lambda: ChromeService(executable_path=executable_path),
             Browser.EDGE: lambda: EdgeService(executable_path=executable_path),

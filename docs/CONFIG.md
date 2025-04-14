@@ -37,9 +37,7 @@ The following properties are supported:
 | `driver_browser` | `chrome` \| `firefox` \| `safari` \| `edge` \| `internet explorer` \| `opera` | `firefox` | The browser, in which tests should run. |
 | `driver_platform_local_headless`| boolean | `false` | When `driver_platform` = `local`, then tests can be run in headless mode. |
 | `driver_custom_args` | string | `None` | Optional custom driver arguments, that are appended to the browser options, f.i. `incognito` for chrome browsers. Multiple arguments can be comma-separated. |
-| `driver_manager_selenium4` | boolean | `false` | Recommended value: `true`. Only for local tests. Use the build-in driver manager of Selenium 4 (this will be the default, soon) instead of the standard third party 'webdriver-manager'. This might help solve issues with parallel test executions, when `driver_binary_copy` does not work. Does not work with Opera. |
-| `driver_cache_days` | int | 365 | Only for local tests. Only for `driver_manager_selenium4 = false`: number of days, before the driver manager will invalidate the cache and make a renewal request. |
-| `driver_binary_copy` | boolean | `false` | Only for local tests. Only for `driver_manager_selenium4 = false`. The driver binary will be copied to a unique temporary file for each parallel process. This is a workaround for parallel selenium driver executions. Use it if you experience errors in parallel test runs. |
+| `driver_executable_path` | string \| None | The optional path to a local driver. If not specified, Selenium will automatically resolve the driver. |
 
 ## Appium
 
