@@ -13,19 +13,19 @@ It is also recommended to install [Python from the Windows App Store](https://ap
 **Error message:**
 
 ```
-ImportError: dlopen(/Users/\<user>/Library/Python/3.10/lib/python/site-packages/grpc/_cython/cygrpc.cpython-310-darwin.so, 0x0002): tried: ‘/Users/\<user>/Library/Python/3.10/lib/python/site-packages/grpc/_cython/cygrpc.cpython-310-darwin.so’ (mach-o file, but is an incompatible architecture (have ‘x86_64’, need ‘arm64e’)), ‘/usr/local/lib/cygrpc.cpython-310-darwin.so’ (no such file), ‘/usr/lib/cygrpc.cpython-310-darwin.so’ (no such file)
+ImportError: dlopen(/\<installation-path>/site-packages/grpc/_cython/cygrpc.cpython-310-darwin.so, 0x0002): tried: ‘/\<installation-path>/site-packages/grpc/_cython/cygrpc.cpython-310-darwin.so’ (mach-o file, but is an incompatible architecture (have ‘x86_64’, need ‘arm64e’)), ‘/usr/local/lib/cygrpc.cpython-310-darwin.so’ (no such file), ‘/usr/lib/cygrpc.cpython-310-darwin.so’ (no such file)
 ```
 
 Type the following:
 
 ```shell
-pip install --user --no-binary :all: grpcio --ignore-installed
+pip install --no-binary :all: grpcio --ignore-installed
 ```
 
 **Error message:**
 
 ```
-WARNING: Ignoring invalid distribution -rpcio (/Users/\<user>/Library/Python/3.10/lib/python/site-packages)
+WARNING: Ignoring invalid distribution -rpcio (/\<installation-path>/site-packages)
 ```
 
 Type the following, one after the other:
@@ -33,7 +33,7 @@ Type the following, one after the other:
 ```shell
 pip install --upgrade pip
 python -m pip install --upgrade setuptools
-pip install --no-cache-dir --force-reinstall -Iv grpcio==1.46.0
+pip install --no-cache-dir --force-reinstall -Iv grpcio==1.68.1
 ```
 
 ## Issues with Protobuf
@@ -49,13 +49,13 @@ pip install --no-cache-dir --force-reinstall -Iv grpcio==1.46.0
 Type the following:
 
 ```shell
-pip install --user protobuf==3.20.1
+pip install protobuf==3.20.1
 ```
 
-## Windows and Selenium
+## Windows and Appium / Selenium
 
-On Windows machines, the installation of the selenium dependency might fail.
-The Selenium tar package must be downloaded from here:
+On Windows machines, the installation of the Selenium or Appium dependencies might fail.
+The Appium tar package must be downloaded from here:
 
 **https://pypi.org/project/Appium-Python-Client/**
 
@@ -71,22 +71,7 @@ tar -xvf Appium-Python-Client*
 Install it:
 
 ```shell
-python setup.py install --user
+python setup.py install
 ```
 
 Then, try again to install this module.
-
-
-## Failing Driver Download
-
-**Error message:**
-
-```
-There is no such driver by url https://chromedriver.storage.googleapis.com/109.0.5414.74/chromedriver_mac64_m1.zip
-```
-
-Solution: Update the library, that downloads and caches the drivers:
-
-```shell
-pip install --upgrade --user webdriver-manager
-```

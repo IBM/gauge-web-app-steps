@@ -47,7 +47,6 @@ class TestWebAppStepsIT(unittest.TestCase):
             "driver_browser": cls.browser,
             "driver_platform_local_headless": "False",
             "driver_implicit_timeout": "7",
-            "driver_manager_selenium4": "True"
         })
         cls.env_patcher.start()
         before_spec_hook(MagicMock())
