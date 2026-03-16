@@ -272,14 +272,15 @@ Support
 > \* Register authentication "\${user}": "\${password} for "https://.*\\.herokuapp\\.com/basic_auth"
 
 Open pages, that match the given `regexp` in the same specification with the given credentials.
-That means that subsequent steps like `* Open "https://the-internet.herokuapp.com/basic_auth"` will use those credentials automatically. This functionality is not yet supported by all browsers and might fail when the driver tries to open the page.
+That means that subsequent steps like `* Open "https://the-internet.herokuapp.com/basic_auth"` will use those credentials automatically. This functionality is realized differently with different browsers. Chrome and Edge are able to set the Basic Auth header with the "Chrome DevTools Protocol", while other browsers need to execute an "XMLHttpRequest" with JavaScript and Basic Auth, before opening the page with the driver. 
+In the latter case, another arbitrary page must already be open, before attempting to open the Basic Auth protected page, so that the JavaScript snippet can run.
 **Use placeholders and a credentials manager, so that credentials are not stored as plain text in your project.**
 
 Support
 
 |Desktop|Android (Chrome)|iOS (Safari)|Android (Native)|iOS (Native)|
 |:-----:|:--------------:|:----------:|:--------------:|:----------:|
-|Chrome |       ?        |     x      |       ?        |     ?      |
+|Chrome, Edge (others with workaround) |       ?        |     ?      |       ?        |     ?      |
 
 ## Remove authentication for \<regexp>
 
