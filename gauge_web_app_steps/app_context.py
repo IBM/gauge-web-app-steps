@@ -32,7 +32,7 @@ class AppContext:
         self.driver = self._create_driver(spec.name, suite_id)
         try:
             capabilities = self.driver.capabilities
-        except AttributeError, KeyError:
+        except AttributeError:
             capabilities = "unknown"
         self.report.log(f"Capabilities: {capabilities}")
         self.image_path = ImagePath(config.get_browser().value, config.is_headless())
