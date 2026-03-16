@@ -215,16 +215,27 @@ def open_page(page_param: str) -> None:
     basic_auth_list = data_store.spec.get(basic_auth_key, [])
     webdriver = driver()
     uses_basic_auth = False
-    for regexp, authorization in basic_auth_list:
+    for regexp, username, password in basic_auth_list:
         if re.match(regexp, page):
             uses_basic_auth = True
             report().log(f"URL matches `{regexp}` - using basic auth")
-            # ToDo: rewrite this, when the BiDi API is more mature and there is a way to
-            # reuse the connection over multiple Gauge steps with async/trio.
-            webdriver.execute_cdp_cmd("Network.enable", {})
-            webdriver.execute_cdp_cmd("Network.setExtraHTTPHeaders", ({"headers": {"Authorization": f"Basic {authorization}"}}))
-            webdriver.get(page)
-            webdriver.execute_cdp_cmd("Network.disable", {})
+            if config.get_browser() in (Browser.CHROME, Browser.EDGE):
+                # ToDo: rewrite this, when the BiDi API is more mature and there is a way to
+                # reuse the connection over multiple Gauge steps with async/trio.
+                authorization = base64.b64encode(f"{username}:{password}".encode("utf-8")).decode("ascii")
+                webdriver.execute_cdp_cmd("Network.enable", {})
+                webdriver.execute_cdp_cmd("Network.setExtraHTTPHeaders", ({"headers": {"Authorization": f"Basic {authorization}"}}))
+                webdriver.get(page)
+                webdriver.execute_cdp_cmd("Network.disable", {})
+            else:
+                username = username.replace('\\', '\\\\').replace("'", "\\'")
+                password = password.replace('\\', '\\\\').replace("'", "\\'")
+                driver().execute_script(f"""
+                    const xhr = new XMLHttpRequest();
+                    xhr.open('GET', '{page}', false, '{username}', '{password}');
+                    xhr.send();
+                """)
+                webdriver.get(page)
             break
     if not uses_basic_auth:
         webdriver.get(page)
@@ -252,9 +263,8 @@ def register_basic_auth_for_regexp(user_param: str, password_param: str, regexp_
     username = substitute(user_param)
     password = substitute(password_param)
     regexp = substitute(regexp_param)
-    authorization = base64.b64encode(f"{username}:{password}".encode("utf-8")).decode("ascii")
     auth_list = data_store.spec.get(basic_auth_key, [])
-    auth_list.append((regexp, authorization, ))
+    auth_list.append((regexp, username, password,))
     data_store.spec[basic_auth_key] = auth_list
 
 

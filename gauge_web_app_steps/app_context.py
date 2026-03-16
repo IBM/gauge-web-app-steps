@@ -30,6 +30,11 @@ class AppContext:
         self._report_driver_options()
         spec : Specification = ctx.specification
         self.driver = self._create_driver(spec.name, suite_id)
+        try:
+            capabilities = self.driver.capabilities
+        except AttributeError:
+            capabilities = "unknown"
+        self.report.log(f"Capabilities: {capabilities}")
         self.image_path = ImagePath(config.get_browser().value, config.is_headless())
         self.images = Images(self.report)
         self.diff_formats = config.get_diff_formats()
