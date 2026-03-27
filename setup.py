@@ -25,7 +25,7 @@ setup(
         'scikit-image==0.26.0',
         'selenium==4.41.0',
         'webcolors==25.10.0',
-        'requests==2.32.5',
+        'requests==2.33.0',
     ],
     zip_safe=False
 )
