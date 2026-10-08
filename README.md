@@ -135,3 +135,7 @@ It is also possible to define a property in a step:
 ## Maintainers
 
 [Maintainers](./docs/MAINTAINERS.md)
+
+## Security
+
+[Security](./docs/SECURITY.md)
