@@ -3,15 +3,15 @@
 # SPDX-License-Identifier: MIT
 #
 
-import numexpr
 import os
 import uuid
-
+from collections.abc import Callable
+from datetime import UTC, datetime
 from string import Template
-from numpy import array2string
-from typing import Callable
-from datetime import datetime
+
+import numexpr
 from getgauge.python import data_store
+from numpy import array2string
 
 
 def substitute(gauge_param: str) -> str:
@@ -67,8 +67,8 @@ def _evaluate_expression(expression: str) -> str:
         else:
             raise ValueError(f"unsupported substitute {expression}")
         if format is None:
-            return datetime.now().isoformat()
+            return datetime.now(UTC).isoformat()
         else:
-            return datetime.now().strftime(format)
+            return datetime.now(UTC).strftime(format)
     else:
         raise ValueError(f"unsupported substitute {expression}")

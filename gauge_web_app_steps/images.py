@@ -5,23 +5,23 @@
 
 import os
 import re
+from warnings import warn
+
 import numpy as np
 import webcolors
-
-from webcolors import HTML4
-from warnings import warn
-from skimage import img_as_ubyte
 from skimage import color as skimg_color
 from skimage import exposure as skimg_exposure
+from skimage import img_as_ubyte
 from skimage import io as skimg_io
 from skimage import transform as skimg_transform
 from skimage import util as skimg_util
 from skimage.metrics import structural_similarity as compare_ssim
+from webcolors import HTML4
 
 from .report import Report
 
 
-class Images(object):
+class Images:
     """
     Functionality around image processing and comparison.
     """
@@ -54,7 +54,7 @@ class Images(object):
         img = skimg_io.imread(screenshot_file_path)
         img = self._crop_image(img, location, size, pixel_ratio, viewport_offset)
         skimg_io.imsave(screenshot_file_path, img, check_contrast=False)
-        self.report.log_image_info("screenshot {}".format(screenshot_file_path), img)
+        self.report.log_image_info(f"screenshot {screenshot_file_path}", img)
 
     def _crop_image(
             self,
@@ -65,12 +65,12 @@ class Images(object):
             viewport_offset
     ):
         if pixel_ratio != 1:
-            self.report.log("pixel ratio is %s" % (pixel_ratio,))
+            self.report.log(f"pixel ratio is {pixel_ratio}")
         start_x = int(location["x"]) * pixel_ratio
         start_y = int(location["y"]) * pixel_ratio - viewport_offset
         end_x = start_x + int(size["width"]) * pixel_ratio
         end_y = start_y + int(size["height"]) * pixel_ratio
-        self.report.log("cropping image to element dimensions {}x{}".format((end_x - start_x), (end_y - start_y)))
+        self.report.log(f"cropping image to element dimensions {end_x - start_x}x{end_y - start_y}")
         cropped_image = image[start_y: end_y, start_x: end_x]
         return cropped_image
 
@@ -115,7 +115,7 @@ class Images(object):
         if ssim < 1.0:
             self._save_diff_image(expected_screenshot_full_path, actual_screenshot_full_path, output_path,
                                   diff_images, img_list)
-        self.report.log_debug("SSIM: {}\n".format(ssim))
+        self.report.log_debug(f"SSIM: {ssim}\n")
         return ssim
 
     def _align_alpha_channel_of_actual_image(self, img_expected: np.ndarray, img_actual: np.ndarray) -> np.ndarray:
@@ -138,7 +138,7 @@ class Images(object):
             return img_actual
 
     def _img_has_alpha(self, img: np.ndarray):
-        height, width, color = img.shape
+        _height, _width, color = img.shape
         # 4 bytes of color information indicates RGBa, 3 would be without.
         return color == 4
 
@@ -155,7 +155,7 @@ class Images(object):
         rescale_ratio = self._compute_rescale_ratio(img, img_reference)
         if rescale_ratio == 1.0:
             return img
-        self.report.log("rescaling image by ratio {} to fit expected image size".format(rescale_ratio))
+        self.report.log(f"rescaling image by ratio {rescale_ratio} to fit expected image size")
         img_rescaled = skimg_transform.rescale(
             img,
             rescale_ratio,
@@ -182,7 +182,7 @@ class Images(object):
             return 1.0
         height_ratio = 1.0 * reference_height / actual_height
         width_ratio = 1.0 * reference_width / actual_width
-        return height_ratio if height_ratio < width_ratio else width_ratio
+        return min(width_ratio, height_ratio)
 
     def _pad_images(
             self,

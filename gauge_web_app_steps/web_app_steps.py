@@ -10,14 +10,13 @@ import sys
 import time
 import traceback
 import urllib
+from itertools import filterfalse
 from uuid import uuid4
 
-from itertools import filterfalse
-from typing import Tuple
-from getgauge.python import data_store, step, before_spec, after_spec, custom_screenshot_writer, before_suite, after_suite, before_step, ExecutionContext
+from appium.webdriver import Remote as AppiumRemote
+from getgauge.python import ExecutionContext, after_spec, after_suite, before_spec, before_step, before_suite, custom_screenshot_writer, data_store, step
 from selenium.common.exceptions import JavascriptException, NoSuchWindowException, TimeoutException, WebDriverException
 from selenium.webdriver import Remote
-from appium.webdriver import Remote as AppiumRemote
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as EC
@@ -25,16 +24,23 @@ from selenium.webdriver.support import expected_conditions as EC
 from .app_context import AppContext, app_context_key, timeout_key
 from .config import common_config as config
 from .driver.browsers import Browser
-from .element_lookup import find_element, find_elements, find_attribute, get_text_from_element, get_marker, wait_until, wait_for_idle_element
+from .element_lookup import find_attribute, find_element, find_elements, get_marker, get_text_from_element, wait_for_idle_element, wait_until
 from .keymapper import KeyMapper
 from .report import Report
 from .sauce_tunnel import SauceTunnel
+from .screenshot import (
+    append_structured_similarity,
+    create_actual_screenshot_file_path,
+    create_expected_screenshot_file_path,
+    create_failure_screenshot,
+    create_screenshot,
+    crop_image,
+    get_structured_similarity_to_expected,
+    ssim_screenshot_noscrolling,
+    ssim_screenshot_scrolling,
+)
 from .selector import SelectKey, Selector
-from .screenshot import (append_structured_similarity, create_screenshot, create_failure_screenshot, 
-                        create_actual_screenshot_file_path, create_expected_screenshot_file_path, crop_image,
-                        get_structured_similarity_to_expected, ssim_screenshot_scrolling, ssim_screenshot_noscrolling)
 from .substitute import substitute
-
 
 # Repeat an action a number of times before failing
 max_attempts = 12
@@ -50,9 +56,9 @@ def before_suite_hook() -> None:
         data_store.suite[suite_id_key] = str(uuid4())
     except BaseException as e:
         # Gauge swallows some exceptions, so they are handled here
-        print(f"An exception occured while SauceConnect initiated: {str(e)}", file=sys.stderr)
+        print(f"An exception occured while SauceConnect initiated: {e!s}", file=sys.stderr)
         traceback.print_exception(e)
-        raise e
+        raise
 
 
 @after_suite
@@ -61,9 +67,9 @@ def after_suite_hook() -> None:
         SauceTunnel.terminate()
     except BaseException as e:
         # Gauge swallows some exceptions, so they are handled here
-        print(f"An exception occured while SauceConnect terminated: {str(e)}", file=sys.stderr)
+        print(f"An exception occured while SauceConnect terminated: {e!s}", file=sys.stderr)
         traceback.print_exception(e)
-        raise e
+        raise
 
 
 @before_spec
@@ -74,9 +80,9 @@ def before_spec_hook(exe_ctx: ExecutionContext) -> None:
         data_store.spec[app_context_key] = app_ctx
     except BaseException as e:
         # Gauge swallows some exceptions, so they are handled here
-        print(f"An exception occured while instantiating the driver: {str(e)}", file=sys.stderr)
+        print(f"An exception occured while instantiating the driver: {e!s}", file=sys.stderr)
         traceback.print_exception(e)
-        raise e
+        raise
 
 
 @after_spec
@@ -88,15 +94,15 @@ def after_spec_hook() -> None:
             app_ctx.driver.quit()
     except BaseException as e:
         # Gauge swallows some exceptions, so they are handled here
-        print(f"An exception occured while closing the driver: {str(e)}", file=sys.stderr)
+        print(f"An exception occured while closing the driver: {e!s}", file=sys.stderr)
         traceback.print_exception(e)
-        raise e
+        raise
 
 
 @before_step
 def before_step_hook(exe_ctx:  ExecutionContext) -> None:
     step_text = exe_ctx.step.text
-    def warn_using_deprecated_step(step_text: str, mapping: Tuple[str]) -> None:
+    def warn_using_deprecated_step(step_text: str, mapping: tuple[str]) -> None:
         match = re.fullmatch(mapping[0], step_text)
         if match is not None:
             new_step = mapping[1].replace("<by>", match.group(1)).replace("<by_value>", match.group(2))
@@ -114,7 +120,7 @@ def take_screenshot_on_failure() -> str:
         screenshot_file_path = create_failure_screenshot()
         #report().log_image(screenshot_file_path, "Step Failure Screenshot")
         return screenshot_file_path
-    except Exception as e:
+    except (WebDriverException, OSError) as e:
         report().log(str(e))
         return None
 
@@ -132,7 +138,7 @@ def wait_for(secs_param: str) -> None:
 def wait_for_window(secs_param: str, placeholder_name_param: str) -> None:
     secs = substitute(secs_param)
     placeholder_name = substitute(placeholder_name_param)
-    assert placeholder_name in data_store.scenario.keys(), "Expected saved window handles. Did you use '* Save window handles'?"
+    assert placeholder_name in data_store.scenario, "Expected saved window handles. Did you use '* Save window handles'?"
     time.sleep(float(secs))
     wh_now = driver().window_handles
     #previous saved window handles
@@ -164,8 +170,8 @@ def window_size(width_param: str, height_param: str) -> None:
         outer_width = inner_width
     if outer_height == 0:
         outer_height = inner_height
-    report().log_debug("outer width: {}, inner width: {}, width: {}, outer height: {}, inner height: {}, height: {}"\
-        .format(outer_width, inner_width, width, outer_height, inner_height, height))
+    report().log_debug(f"outer width: {outer_width}, inner width: {inner_width}, width: {width}, outer height: {outer_height}, inner height: {inner_height}, height: {height}"\
+        )
     driver().set_window_size(outer_width - inner_width + width, outer_height - inner_height + height)
     _page_ready()
 
@@ -222,7 +228,7 @@ def open_page(page_param: str) -> None:
             if config.get_browser() in (Browser.CHROME, Browser.EDGE):
                 # ToDo: rewrite this, when the BiDi API is more mature and there is a way to
                 # reuse the connection over multiple Gauge steps with async/trio.
-                authorization = base64.b64encode(f"{username}:{password}".encode("utf-8")).decode("ascii")
+                authorization = base64.b64encode(f"{username}:{password}".encode()).decode("ascii")
                 webdriver.execute_cdp_cmd("Network.enable", {})
                 webdriver.execute_cdp_cmd("Network.setExtraHTTPHeaders", ({"headers": {"Authorization": f"Basic {authorization}"}}))
                 webdriver.get(page)
@@ -252,7 +258,7 @@ def open_page_for_user_and_password(page_param: str, user_param: str, password_p
     page = page[len(prefix):]
     user = urllib.parse.quote_plus(substitute(user_param))
     password = urllib.parse.quote_plus(substitute(password_param))
-    url = "{}{}:{}@{}".format(prefix, user, password, page)
+    url = f"{prefix}{user}:{password}@{page}"
     driver().get(url)
     _init_opened_page(page)
 
@@ -1120,7 +1126,7 @@ def assert_pages_resemble(image_file_name_param: str, threshold_param: str, page
         wait_time = config.get_scroll_wait_time()
         time.sleep(wait_time)
         if not os.path.isfile(expected_screenshot_full_path):
-            failed_asserts.append("screenshot {} does not exist".format(expected_screenshot_full_path))
+            failed_asserts.append(f"screenshot {expected_screenshot_full_path} does not exist")
         else:
             append_structured_similarity(failed_asserts, expected_screenshot_full_path, actual_screenshot_full_path, threshold)
     assert len(failed_asserts) == 0,\

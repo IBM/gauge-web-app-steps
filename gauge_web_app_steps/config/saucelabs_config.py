@@ -5,10 +5,8 @@
 
 import os
 
-from typing import Optional
 
-
-def get_appium_version() -> Optional[str]:
+def get_appium_version() -> str | None:
     return os.environ.get("driver_platform_saucelabs_mobile_appium_version")
 
 
@@ -16,19 +14,19 @@ def get_browser_version(default="latest") -> str:
     return os.environ.get("driver_platform_saucelabs_desktop_browser_version", default)
 
 
-def get_device_name() -> Optional[str]:
+def get_device_name() -> str | None:
     return os.environ.get("driver_platform_saucelabs_mobile_device_name")
 
 
-def get_executor() -> Optional[str]:
+def get_executor() -> str | None:
     return os.environ.get("driver_platform_saucelabs_executor")
 
 
-def get_test_title() -> Optional[str]:
+def get_test_title() -> str | None:
     return os.environ.get("driver_platform_saucelabs_test_title")
 
 
-def get_build() -> Optional[str]:
+def get_build() -> str | None:
     return os.environ.get("driver_platform_saucelabs_build")
 
 
@@ -48,17 +46,17 @@ def get_sauce_path() -> str:
     return os.environ.get("SAUCE_PATH", "sc")
 
 
-def get_sauce_user_name() -> Optional[str]:
+def get_sauce_user_name() -> str | None:
     return os.environ.get("SAUCE_USERNAME")
 
 
-def get_sauce_access_key() -> Optional[str]:
+def get_sauce_access_key() -> str | None:
     return os.environ.get("SAUCE_ACCESS_KEY")
 
 
-def get_tunnel_name() -> Optional[str]:
+def get_tunnel_name() -> str | None:
     return os.environ.get("SAUCE_TUNNEL_NAME")
 
 
-def get_sauce_api_address() -> Optional[str]:
+def get_sauce_api_address() -> str | None:
     return os.environ.get("SAUCE_API_ADDRESS", "127.0.0.1:8080")

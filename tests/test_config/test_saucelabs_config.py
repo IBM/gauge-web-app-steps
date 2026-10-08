@@ -5,7 +5,6 @@
 
 import os
 import unittest
-
 from unittest.mock import patch
 
 from gauge_web_app_steps.config import saucelabs_config

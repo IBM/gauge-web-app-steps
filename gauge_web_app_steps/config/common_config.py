@@ -4,8 +4,6 @@
 #
 
 import os
-
-from typing import Optional
 from warnings import warn
 
 from ..driver import Browser, OperatingSystem, Platform
@@ -16,15 +14,15 @@ def is_app_test() -> bool:
         or os.environ.get("driver_app_package") is not None
 
 
-def get_app_location() -> Optional[str]:
+def get_app_location() -> str | None:
     return os.environ.get("driver_app_location")
 
 
-def get_app_package() -> Optional[str]:
+def get_app_package() -> str | None:
     return os.environ.get("driver_app_package")
 
 
-def get_app_activity() -> Optional[str]:
+def get_app_activity() -> str | None:
     return os.environ.get("driver_app_activity")
 
 
@@ -86,7 +84,7 @@ def get_operating_system(default=OperatingSystem.MACOS) -> OperatingSystem:
     return OperatingSystem.parse(config_os)
 
 
-def get_operating_system_version() -> Optional[str]:
+def get_operating_system_version() -> str | None:
     return os.environ.get("driver_operating_system_version")
 
 

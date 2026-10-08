@@ -4,6 +4,7 @@
 #
 
 from enum import Enum
+
 from selenium.webdriver.support.select import Select
 
 

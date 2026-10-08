@@ -3,22 +3,35 @@
 # SPDX-License-Identifier: MIT
 #
 
-import unittest
 import os
 import time
+import unittest
+from unittest.mock import Mock, call, patch
 
 from getgauge.python import data_store
-from unittest.mock import Mock, call, patch
 
 from gauge_web_app_steps.app_context import app_context_key, timeout_key
 from gauge_web_app_steps.web_app_steps import (
     answer_in_prompt,
-    assert_element_does_not_exist, assert_element_exists, assert_element_is_enabled,
+    assert_element_does_not_exist,
+    assert_element_exists,
+    assert_element_is_enabled,
     before_step_hook,
-    execute_async_script, execute_async_script_on_element, execute_async_script_on_element_save_result, execute_async_script_save_result,
-    execute_script, execute_script_on_element, execute_script_on_element_save_result, execute_script_save_result,
-    reset_timeout, save_placeholder, save_window_handles, save_window_title, set_timeout, switch_to_frame,
-    wait_for_window
+    execute_async_script,
+    execute_async_script_on_element,
+    execute_async_script_on_element_save_result,
+    execute_async_script_save_result,
+    execute_script,
+    execute_script_on_element,
+    execute_script_on_element_save_result,
+    execute_script_save_result,
+    reset_timeout,
+    save_placeholder,
+    save_window_handles,
+    save_window_title,
+    set_timeout,
+    switch_to_frame,
+    wait_for_window,
 )
 
 

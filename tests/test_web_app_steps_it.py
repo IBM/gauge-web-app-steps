@@ -3,31 +3,58 @@
 # SPDX-License-Identifier: MIT
 #
 
-import os
 import glob
+import os
 import shutil
 import unittest
-
-from getgauge.python import data_store
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from gauge_web_app_steps.web_app_steps import (
-    suite_id_key,
-    after_spec_hook, accept_alert, answer_in_prompt,
-    assert_attribute_contains, assert_attribute_does_not_contain, assert_attribute_equals, assert_attribute_exists,
-    assert_dialog_text, assert_element_exists, assert_element_does_not_exist,
-    assert_element_is_selected, assert_element_is_not_selected, assert_selected_option,
-    assert_text_contains, assert_text_does_not_contain, assert_text_does_not_equal, assert_text_equals,
-    assert_title, assert_whole_page_resembles,
-    before_spec_hook, check_element, click_element, double_click_element, driver,
-    hover_over, move_into_view, move_out_of_view, mouse_down, mouse_up, open_page,
-    save_placeholder_from_element, save_placeholder_from_element_attribute,
-    select_option, switch_to_frame, switch_to_window,
-    take_screenshots_of_whole_page, type_string, uncheck_element, wait_for
+from getgauge.python import data_store
 
-)
 from gauge_web_app_steps.driver import Browser
+from gauge_web_app_steps.web_app_steps import (
+    accept_alert,
+    after_spec_hook,
+    answer_in_prompt,
+    assert_attribute_contains,
+    assert_attribute_does_not_contain,
+    assert_attribute_equals,
+    assert_attribute_exists,
+    assert_dialog_text,
+    assert_element_does_not_exist,
+    assert_element_exists,
+    assert_element_is_not_selected,
+    assert_element_is_selected,
+    assert_selected_option,
+    assert_text_contains,
+    assert_text_does_not_contain,
+    assert_text_does_not_equal,
+    assert_text_equals,
+    assert_title,
+    assert_whole_page_resembles,
+    before_spec_hook,
+    check_element,
+    click_element,
+    double_click_element,
+    driver,
+    hover_over,
+    mouse_down,
+    mouse_up,
+    move_into_view,
+    move_out_of_view,
+    open_page,
+    save_placeholder_from_element,
+    save_placeholder_from_element_attribute,
+    select_option,
+    suite_id_key,
+    switch_to_frame,
+    switch_to_window,
+    take_screenshots_of_whole_page,
+    type_string,
+    uncheck_element,
+    wait_for,
+)
 
 
 @unittest.skipIf(os.environ.get("TEST_SKIP_IT", "0") == "1", "TEST_SKIP_IT env variable is set")

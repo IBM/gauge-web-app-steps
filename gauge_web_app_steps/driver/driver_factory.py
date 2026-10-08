@@ -4,14 +4,15 @@
 #
 
 from __future__ import annotations
+
 import os
 from abc import ABC, abstractmethod
+
 from appium.options.android import UiAutomator2Options
 from appium.options.common import AppiumOptions
 from appium.options.ios import XCUITestOptions
-from appium.webdriver.webdriver import WebDriver as MobileRemote
 from appium.webdriver import Remote as NativeRemote
-from selenium.webdriver.remote.webdriver import WebDriver as Remote
+from appium.webdriver.webdriver import WebDriver as MobileRemote
 from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.chrome.webdriver import WebDriver as Chrome
@@ -25,13 +26,13 @@ from selenium.webdriver.firefox.webdriver import WebDriver as Firefox
 from selenium.webdriver.ie.options import Options as IeOptions
 from selenium.webdriver.ie.service import Service as IeService
 from selenium.webdriver.ie.webdriver import WebDriver as Ie
+from selenium.webdriver.remote.webdriver import WebDriver as Remote
 from selenium.webdriver.safari.options import Options as SafariOptions
 from selenium.webdriver.safari.service import Service as SafariService
 from selenium.webdriver.safari.webdriver import WebDriver as Safari
 
 from ..config import common_config as config
-from ..config import local_config
-from ..config import saucelabs_config
+from ..config import local_config, saucelabs_config
 from .browsers import Browser
 from .operating_system import OperatingSystem, SaucelabsOperatingSystem
 
@@ -346,11 +347,11 @@ class SaucelabsDriverFactory(DriverFactory):
             "8": SaucelabsOperatingSystem.WINDOWS_8,
             "7": SaucelabsOperatingSystem.WINDOWS_7,
         }
-        return version.get(operating_system_version, SaucelabsOperatingSystem.WINDOWS_DEFAULT).value
+        return version.get(operating_system_version, SaucelabsOperatingSystem.WINDOWS_11).value
 
     def _get_macos_platform_name(self, operating_system_version: str) -> str:
         if operating_system_version is None:
-            return SaucelabsOperatingSystem.MACOS_DEFAULT.value
+            return SaucelabsOperatingSystem.MACOS_14.value
         operating_system_version = operating_system_version.lower()
         versions = {
             "14": SaucelabsOperatingSystem.MACOS_14,

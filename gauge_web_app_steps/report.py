@@ -4,12 +4,12 @@
 #
 
 import os
-
 from collections.abc import Iterable
-from getgauge.python import Messages, ExecutionContext
+
+from getgauge.python import ExecutionContext, Messages
 
 
-class Report(object):
+class Report:
     """
     Here you find methods related to writing to gauge reports.
     """
@@ -51,7 +51,7 @@ class Report(object):
         rel_path_report_to_image = os.path.relpath(image_file_path, spec_report_dir)
         html_rel_path = rel_path_report_to_image.replace('\\', '/')
         Messages.write_message(
-            "<a href='{0}'><img src='{0}' height='165'/></a><label>{1}</label>".format(html_rel_path, label))
+            f"<a href='{html_rel_path}'><img src='{html_rel_path}' height='165'/></a><label>{label}</label>")
 
     def log_image_info(self, name, image) -> None:
         """
@@ -62,15 +62,19 @@ class Report(object):
         if not self.debug:
             return
         self.log()
-        self.log("Image Info: %s" % (name,))
-        self.log("Size: %sx%s" % (len(image[0]), len(image),))
+        self.log(f"Image Info: {name}")
+        w = len(image[0])
+        h = len(image)
+        self.log(f"Size: {w}x{h}")
         depth = 1
         channel = image
         while isinstance(channel, Iterable):
-            self.log("Channel %s length: %s" % (depth, len(channel),))
+            channel_length = len(channel)
+            self.log(f"Channel {depth} length: {channel_length}")
             if not isinstance(channel[0], Iterable):
-                self.log("Last channel values excerpt: [%s]" % (", ".join([str(i) for i in channel]),))
+                channel_excerpt = ", ".join([str(i) for i in channel])
+                self.log(f"Last channel values excerpt: [{channel_excerpt}]")
             channel = channel[0]
             depth += 1
-        self.log("Channels: %s" % (depth,))
+        self.log(f"Channels: {depth}")
         self.log()
