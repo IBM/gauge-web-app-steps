@@ -3,27 +3,26 @@
 # SPDX-License-Identifier: MIT
 #
 
-import os
 import errno
-
-from datetime import datetime
+import os
+from datetime import UTC, datetime
 from string import Template
 
 from .config import common_config as config
 
 
-class ImagePath(object):
+class ImagePath:
 
     def __init__(self, browser: str, headless: bool):
         self.browser_name = browser
         self.headless = headless
 
     def create_failure_screenshot_file_path(self) -> str:
-        now = datetime.now()
+        now = datetime.now(UTC)
         date_str = now.strftime("%Y-%m-%d_%H-%M-%S-%f")
 
         failure_screenshot_dir = self._create_screenshot_dir(config.get_failure_screenshot_dir())
-        screenshot_file = "fail_{}.png".format(date_str)
+        screenshot_file = f"fail_{date_str}.png"
         screenshot_file_path = os.path.join(failure_screenshot_dir, screenshot_file)
         return screenshot_file_path
 
@@ -32,7 +31,7 @@ class ImagePath(object):
         Creates a new file name in the screenshot directory.
         The directory will be created if it does not exist yet.
         """
-        file_name = image_file_name if image_file_name.endswith(".png") else "{}.png".format(image_file_name)
+        file_name = image_file_name if image_file_name.endswith(".png") else f"{image_file_name}.png"
         return "/".join((self._screenshot_dir(), self._filename(file_name),))
 
     def create_actual_screenshot_file_path(self, image_file_name: str, running_number=None) -> str:
@@ -67,7 +66,7 @@ class ImagePath(object):
 
     def _time_str(self) -> str:
         time_pattern = config.get_time_pattern()
-        now = datetime.now()
+        now = datetime.now(UTC)
         date_str = now.strftime(time_pattern)
         return date_str
 
@@ -82,7 +81,7 @@ class ImagePath(object):
                 "browser" : self.browser_name,
                 "time"    : self._time_str(),
         })
-        return subs if subs.endswith(".png") else "{}.png".format(subs)
+        return subs if subs.endswith(".png") else f"{subs}.png"
 
     def _screenshot_dir(self) -> str:
         return self._create_screenshot_dir(config.get_screenshot_dir())
@@ -107,5 +106,4 @@ class ImagePath(object):
             # the directory might already exist. If not it is created.
             if e.errno != errno.EEXIST:
                 raise
-            pass
         return dir_

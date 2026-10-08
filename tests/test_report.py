@@ -6,9 +6,9 @@
 import os
 import pathlib
 import unittest
+from unittest.mock import patch
 
 from getgauge.python import ExecutionContext, Specification
-from unittest.mock import patch
 
 from gauge_web_app_steps.report import Report
 
@@ -16,7 +16,7 @@ from gauge_web_app_steps.report import Report
 class TestReport(unittest.TestCase):
 
     def test_spec_html_report_dir(self):
-        this_directory = str(pathlib.Path().resolve())
+        this_directory = str(pathlib.Path.cwd())
         spec = Specification("Test Spec", os.path.join(this_directory, "resources", "test_file.spec"), False, "")
         context = ExecutionContext(spec, None, None)
         self.report = Report(context=context)

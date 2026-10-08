@@ -41,7 +41,6 @@ class OperatingSystem(Enum):
 
 class SaucelabsOperatingSystem(Enum):
 
-    MACOS_DEFAULT = "macOS 14"
     MACOS_14 = "macOS 14"
     MACOS_13 = "macOS 13"
     MACOS_12 = "macOS 12"
@@ -53,7 +52,6 @@ class SaucelabsOperatingSystem(Enum):
     MACOS_10_11 = "macOS 10.11"
     MACOS_10_10 = "macOS 10.10"
 
-    WINDOWS_DEFAULT = "Windows 11"
     WINDOWS_11 = "Windows 11"
     WINDOWS_10 = "Windows 10"
     WINDOWS_8_1 = "Windows 8.1"

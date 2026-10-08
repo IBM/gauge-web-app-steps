@@ -5,10 +5,10 @@
 
 import os
 import time
+from collections.abc import Iterable
 
 from getgauge.python import data_store
 from selenium.webdriver import Remote
-from typing import Iterable
 
 from .app_context import app_context_key
 from .config import common_config as config
@@ -34,7 +34,7 @@ def ssim_screenshot_noscrolling(image_file_name: str, threshold: float) -> Itera
     _driver().save_full_page_screenshot(actual_screenshot_full_path)
     expected_screenshot_full_path = _image_path().create_expected_screenshot_file_path(image_file_name)
     if not os.path.isfile(expected_screenshot_full_path):
-        failed_asserts.append("screenshot {} does not exist".format(expected_screenshot_full_path))
+        failed_asserts.append(f"screenshot {expected_screenshot_full_path} does not exist")
     else:
         append_structured_similarity(failed_asserts, expected_screenshot_full_path, actual_screenshot_full_path, threshold)
     return failed_asserts
@@ -51,7 +51,7 @@ def ssim_screenshot_scrolling(image_file_name: str, threshold: float) -> Iterabl
         should_continue = _scroll() and postfix <= 32
         postfix += 1
         if not os.path.isfile(expected_screenshot_full_path):
-            failed_asserts.append("screenshot {} does not exist".format(expected_screenshot_full_path))
+            failed_asserts.append(f"screenshot {expected_screenshot_full_path} does not exist")
         else:
             append_structured_similarity(failed_asserts, expected_screenshot_full_path, actual_screenshot_full_path, threshold)
     return failed_asserts
@@ -61,7 +61,7 @@ def append_structured_similarity(asserts: list, expected_screenshot: str, actual
     diff_formats = config.get_diff_formats()
     ssim = _images().adapt_and_compare_images(expected_screenshot, actual_screenshot, diff_formats)
     if ssim < threshold:
-        asserts.append("SSIM {} is less than threshold {} for {}".format(ssim, threshold, actual_screenshot))
+        asserts.append(f"SSIM {ssim} is less than threshold {threshold} for {actual_screenshot}")
 
 
 def get_structured_similarity_to_expected(image_file_name: str, location: int, size: int, pixel_ratio: int, viewport_offset: int):

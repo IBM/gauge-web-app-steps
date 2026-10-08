@@ -5,6 +5,7 @@
 
 import unittest
 from unittest.mock import MagicMock
+
 from gauge_web_app_steps.selector import SelectKey, Selector
 
 

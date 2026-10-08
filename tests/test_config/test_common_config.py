@@ -5,9 +5,9 @@
 
 import os
 import unittest
+from unittest.mock import patch
 
 from parameterized import parameterized
-from unittest.mock import patch
 
 from gauge_web_app_steps.config import common_config as config
 from gauge_web_app_steps.driver import Browser, OperatingSystem, Platform

@@ -5,17 +5,17 @@
 
 import os
 import unittest
+from pathlib import Path
+from unittest.mock import patch
 
 from appium.webdriver import Remote as MobileRemote
 from parameterized import parameterized
-from pathlib import Path
 from selenium.webdriver import Chrome, Firefox, Remote
 from selenium.webdriver.common.by import By
-from unittest.mock import patch
 
 from gauge_web_app_steps.driver.browsers import Browser
-from gauge_web_app_steps.driver.operating_system import OperatingSystem
 from gauge_web_app_steps.driver.driver_factory import LocalDriverFactory, RemoteDriverFactory, SaucelabsDriverFactory
+from gauge_web_app_steps.driver.operating_system import OperatingSystem
 from tests import TEST_OUT_DIR
 
 

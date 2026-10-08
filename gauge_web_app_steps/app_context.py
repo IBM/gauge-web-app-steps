@@ -6,12 +6,12 @@
 from getgauge.python import ExecutionContext, Specification
 from selenium.webdriver import Remote
 
+from .config import common_config as config
+from .config import local_config, saucelabs_config
 from .driver import Browser, DriverFactory
 from .imagepaths import ImagePath
 from .images import Images
 from .report import Report
-from .config import common_config as config
-from .config import local_config, saucelabs_config
 
 app_context_key = "_app_ctx"
 timeout_key = "_timeout"
@@ -21,7 +21,7 @@ class AppContext:
     Context objects are created and kept here.
     """
 
-    def __init__(self, ctx: ExecutionContext = None, suite_id: str = None) -> None:
+    def __init__(self, ctx: ExecutionContext = None, suite_id: str = "") -> None:
         """Initiates objects used in the basic steps."""
         if ctx is None:
             # getgauge's loading mechanism might try to instantiate the class before the lib is ready.

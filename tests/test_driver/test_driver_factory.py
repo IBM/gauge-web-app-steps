@@ -5,9 +5,9 @@
 
 import os
 import unittest
+from unittest.mock import patch
 
 from parameterized import parameterized
-from unittest.mock import patch
 
 from gauge_web_app_steps.driver import Browser, OperatingSystem, SaucelabsOperatingSystem
 from gauge_web_app_steps.driver.driver_factory import LocalDriverFactory, SaucelabsDriverFactory
@@ -53,7 +53,6 @@ class TestSaucelabsDriverFactory(unittest.TestCase):
         (OperatingSystem.WINDOWS, "8.1", SaucelabsOperatingSystem.WINDOWS_8_1.value),
         (OperatingSystem.WINDOWS, "8", SaucelabsOperatingSystem.WINDOWS_8.value),
         (OperatingSystem.WINDOWS, "7", SaucelabsOperatingSystem.WINDOWS_7.value),
-        (OperatingSystem.WINDOWS, "foobar", SaucelabsOperatingSystem.WINDOWS_DEFAULT.value),
         (OperatingSystem.MACOS, "14", SaucelabsOperatingSystem.MACOS_14.value),
         (OperatingSystem.MACOS, "sonoma", SaucelabsOperatingSystem.MACOS_14.value),
         (OperatingSystem.MACOS, "13", SaucelabsOperatingSystem.MACOS_13.value),

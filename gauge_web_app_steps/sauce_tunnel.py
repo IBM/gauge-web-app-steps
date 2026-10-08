@@ -4,14 +4,14 @@
 #
 
 import os
-import requests
 import subprocess
 import time
 
+import requests
 from getgauge.python import data_store
 
-from .config import saucelabs_config
 from .config import common_config as config
+from .config import saucelabs_config
 from .driver.platform import Platform
 
 
@@ -36,7 +36,7 @@ class SauceTunnel:
                 time.sleep(2)
             except requests.RequestException:
                 time.sleep(2)
-        raise Exception("Sauce Connect tunnel could not be established")
+        raise RuntimeError("Sauce Connect tunnel could not be established")
 
     @staticmethod
     def start():

@@ -4,25 +4,23 @@
 #
 
 import time
+from collections.abc import Callable
+from dataclasses import dataclass
+from typing import Any
 
 from appium.webdriver.webelement import WebElement as AppiumElement
-from dataclasses import dataclass
-from typing import Any, Callable, List, TypeVar
 from getgauge.python import data_store
+from selenium.common.exceptions import TimeoutException, WebDriverException
 from selenium.webdriver import Remote
 from selenium.webdriver.common.by import By
-from selenium.common.exceptions import TimeoutException, WebDriverException
-from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.remote.webelement import WebElement
+from selenium.webdriver.support.ui import WebDriverWait
 
 from .app_context import AppContext, app_context_key, timeout_key
 from .bymapper import ByMapper
 from .config import common_config as config
 from .report import Report
 from .substitute import substitute
-
-
-T = TypeVar('T')
 
 
 def find_element(by_param: str, by_value_param: str, immediately=False) -> WebElement | None:
@@ -38,7 +36,7 @@ def find_element(by_param: str, by_value_param: str, immediately=False) -> WebEl
         return wait_until(lambda driver: driver.find_element(*marker))
 
 
-def find_elements(by_param: str, by_value_param: str, immediately=False) -> List[WebElement] | None:
+def find_elements(by_param: str, by_value_param: str, immediately=False) -> list[WebElement] | None:
     by = substitute(by_param)
     by_value = substitute(by_value_param)
     marker = get_marker(by, by_value)
@@ -113,7 +111,7 @@ def wait_for_idle_element(by: str, by_value: str):
         _report().log_debug(f"element {element} keeps moving after scrolling into view")
 
 
-def wait_until(condition: Callable[[Remote], T], message: str = "") -> T:
+def wait_until[T](condition: Callable[[Remote], T], message: str = "") -> T:
     timeout = data_store.scenario.get(timeout_key, config.get_implicit_timeout())
     return WebDriverWait(_driver(), timeout=timeout, poll_frequency=0.25, ignored_exceptions=[WebDriverException])\
         .until(condition, message)

@@ -5,18 +5,16 @@
 
 import os
 
-from typing import Optional
 
-
-def get_mobile_appium_server_url() -> Optional[str]:
+def get_mobile_appium_server_url() -> str | None:
     return os.environ.get("driver_platform_local_mobile_appium_server_url")
 
 
-def get_mobile_device_name() -> Optional[str]:
+def get_mobile_device_name() -> str | None:
     return os.environ.get("driver_platform_local_mobile_device_name")
 
 
-def get_mobile_device_udid() -> Optional[str]:
+def get_mobile_device_udid() -> str | None:
     return os.environ.get("driver_platform_local_mobile_device_udid")
 
 

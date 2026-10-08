@@ -3,17 +3,18 @@
 # SPDX-License-Identifier: MIT
 #
 
-import numpy as np
 import os
 import shutil
 import unittest
-from numpy import uint8
-from skimage import img_as_ubyte, io
 from unittest.mock import MagicMock
+
+import numpy as np
+from numpy import uint8
 from parameterized import parameterized
+from skimage import img_as_ubyte, io
 
 from gauge_web_app_steps.images import Images
-from tests import TEST_RESOURCES_DIR, TEST_OUT_DIR
+from tests import TEST_OUT_DIR, TEST_RESOURCES_DIR
 
 
 class TestImages(unittest.TestCase):
